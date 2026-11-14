@@ -1,0 +1,91 @@
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans-kr/400.css";
+@import "@fontsource/ibm-plex-sans-kr/500.css";
+@import "@fontsource/ibm-plex-sans-kr/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "tailwindcss";
+
+/*
+ * 디자인 토큰. 값의 원본은 Figma Foundations다.
+ * 간격은 Tailwind 기본 단계를 쓴다: 4px=1, 8px=2, 16px=4, 24px=6, 32px=8, 48px=12, 64px=16.
+ * 글자 크기는 기본 단계와 겹치는 것을 그대로 쓴다:
+ *   Label 12/16 = text-xs, Body 14/20 = text-sm, Body 16/24 = text-base, Title 20/28 = text-xl.
+ */
+@theme {
+  /* 글꼴: 영문은 Plex Sans, 한글은 Plex Sans KR로 넘어간다 */
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans KR", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* 글자 크기: 기본 단계에 없는 것만 */
+  --text-title-lg: 1.75rem;
+  --text-title-lg--line-height: 2.25rem;
+  --text-display: 3rem;
+  --text-display--line-height: 3.75rem;
+  --text-number: 6rem;
+  --text-number--line-height: 6rem;
+
+  /* 둥근 모서리 */
+  --radius-cell: 4px;
+  --radius-control-sm: 8px;
+  --radius-control: 12px;
+  --radius-card: 24px;
+
+  /* 색: 역할 */
+  --color-page: #f5f5f7;
+  --color-surface: #ffffff;
+  --color-inverse: #1d1d1f;
+  --color-inverse-hover: #2c2c2e;
+  --color-ink: #202022;
+  --color-muted: #66666e;
+  --color-border: #dfdfe5;
+  --color-selection: #005aae;
+  --color-fire: #f68c3e;
+  --color-action: #0066cc;
+  --color-row-hover: #f5f5f7;
+  --color-row-selected: #e8f1fc;
+
+  /* 색: 히트맵 8단계 (낮은 값 → 높은 값) */
+  --color-heat-0: #faf7f0;
+  --color-heat-1: #fff5d6;
+  --color-heat-2: #fde3a7;
+  --color-heat-3: #fbc46e;
+  --color-heat-4: #f59e42;
+  --color-heat-5: #e8702a;
+  --color-heat-6: #c8471e;
+  --color-heat-7: #8e2a14;
+
+  /* 색: 지도 면 5단계 */
+  --color-map-0: #edeeeb;
+  --color-map-1: #ffd7a7;
+  --color-map-2: #ff993a;
+  --color-map-3: #c84810;
+  --color-map-4: #7f2d12;
+
+  /* 색: 지도 점 (첫 감지일, +1일, +2일, +3일~) */
+  --color-dot-0: #ffffff;
+  --color-dot-1: #ffe58c;
+  --color-dot-2: #ff8e3c;
+  --color-dot-3: #f46b72;
+
+  /* 색: 막대 그라데이션 (위 → 아래) */
+  --color-bar-raw-from: #54a0f8;
+  --color-bar-raw-to: #0c6fd2;
+  --color-bar-harmonized-from: #f4873b;
+  --color-bar-harmonized-to: #e26224;
+
+  /* 색: 평가 칩 */
+  --color-chip-record: #c8471e;
+  --color-chip-above: #f59e42;
+  --color-chip-normal: #edeae4;
+  --color-chip-below: #e9f2ec;
+  --color-chip-below-ink: #2f6e50;
+}
+
+@layer base {
+  body {
+    @apply bg-page font-sans text-base text-ink antialiased;
+  }
+}
