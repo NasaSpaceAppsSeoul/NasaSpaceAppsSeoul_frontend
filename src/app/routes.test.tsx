@@ -1,15 +1,10 @@
-import { cleanup, render, screen } from "@testing-library/react";
-import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, screen, within } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { localeFromPath } from "../lib/locale";
-import { routes } from "./routes";
-
-afterEach(cleanup);
+import { renderRoute } from "../test/render";
 
 function renderAt(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
-  render(<RouterProvider router={router} />);
-  return router;
+  return renderRoute(path).router;
 }
 
 function heading() {
@@ -82,5 +77,76 @@ describe("routes", () => {
     renderAt("/en/nope");
     expect((await heading()).textContent).toBe("Page not found");
     expect(screen.getByRole("link", { name: "Back to start" }).getAttribute("href")).toBe("/en");
+  });
+});
+
+describe("주소 값 검사 (decisions 1-5)", () => {
+  it.each([
+    ["소문자 나라 코드", "/dashboard/kor"],
+    ["없는 나라 코드", "/dashboard/JPN"],
+    ["형식이 틀린 달", "/dashboard/KOR?month=2025-3"],
+    ["13월", "/dashboard/KOR?month=2025-13"],
+    ["빈 달", "/dashboard/KOR?month="],
+    ["인사이트의 없는 나라 코드", "/insight/USA/abc?month=2025-03"],
+    ["인사이트의 형식이 틀린 달", "/en/insight/KOR/abc?month=202503"],
+  ])("%s는 없는 주소 안내를 보여 준다", async (_name, path) => {
+    renderAt(path);
+    const title = path.startsWith("/en") ? "Page not found" : "페이지를 찾을 수 없습니다";
+    expect((await heading()).textContent).toBe(title);
+  });
+
+  it("맞는 나라와 달은 화면을 그린다", async () => {
+    renderAt("/dashboard/CAL?month=2025-03");
+    expect((await heading()).textContent).toBe("대시보드");
+  });
+});
+
+describe("머리글", () => {
+  it("언어 전환 링크는 같은 화면의 다른 언어 주소이고 달과 해시를 들고 간다", async () => {
+    renderAt("/dashboard/KOR?month=2025-03#calendar");
+    await heading();
+    const language = screen.getByRole("group", { name: "언어" });
+    expect(within(language).getByRole("link", { name: "EN" }).getAttribute("href")).toBe(
+      "/en/dashboard/KOR?month=2025-03#calendar",
+    );
+    expect(within(language).getByRole("link", { name: "KR" }).getAttribute("aria-current")).toBe("true");
+  });
+
+  it("한글 지역 ID 주소를 두 번 인코딩하지 않는다", async () => {
+    const encoded = encodeURIComponent("경북");
+    renderAt(`/en/dashboard/KOR/${encoded}?month=2025-03`);
+    await heading();
+    const link = screen.getByRole("link", { name: "KR" });
+    expect(link.getAttribute("href")).toBe(`/dashboard/KOR/${encoded}?month=2025-03`);
+  });
+
+  it("메뉴는 지금 화면을 표시한다. 월간 인사이트는 대시보드로 본다", async () => {
+    renderAt("/en/insight/KOR/abc?month=2025-03");
+    await heading();
+    const nav = screen.getByRole("navigation", { name: "Main menu" });
+    expect(within(nav).getByRole("link", { name: "Dashboard" }).getAttribute("aria-current")).toBe("page");
+    expect(within(nav).getByRole("link", { name: "About" }).getAttribute("aria-current")).toBeNull();
+    cleanup();
+
+    renderAt("/");
+    await heading();
+    const koNav = screen.getByRole("navigation", { name: "주 메뉴" });
+    expect(within(koNav).getByRole("link", { name: "소개" }).getAttribute("aria-current")).toBe("page");
+  });
+});
+
+describe("목 모드 표시 줄과 푸터", () => {
+  it("목 모드에서 표시 줄을 띄우고, 푸터에 /meta의 출처와 처리일을 넣는다", async () => {
+    renderAt("/dashboard/CAL");
+    await heading();
+    expect(screen.getByRole("note").textContent).toBe("목 데이터로 표시 중");
+    expect(await screen.findByText("출처: NASA FIRMS · geoBoundaries USA (미국 인구조사국, 퍼블릭 도메인) · CAL FIRE")).toBeTruthy();
+    expect(screen.getByText("데이터 처리일 2026-11-11")).toBeTruthy();
+  });
+
+  it("나라가 없는 소개 화면의 푸터는 한국 /meta를 쓴다", async () => {
+    renderAt("/en");
+    await heading();
+    expect(await screen.findByText("Sources: NASA FIRMS · geoBoundaries (CC BY 3.0) · 산림청")).toBeTruthy();
   });
 });

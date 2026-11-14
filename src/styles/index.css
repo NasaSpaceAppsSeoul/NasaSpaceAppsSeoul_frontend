@@ -82,6 +82,18 @@
   --color-chip-normal: #edeae4;
   --color-chip-below: #e9f2ec;
   --color-chip-below-ink: #2f6e50;
+
+  /* 색: 둥근 색조 배지 5가지 (바탕, 글자). components/sheet/05-charts-badges.png 맨 아래에서 뽑음 */
+  --color-tone-orange: #fff0e2;
+  --color-tone-orange-ink: #9a3412;
+  --color-tone-green: #ddf6e9;
+  --color-tone-green-ink: #166534;
+  --color-tone-blue: #e4f0ff;
+  --color-tone-blue-ink: #0758a5;
+  --color-tone-red: #fee7e2;
+  --color-tone-red-ink: #9f2d1a;
+  --color-tone-yellow: #fff3d6;
+  --color-tone-yellow-ink: #785016;
 }
 
 @layer base {
