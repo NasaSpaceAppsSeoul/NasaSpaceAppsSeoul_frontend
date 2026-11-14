@@ -106,8 +106,12 @@ describe("/geo", () => {
     expect((await geo("/BC/geo?level=prov")).features).toEqual([]);
   });
 
-  it("한국 시·도 경계는 아직 목에 없다(4장)", async () => {
-    expect(await caught(mockGet("/KOR/geo?level=prov"))).toMatchObject({ status: 404, code: "NOT_FOUND" });
+  it("한국 시·도 경계 17곳의 ID는 /regions의 시·도 ID와 같고, 상위 ID는 나라다", async () => {
+    const prov = await geo("/KOR/geo?level=prov");
+    const provIds = (await regions("/KOR/regions?level=prov")).items.map((r) => r.id);
+    expect([...ids(prov)].sort()).toEqual([...provIds].sort());
+    expect(prov.features.every((f) => f.properties.province === f.properties.id)).toBe(true);
+    expect(ids(await geo("/KOR/geo?level=prov&parent=KOR"))).toHaveLength(17);
   });
 
   it("잘못된 level은 400 INVALID_PARAM", async () => {
@@ -136,7 +140,7 @@ describe("목에 없는 요청 (decisions 10-6)", () => {
   });
 
   it("목에 아직 없는 경로는 NOT_FOUND이고 message로 구분한다", async () => {
-    const error = await caught(mockGet("/KOR/map?month=2025-03"));
+    const error = await caught(mockGet("/KOR/top?month=2025-03"));
     expect(error).toMatchObject({ status: 404, code: "NOT_FOUND" });
     expect(error instanceof ApiError && error.message.startsWith("mock: not implemented")).toBe(true);
   });
