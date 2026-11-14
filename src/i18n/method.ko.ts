@@ -131,7 +131,7 @@ export const methodKo = {
     },
   },
   // 나라 탭(그림마다 따로 고른다, 8-3). 순서는 `lib/country`의 나라 목록
-  countryTabs: { label: "나라 고르기", KOR: "한국", CAL: "캘리포니아", BC: "BC" },
+  countryTabs: { label: "나라 고르기", KOR: "한국", CAL: "캘리포니아", BC: "BC", GRC: "그리스", CHL: "칠레", NSW: "NSW" },
   cell: {
     index: "03",
     toc: "화재 칸",

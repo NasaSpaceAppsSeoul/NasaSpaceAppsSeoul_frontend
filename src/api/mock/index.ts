@@ -13,10 +13,13 @@ import { ApiError } from "../client";
 import type { GeoFeatureCollection, RegionSummary, RegionsResponse } from "../types";
 import { bc } from "./bc";
 import { cal } from "./cal";
+import { chl } from "./chl";
+import { grc } from "./grc";
 import { mockBaseline } from "./baseline-route";
 import { mockInsight } from "./insight-route";
 import { isLevel } from "./guards";
 import { kor } from "./kor";
+import { nsw } from "./nsw";
 import { mockLanding } from "./landing";
 import { mockMap } from "./map-route";
 import { mockRegionDetail } from "./detail-route";
@@ -93,7 +96,7 @@ function route(table: MockTable, path: string): unknown {
     if (mock === undefined) throw new ApiError(404, "COUNTRY_NOT_READY", `country not ready: ${code}`);
     return mock.meta;
   }
-  // 세 나라 모두 목이 있다(캘리포니아·BC는 기법 페이지 그림용, `api/mock/landing.ts`)
+  // 여섯 지역 모두 목이 있다(한국 밖은 기법 페이지 그림용, `api/mock/landing.ts`)
   const landing = resource === "landing" && id === undefined && mock !== undefined ? mockLanding(country) : null;
   if (landing !== null) return landing;
   if (resource === "regions" && id === undefined) return regions(mock, url.searchParams);
@@ -117,4 +120,4 @@ export function createMockGet(table: MockTable, delayMs = DEFAULT_DELAY_MS) {
   };
 }
 
-export const mockGet = createMockGet({ KOR: kor, CAL: cal, BC: bc });
+export const mockGet = createMockGet({ KOR: kor, CAL: cal, BC: bc, GRC: grc, CHL: chl, NSW: nsw });

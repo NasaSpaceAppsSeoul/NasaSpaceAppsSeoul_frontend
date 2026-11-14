@@ -140,7 +140,7 @@ export const methodEn: MethodMessages = {
       ],
     },
   },
-  countryTabs: { label: "Choose a region", KOR: "South Korea", CAL: "California", BC: "BC" },
+  countryTabs: { label: "Choose a region", KOR: "South Korea", CAL: "California", BC: "BC", GRC: "Greece", CHL: "Chile", NSW: "NSW" },
   cell: {
     index: "03",
     toc: "Fire cells",

@@ -151,7 +151,7 @@ export const en: Messages = {
   },
   notFound: {
     title: "Page not found",
-    body: "Check the address. The country is one of KOR, CAL or BC, and the month is written like 2025-03.",
+    body: "Check the address. The country is one of KOR, CAL, BC, GRC, CHL or NSW, and the month is written like 2025-03.",
     home: "Back to start",
   },
   routeError: {
@@ -201,11 +201,18 @@ export const en: Messages = {
     KOR: "Republic of Korea",
     CAL: "California",
     BC: "British Columbia",
+    GRC: "Greece",
+    CHL: "Chile",
+    NSW: "New South Wales",
   },
+  // 백엔드에 영문 단계 이름이 없다. GRC·CHL은 서버 `/regions`의 구역 수로 단계를 대조한다(9장)
   levelNames: {
     KOR: { lv1: "Province", lv2: "District" },
     CAL: { lv1: "State", lv2: "County" },
     BC: { lv1: "Province", lv2: "Regional district" },
+    GRC: { lv1: "Region", lv2: "Municipality" },
+    CHL: { lv1: "Region", lv2: "Municipality" },
+    NSW: { lv1: "State", lv2: "Local government area" },
   },
   dashboard: {
     unit: "fire grid-days",
@@ -423,7 +430,14 @@ export const en: Messages = {
     zoom: { in: "Zoom in", out: "Zoom out", reset: "Reset view" },
     hint: "Zoom + / − · hover dots",
     attribution: {
-      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
+      boundary: {
+        KOR: "geoBoundaries",
+        CAL: "geoBoundaries USA",
+        BC: "BC Data Catalogue",
+        GRC: "geoBoundaries GRC",
+        CHL: "geoBoundaries CHL",
+        NSW: "geoBoundaries AUS",
+      },
       time: { "UTC+9": "local date (UTC+9)", solar: "local solar date" },
       line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
     },

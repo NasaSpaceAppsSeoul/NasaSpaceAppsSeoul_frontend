@@ -1,5 +1,5 @@
 /*
- * 목 `/landing` (`H-landing.md`). 소개 화면은 한국 고정(`decisions.md` 2-7)이고, 캘리포니아·BC는 기법 페이지의 나라 탭 그림용이다
+ * 목 `/landing` (`H-landing.md`). 소개 화면은 한국 고정(`decisions.md` 2-7)이고, 한국 밖 다섯 지역은 기법 페이지의 나라 탭 그림용이다
  * (`plans/method-page.md` 9절 ④).
  *
  * 백엔드 기대값(`api-test/spec_test.py` 758–777행): `stats` 세 개의 값, `official_break` 2.67→1.04,
@@ -14,7 +14,10 @@ import type { Country } from "../../lib/country";
 import type { Landing } from "../types";
 import { bc } from "./bc";
 import { cal } from "./cal";
+import { chl } from "./chl";
+import { grc } from "./grc";
 import { kor, korMeta } from "./kor";
+import { nsw } from "./nsw";
 import { mockSeries } from "./series-route";
 
 const YEARS = Array.from({ length: 25 }, (_, i) => 2001 + i);
@@ -79,13 +82,21 @@ function korLanding(): Landing {
  * - `stats`: 대표 달·배수·순위는 시안 값(CAL 2020-09 15.94배, BC 2023-05 22.03배), BC 피해면적 기록은 `H-landing.md` H-2.
  *   CAL 피해면적 기록은 확인한 값이 없어 `null`(지어내지 않음). 위험 시기는 시안 08절.
  * 9장에서 서버 응답으로 바꾼다.
+ *
+ * 그리스·칠레·NSW (9장): `annual`, `detect_by_size`, `official_break`, `break_test`, 위험 시기는 서버 `/landing` 응답
+ * (2026-11-15, 백엔드 `abfd9fe` 전 빌드). 대표 달은 백엔드 `LandingService.java`의 달(GRC 2007-08·CHL 2023-02·NSW 2019-12)이고,
+ * 그 옛 빌드는 대표 달이 없어 배수·칸·순위가 `null`이었다 → 목도 `null`(그림 제목의 배수는 `/series`에서 읽는다).
+ * 그리스는 공식 기록 단절 비율과 감지율이 비어 왔다(`null`, 빈 배열). 재배포 뒤 서버 값과 다시 맞춘다.
  */
 const DETECT_BINS = ["0.1 ha 미만", "0.1~1", "1~10", "10~100", "100 ha 이상"];
-const detect = (rows: readonly (readonly [number, number, number])[]): Landing["detect_by_size"] =>
+const detect = (rows: readonly (readonly [number, number | null, number | null])[]): Landing["detect_by_size"] =>
   rows.map(([n, detected, chance], i) => ({ bin: DETECT_BINS[i] ?? "", n, detected, chance }));
 
-function regionLanding(country: "CAL" | "BC"): Landing {
-  const meta = country === "CAL" ? cal.meta : bc.meta;
+type RegionCountry = Exclude<Country, "KOR">;
+const REGION_META = { CAL: cal.meta, BC: bc.meta, GRC: grc.meta, CHL: chl.meta, NSW: nsw.meta } satisfies Record<RegionCountry, unknown>;
+
+function regionLanding(country: RegionCountry): Landing {
+  const meta = REGION_META[country];
   const r = REGION_LANDING[country];
   return {
     country,
@@ -125,7 +136,43 @@ const REGION_LANDING = {
       { key: "risk_share", value: 0.51, months: [7, 8] },
     ],
   },
-} satisfies Record<"CAL" | "BC", {
+  GRC: {
+    before: [1638, 725, 1359, 1826, 1523, 1186, 4874, 2298, 1407, 754, 2265, 4199, 3899, 2975, 3064, 3655, 2949, 1833, 2478, 2452, 3309, 2313, 3665, 2022, 1899],
+    after: [10323.5, 2342, 3672.1, 4957.7, 4316.9, 3172.2, 11642.9, 6218, 3513.3, 2005.8, 6126, 4460.2, 4129.8, 3163.1, 3281.4, 3902.5, 3170.4, 1978.3, 2617, 2580, 3606, 2506, 3706, 2284, 1928],
+    detect: detect([]),
+    official: { source: "그리스 소방청", before: null, after: null, inconclusive: false },
+    breakTest: { before: { ratio: 0.98, ci95: [0.95, 1.02] }, after: { ratio: 1.01, ci95: [0.98, 1.04] }, jump_raw: 2.8 },
+    stats: [
+      { key: "burned_area_record", year: null, value: null, source: "그리스 소방청", unit: "ha" },
+      { key: "case_month_ratio", month: "2007-08", value: null, cells: null, rank: null, n: null },
+      { key: "risk_share", value: null, months: [] },
+    ],
+  },
+  CHL: {
+    before: [834, 1203, 4083, 4786, 5197, 4204, 4704, 5328, 5403, 4629, 4363, 8934, 10682, 9942, 14334, 10226, 18091, 9983, 10186, 10905, 9777, 11290, 18873, 8608, 10541],
+    after: [7902.7, 7224.7, 9801.6, 10883.2, 12244.2, 9892.7, 11174.9, 12367.8, 12363.7, 11319.9, 10030.2, 9921.4, 10743.8, 9863.6, 14212.8, 10260.7, 17684.8, 9858.9, 10241, 10985, 9987, 10972, 17847, 8804, 10483],
+    detect: detect([[0, null, null], [0, null, null], [0, null, null], [0, null, null], [489, 0.97, 0.34]]),
+    official: { source: "CONAF", before: 2.38, after: 0.96, inconclusive: false },
+    breakTest: { before: { ratio: 1.02, ci95: [0.99, 1.06] }, after: { ratio: 1.02, ci95: [0.99, 1.06] }, jump_raw: 2.8 },
+    stats: [
+      { key: "burned_area_record", year: null, value: null, source: "CONAF", unit: "ha" },
+      { key: "case_month_ratio", month: "2023-02", value: null, cells: null, rank: null, n: null },
+      { key: "risk_share", value: 0.51, months: [3, 4, 5] },
+    ],
+  },
+  NSW: {
+    before: [5323, 17435, 18628, 13625, 11398, 17174, 7531, 5324, 9534, 4572, 13438, 25696, 36772, 29131, 24197, 29137, 40938, 36726, 124922, 40002, 24027, 15432, 34768, 22514, 25897],
+    after: [39596.3, 69110.4, 48109.3, 36481.2, 30710.4, 45445.4, 21307.9, 14609.5, 25560.2, 11919.1, 35250.3, 26473.8, 37628, 29816.6, 24547.1, 29533.2, 41926.9, 36952.9, 128710, 41078, 24574, 16119, 34993, 22576, 26323],
+    detect: detect([[441, 0.47, 0.32], [462, 0.54, 0.35], [576, 0.71, 0.43], [529, 0.8, 0.5], [659, 0.95, 0.59]]),
+    official: { source: "NSW NPWS", before: 2.92, after: 1.05, inconclusive: false },
+    breakTest: { before: { ratio: 1.02, ci95: [0.98, 1.07] }, after: { ratio: 1.03, ci95: [0.98, 1.08] }, jump_raw: 3.0 },
+    stats: [
+      { key: "burned_area_record", year: null, value: null, source: "NSW NPWS", unit: "ha" },
+      { key: "case_month_ratio", month: "2019-12", value: null, cells: null, rank: null, n: null },
+      { key: "risk_share", value: 0.55, months: [4, 5, 8, 9, 12] },
+    ],
+  },
+} satisfies Record<RegionCountry, {
   before: number[];
   after: number[];
   detect: Landing["detect_by_size"];

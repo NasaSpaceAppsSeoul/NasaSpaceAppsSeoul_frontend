@@ -9,10 +9,14 @@ import { revealImmediately } from "./reveal";
 import { routeDirection, routeInfo } from "./route";
 
 describe("parseCountry", () => {
-  it("대문자 세 나라만 받는다", () => {
+  it("대문자 여섯 지역 코드만 받는다", () => {
     expect(parseCountry("KOR")).toBe("KOR");
     expect(parseCountry("CAL")).toBe("CAL");
     expect(parseCountry("BC")).toBe("BC");
+    expect(parseCountry("GRC")).toBe("GRC");
+    expect(parseCountry("CHL")).toBe("CHL");
+    expect(parseCountry("NSW")).toBe("NSW");
+    expect(parseCountry("nsw")).toBeNull();
     expect(parseCountry("kor")).toBeNull();
     expect(parseCountry("JPN")).toBeNull();
     expect(parseCountry("")).toBeNull();

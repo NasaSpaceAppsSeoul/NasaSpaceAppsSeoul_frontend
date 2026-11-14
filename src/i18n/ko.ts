@@ -161,7 +161,7 @@ export const ko = {
   },
   notFound: {
     title: "페이지를 찾을 수 없습니다",
-    body: "주소가 맞는지 확인해 주세요. 나라는 KOR·CAL·BC 중 하나이고, 달은 2025-03처럼 씁니다.",
+    body: "주소가 맞는지 확인해 주세요. 나라는 KOR·CAL·BC·GRC·CHL·NSW 중 하나이고, 달은 2025-03처럼 씁니다.",
     home: "처음으로",
   },
   routeError: {
@@ -215,12 +215,18 @@ export const ko = {
     KOR: "대한민국",
     CAL: "캘리포니아",
     BC: "브리티시컬럼비아",
+    GRC: "그리스",
+    CHL: "칠레",
+    NSW: "뉴사우스웨일스",
   },
   // 영어 화면의 단위 이름. 한글 화면은 서버의 `meta.labels.lv1`·`lv2`를 쓴다
   levelNames: {
     KOR: { lv1: "시·도", lv2: "시·군·구" },
     CAL: { lv1: "주", lv2: "카운티" },
     BC: { lv1: "주", lv2: "지역구" },
+    GRC: { lv1: "광역", lv2: "시군" },
+    CHL: { lv1: "주", lv2: "시군" },
+    NSW: { lv1: "주", lv2: "지방정부" },
   },
   dashboard: {
     unit: "화재 감지일",
@@ -438,7 +444,14 @@ export const ko = {
     // 지도 왼쪽 아래 출처 줄(시안 v11 `.db-map-attribution`). 경계 출처 이름은 백엔드 `labels.boundary`에서 옮긴 나라별 고정 문구다
     // (그 값은 한글 설명·라이선스가 섞여 영문 화면에 그대로 못 쓴다. 9장에서 실제 값과 대조), 날짜 기준은 `time_basis.code`로 고른다
     attribution: {
-      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
+      boundary: {
+        KOR: "geoBoundaries",
+        CAL: "geoBoundaries USA",
+        BC: "BC Data Catalogue",
+        GRC: "geoBoundaries GRC",
+        CHL: "geoBoundaries CHL",
+        NSW: "geoBoundaries AUS",
+      },
       time: { "UTC+9": "한국 표준시(UTC+9) 날짜 기준", solar: "경도 기준 태양시 날짜" },
       line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
     },
