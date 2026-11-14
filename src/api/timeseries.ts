@@ -1,4 +1,4 @@
-import { get, withQuery, type GetOptions } from "./client";
+import { get, getBlob, withQuery, type GetOptions } from "./client";
 import type { BaselineResponse, BulkJudgement, Country, Judgement, SeriesResponse } from "./types";
 
 /** 시계열 범위. 둘 다 없으면 전체 기간(2001-01부터 마지막 달까지)이 온다. 값이 없으면 키를 뺀다. */
@@ -30,4 +30,9 @@ export function getJudgement(country: Country, id: string, month: string, option
 /** `/judgement?month=`: 지도 "평소 대비"용 일괄 판정(나라 전체 시·군·구, 한 번에). */
 export function getBulkJudgement(country: Country, month: string, options?: GetOptions): Promise<BulkJudgement> {
   return get<BulkJudgement>(withQuery(`/${country}/judgement`, { month }), options);
+}
+
+/** `/export.csv?id=`: 한 지역의 월별 값·평년·범위·순위 CSV(값이 있는 달만, 전체 기간). UTF-8 BOM이 붙어 온다. */
+export function downloadCsv(country: Country, id: string, options?: GetOptions): Promise<Blob> {
+  return getBlob(withQuery(`/${country}/export.csv`, { id }), { ...options, accept: "text/csv" });
 }

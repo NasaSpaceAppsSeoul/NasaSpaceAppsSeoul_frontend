@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "../i18n";
 import type { Locale } from "../lib/locale";
 import { Dialog } from "./Dialog";
+import { ExportDialog } from "./heatmap/ExportDialog";
 import { SectionError } from "./SectionError";
 import { ServerDownNotice } from "./ServerDownNotice";
 
@@ -152,5 +153,25 @@ describe("lighten (지역 그라데이션 경계 쪽 색)", () => {
     expect(lighten("#c95226", 0)).toBe("rgb(201,82,38)");
     expect(lighten("#c95226", 1)).toBe("rgb(255,255,255)");
     expect(lighten("#c95226", 0.3)).toBe("rgb(217,134,103)");
+  });
+});
+
+describe("ExportDialog (9장 내려받기 확인)", () => {
+  it("받는 중이면 버튼을 막고 문구를 바꾼다, 다시 해도 소용없는 에러는 버튼을 막는다", () => {
+    const onDownload = vi.fn();
+    const props = { open: true, onClose: () => {}, title: "월별 화재 활동 CSV", detail: "월별 감지일", onDownload };
+    const ko = (node: ReactNode) => <LocaleProvider locale="ko">{node}</LocaleProvider>;
+    const { rerender } = render(ko(<ExportDialog {...props} busy={true} error={null} />));
+    const button = screen.getByRole("button", { name: "내려받는 중…" });
+    // 받는 중에도 포커스가 남도록 disabled가 아니라 aria-disabled, 눌러도 다시 받지 않는다
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(button);
+    expect(onDownload).not.toHaveBeenCalled();
+    rerender(ko(<ExportDialog {...props} busy={false} error={{ kind: "offline" }} />));
+    expect(screen.getByRole("alert")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "내려받기" }));
+    expect(onDownload).toHaveBeenCalledTimes(1);
+    rerender(ko(<ExportDialog {...props} busy={false} error={{ kind: "region" }} />));
+    expect(screen.getByRole("button", { name: "내려받기" }).getAttribute("aria-disabled")).toBe("true");
   });
 });

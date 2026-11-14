@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { retry } from "../app/queryClient";
-import { ApiError, apiMode, get, isRetryable, withQuery } from "./client";
+import { ApiError, apiMode, get, getBlob, isRetryable, withQuery } from "./client";
 
 const BASE = "https://api.test/api/v1";
 
@@ -150,5 +150,51 @@ describe("get (live)", () => {
     const error = await pending;
     expect(error).toBe(abortError);
     expect(error).not.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("getBlob (live, 9장 CSV)", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+
+  beforeEach(() => {
+    vi.stubEnv("VITE_API_MODE", "live");
+    vi.stubEnv("VITE_API_BASE", BASE);
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  it("본문을 Blob으로 받아 UTF-8 BOM을 그대로 둔다", async () => {
+    const bytes = new Uint8Array([0xef, 0xbb, 0xbf, ...new TextEncoder().encode("region,year\n경북,2001\n")]);
+    fetchMock.mockResolvedValue(new Response(bytes, { status: 200, headers: { "Content-Type": "text/csv;charset=UTF-8" } }));
+    const blob = await getBlob(withQuery("/KOR/export.csv", { id: "경북" }));
+    const head = new Uint8Array(await blob.arrayBuffer()).slice(0, 3);
+    expect([...head]).toEqual([0xef, 0xbb, 0xbf]);
+    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/KOR/export.csv?id=${encodeURIComponent("경북")}`, expect.anything());
+  });
+
+  it("에러 응답은 JSON code를 읽어 ApiError로", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ code: "REGION_NOT_FOUND", message: "no" }, 404));
+    expect(await caught(getBlob("/KOR/export.csv?id=NOPE"))).toMatchObject({ status: 404, code: "REGION_NOT_FOUND" });
+  });
+
+  it("연결이 끊기면 NETWORK", async () => {
+    fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+    expect(await caught(getBlob("/KOR/export.csv?id=KOR"))).toMatchObject({ status: 0, code: "NETWORK" });
+  });
+
+  it("성공인데 기대한 형식이 아니면(index.html 등) BAD_BODY", async () => {
+    fetchMock.mockResolvedValue(new Response("<!doctype html>", { status: 200, headers: { "Content-Type": "text/html" } }));
+    expect(await caught(getBlob("/KOR/export.csv?id=KOR", { accept: "text/csv" }))).toMatchObject({ code: "BAD_BODY" });
+  });
+
+  it("목 모드에서는 부르지 않는다", async () => {
+    vi.stubEnv("VITE_API_MODE", "mock");
+    expect(await caught(getBlob("/KOR/export.csv?id=KOR"))).toBeInstanceOf(ApiError);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
