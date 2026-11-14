@@ -135,13 +135,14 @@ describe("소개 화면 (목)", () => {
     const help = section.getByRole("button", { name: "점선과 실선의 뜻" });
     expect(help.getAttribute("aria-describedby")).toBeTruthy();
     // Esc를 누르면 설명 판이 닫힌다(보이기 클래스가 빠진다). 마우스가 떠나면 다시 열 수 있다
-    const panel = () => section.getByRole("tooltip").parentElement as HTMLElement;
+    // 닫힌 판은 `invisible`이라 숨은 요소까지 찾는다
+    const panel = () => section.getByRole("tooltip", { hidden: true }).parentElement as HTMLElement;
     expect(panel().className).toContain("group-hover/info:visible");
     fireEvent.keyDown(document, { key: "Escape" });
     expect(panel().className).not.toContain("group-hover/info:visible");
     fireEvent.mouseLeave(help.parentElement as HTMLElement);
     expect(panel().className).toContain("group-hover/info:visible");
-    expect(section.getByRole("tooltip").textContent).toMatch(/^점선 막대는 값이 아직 확정되지 않은 달입니다/);
+    expect(section.getByRole("tooltip", { hidden: true }).textContent).toMatch(/^점선 막대는 값이 아직 확정되지 않은 달입니다/);
   });
 
   it("'스크롤해서 읽기'는 주소를 바꾸지 않고 01로 초점을 옮긴다(언어 전환이 01로 끌고 가지 않게)", async () => {

@@ -192,6 +192,30 @@ describe("선택 줄과 대화상자", () => {
     }
   });
 
+  it("모든 단계에서 제목 아래 부제와 자료 카드가 있다(시안 v11)", async () => {
+    for (const path of ["/dashboard/KOR?month=2025-03", `/dashboard/KOR/${GB}?month=2025-03`, `/dashboard/KOR/${UISEONG}?month=2025-03`]) {
+      const view = renderRoute(path);
+      await screen.findByRole("heading", { level: 1 });
+      expect(screen.getByText("나라를 고르고, 지역을 좁히고, 그곳의 기록을 지난 기록과 비교해 보세요.")).toBeTruthy();
+      expect(screen.getByText("FIRMS 기록")).toBeTruthy();
+      expect(screen.getByText("NOAA-20 기준")).toBeTruthy();
+      view.unmount();
+    }
+  });
+
+  it("자료 카드: data_end가 달 마지막 날이면 수집 중 문장 없이 날짜만(한국 목 2026-10-31)", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    expect(await screen.findByText("자료 기준일 · 2026년 10월 31일. 최근 준실시간(NRT) 값은 잠정치입니다.")).toBeTruthy();
+  });
+
+  it("자료 카드: 달 중간이면 그 달은 수집 중(캘리포니아 목 2026-11-09, 영문)", async () => {
+    renderRoute("/en/dashboard/CAL");
+    expect(
+      await screen.findByText("Data snapshot · 9 November 2026. November is still collecting; recent NRT values are provisional."),
+    ).toBeTruthy();
+    expect(screen.getByText("Choose a country. Narrow to a place. Compare its record with its history.")).toBeTruthy();
+  });
+
   it("선택 상자의 읽히는 이름은 이름표 + 값이다", async () => {
     renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
     expect(await screen.findByRole("button", { name: "시·도 경북" })).toBeTruthy();

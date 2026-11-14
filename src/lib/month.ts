@@ -23,6 +23,15 @@ export function beforeDistrictData(month: string): boolean {
   return month < DISTRICT_DATA_START;
 }
 
+/** 날짜("YYYY-MM-DD")가 그 달의 마지막 날인지. 대시보드 자료 카드가 "그 달은 아직 수집 중"을 붙일지 정한다 */
+export function isLastDayOfMonth(date: string): boolean {
+  const year = Number(date.slice(0, 4));
+  const monthOfYear = Number(date.slice(5, 7));
+  const day = Number(date.slice(8, 10));
+  // Date.UTC의 달은 0부터라 monthOfYear가 곧 다음 달, 0일은 그 전날(= 이번 달 마지막 날)
+  return day === new Date(Date.UTC(year, monthOfYear, 0)).getUTCDate();
+}
+
 export type MonthRange = { first: string; last: string };
 
 export function monthYear(month: string): number {

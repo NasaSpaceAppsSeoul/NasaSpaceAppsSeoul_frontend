@@ -38,8 +38,11 @@ describe("나라 지도 (4장)", () => {
     expect((await screen.findByRole("button", { name: "평소 대비 · 준비 중" })).getAttribute("aria-disabled")).toBe("true");
     expect(screen.queryByRole("button", { name: /목록/ })).toBeNull();
     // 범례는 지도 위 판 안에, 접을 수 있게(처음엔 펼침)
-    expect(screen.getByText("범례").closest("details")?.open).toBe(true);
+    const legendToggle = screen.getByRole("button", { name: "범례" });
+    expect(legendToggle.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText("3 미만")).toBeTruthy();
+    // 지도 왼쪽 아래 출처 줄(한국: 경계 geoBoundaries, 날짜 UTC+9)
+    expect(screen.getByText("NASA FIRMS · geoBoundaries · 한국 표준시(UTC+9) 날짜 기준")).toBeTruthy();
     expect(screen.getByText("30 이상")).toBeTruthy();
     const map = await loadedMap();
     await waitFor(() => expect(map.featureStates.get(UISEONG)).toEqual({ bin: 4 }));
@@ -59,6 +62,31 @@ describe("나라 지도 (4장)", () => {
     // 키로 할 일이 없는 캔버스는 초점을 받지 않는다
     expect(map.canvas.tabIndex).toBe(-1);
     expect(map.canvas.getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("범례를 접으면 내용이 빠지고(inert) 다시 펴면 돌아온다", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    const toggle = await screen.findByRole("button", { name: "범례" });
+    const content = document.getElementById(toggle.getAttribute("aria-controls") ?? "");
+    expect(content?.hasAttribute("inert")).toBe(false);
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(content?.hasAttribute("inert")).toBe(true);
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(content?.hasAttribute("inert")).toBe(false);
+  });
+
+  it("출처 줄은 나라별: 캘리포니아는 geoBoundaries USA와 태양시, 영문 화면은 영문", async () => {
+    renderRoute("/en/dashboard/CAL?month=2025-08");
+    expect(await screen.findByText("NASA FIRMS · geoBoundaries USA · local solar date")).toBeTruthy();
+  });
+
+  it("시·군·구 지도에도 출처 줄(BC)", async () => {
+    const regions = (await mockGet("/BC/regions")) as { items: { id: string; level: string }[] };
+    const first = regions.items.find((r) => r.level === "dist");
+    renderRoute(`/dashboard/BC/${first?.id ?? ""}?month=2025-08`);
+    expect(await screen.findByText("NASA FIRMS · BC Data Catalogue · 경도 기준 태양시 날짜")).toBeTruthy();
   });
 
   it("한국은 시·군·구 도형에서 만든 시·도 경계선을 그리고, 캘리포니아는 그리지 않는다", async () => {

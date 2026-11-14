@@ -45,6 +45,14 @@ export function formatMonthName(monthOfYear: number, locale: Locale): string {
   return locale === "ko" ? `${monthOfYear}월` : (EN_MONTHS[monthOfYear - 1] ?? String(monthOfYear));
 }
 
+/** 날짜("YYYY-MM-DD")를 연·월·일로: "2026년 11월 14일" / "14 November 2026" */
+export function formatFullDate(date: string, locale: Locale): string {
+  const year = Number(date.slice(0, 4));
+  const m = Number(date.slice(5, 7));
+  const d = Number(date.slice(8, 10));
+  return locale === "ko" ? `${year}년 ${m}월 ${d}일` : `${d} ${formatMonthName(m, locale)} ${year}`;
+}
+
 /** 날짜("YYYY-MM-DD")를 달·일로: "3월 26일" / "Mar 26" */
 export function formatDayDate(date: string, locale: Locale): string {
   const m = Number(date.slice(5, 7));

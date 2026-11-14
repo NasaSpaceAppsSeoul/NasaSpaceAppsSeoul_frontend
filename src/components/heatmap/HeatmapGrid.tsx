@@ -8,7 +8,8 @@ import { useCellText, type BandFor } from "./useCellText";
 /*
  * 12달 × 해 격자. 시안 v9 달력(2026-11-15 사용자): **해는 가로(왼쪽이 오래된 해), 1~12월은 세로**.
  * 26년을 세로로 쌓으면 900px 가까이 늘어져 한눈에 안 들어와서 바꿨다. 같은 달을 해마다 비교하기(한 줄 읽기)도 쉬워진다.
- * 센서 전환은 해 사이의 세로 점선(시안 `.db-viirs-start`)과 격자 아래 설명 줄.
+ * 센서 전환은 해 사이의 세로 점선(시안 `.db-viirs-start`)과 격자 아래 설명 줄(시안 v11 `.db-calendar-caption`: 왼쪽 읽는 법, 오른쪽 전환 요약).
+ * 모양은 시안 v11 값: 달 이름 칸 52px, 해 머리 Mono 10/24, 달 이름 Mono 11, 고른 달의 해·달 이름은 밝게(`.is-current`).
  * 키보드: 격자에는 Tab 한 번으로 들어가고(로빙 tabindex) 방향키로 칸을 옮긴다(←→ 해, ↑↓ 달). Enter로 그 달, Esc로 툴팁 닫기.
  * 툴팁은 마우스를 올린 칸, 또는 키보드 포커스가 있는 칸에 뜬다(마우스로 눌러 생긴 포커스에는 띄우지 않는다).
  * 툴팁 상태는 여기 둔다(구역 전체가 다시 그려지지 않게).
@@ -64,8 +65,13 @@ export function HeatmapGrid({ rows, regionLabel, bandFor, onSelect }: HeatmapGri
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  /** 센서 전환 해의 칸 왼쪽(앞 해와의 사이)에 세로 점선 */
-  const edge = (year: number) => (dividerAfter(year, visibleYears) !== null ? "border-l border-dashed border-white/30" : "");
+  /** 센서 전환 해의 칸 왼쪽(앞 해와의 사이)에 세로 점선(시안 `.db-viirs-start` #9daec54d) */
+  const edge = (year: number) => (dividerAfter(year, visibleYears) !== null ? "border-l border-dashed border-[#9daec54d]" : "");
+  // 고른 달의 해 머리글과 달 이름을 밝게(시안 `.is-current`). 고른 달이 보이는 해에 없으면 둘 다 기본색
+  const selectedCell = cells.find((c) => c.selected);
+  const selectedYear = selectedCell === undefined ? null : Number(selectedCell.month.slice(0, 4));
+  const selectedMonthIndex = selectedCell === undefined ? null : Number(selectedCell.month.slice(5, 7)) - 1;
+  const headColor = (current: boolean) => (current ? "text-[#f0f1f2]" : "text-[#a3acb8]");
 
   const move = (event: KeyboardEvent, yearIndex: number, monthIndex: number) => {
     const step = DELTA[event.key];
@@ -104,19 +110,27 @@ export function HeatmapGrid({ rows, regionLabel, bandFor, onSelect }: HeatmapGri
           if (!event.currentTarget.contains(event.relatedTarget)) setKeyboardFocus(false);
         }}
         // 칸마다 32px 누를 자리 안에 16px 점(시안 `.db-calendar-cell`). 줄·칸 사이 간격은 따로 두지 않는다
+        // 폭은 카드 전체. 시안 `.db-heatmap-grid`의 최대 폭(해마다 44px, 가운데 정렬)은 쓰지 않는다:
+        // 2012년부터만 보일 때 가운데로 몰리지 않고 시작·끝 자리는 그대로, 간격만 넓어지게(2026-11-15 사용자)
         className="grid min-w-3xl gap-0"
-        style={{ gridTemplateColumns: `2.5rem repeat(${years.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `52px repeat(${years.length}, minmax(0, 1fr))` }}
       >
-        <span aria-hidden="true" />
+        {/* 시안 `.db-calendar-years`: Mono 10/24, 아래 12. 왼쪽 위 칸은 8px "MONTH" */}
+        <span aria-hidden="true" className="mono-tag mb-3 self-center text-[8px] leading-6 text-[#a3acb8]">
+          {t.monthCorner}
+        </span>
         {years.map((row) => (
-          <span key={`head-${row.year}`} className={`pb-1 text-center font-mono text-[0.625rem] text-muted ${edge(row.year)}`}>
+          <span
+            key={`head-${row.year}`}
+            className={`mb-3 text-center font-mono text-[10px] leading-6 ${headColor(row.year === selectedYear)} ${edge(row.year)}`}
+          >
             {row.year}
           </span>
         ))}
         {MONTHS.map((monthIndex) => (
           // 한 줄 = 한 달(1~12월). `display: contents`라 격자 칸 배치는 그대로
           <div key={`month-${monthIndex + 1}`} className="contents">
-            <span className="self-center font-mono text-xs text-muted">{t.monthHead(monthIndex + 1)}</span>
+            <span className={`self-center font-mono text-[11px] ${headColor(monthIndex === selectedMonthIndex)}`}>{t.monthHead(monthIndex + 1)}</span>
             {years.map((row, yearIndex) => {
               const cell = row.cells[monthIndex];
               if (cell === undefined) return null;
@@ -150,17 +164,11 @@ export function HeatmapGrid({ rows, regionLabel, bandFor, onSelect }: HeatmapGri
           </div>
         ))}
       </div>
-      {/* 센서 전환 설명: 격자의 세로 점선과 같은 모양 표시 + 글 */}
-      {dividers.length > 0 && (
-        <ul className="flex flex-wrap gap-x-6 gap-y-1">
-          {dividers.map((d) => (
-            <li key={d.key} className="flex items-center gap-2 text-xs font-medium text-ink">
-              <span aria-hidden="true" className="h-3 border-l border-dashed border-white/40" />
-              {t.divider[d.key]}
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* 시안 `.db-calendar-caption`: Mono 10/1.7, 위 16. 왼쪽 읽는 법, 오른쪽 보이는 센서 전환 + 점무늬 뜻 */}
+      <div className="mt-1 flex flex-wrap justify-between gap-4 font-mono text-[10px] leading-[1.7] text-[#a1aab7]">
+        <span>{t.caption}</span>
+        <span>{[dividers.map((d) => t.divider[d.key]).join(" / "), t.dividerTail].filter((x) => x !== "").join(" — ")}</span>
+      </div>
     </div>
   );
 }

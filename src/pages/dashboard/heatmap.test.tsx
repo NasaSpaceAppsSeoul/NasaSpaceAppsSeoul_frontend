@@ -27,16 +27,19 @@ function hasCell(g: HTMLElement, prefix: string): boolean {
 }
 
 describe("히트맵 (3장)", () => {
-  it("나라: 2001년부터, 선택한 달 표시, 구분선 두 줄, 표시 연도 버튼", async () => {
+  it("나라: 2001년부터, 선택한 달 표시, 센서 전환 두 개, 표시 연도 분절 버튼", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     const g = await grid();
     const selected = cell(g, "대한민국 · 2025년 3월");
     expect(selected.getAttribute("aria-current")).toBe("date");
     expect(selected.getAttribute("aria-label")).toContain("1,093 화재 감지일");
     expect(hasCell(g, "대한민국 · 2001년 1월")).toBe(true);
-    expect(screen.getByText(/2018년 4월 · NOAA-20 관측 시작/)).toBeTruthy();
-    expect(screen.getByText(/2012년 2월 · S-NPP 관측 시작/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "2001–2026" })).toBeTruthy();
+    expect(screen.getByText("2012년 2월 S-NPP / 2018년 4월 NOAA-20 — 점무늬는 NOAA-20 기준 환산값")).toBeTruthy();
+    expect(screen.getByText("해 → · 달 ↓ · 같은 기준으로 비교")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "연도별·월별 화재 달력" })).toBeTruthy();
+    expect(screen.getByText("2001–2026 · 대한민국 · 한 달에 점 하나. 올리면 값, 누르면 그 달로 이동합니다.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "전체 해" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "2012년부터" }).getAttribute("aria-pressed")).toBe("false");
   });
 
   it("칸을 누르면 그 달로, 아직 집계 전 칸은 눌러도 그대로", async () => {
@@ -130,9 +133,9 @@ describe("히트맵 (3장)", () => {
     const g = await grid();
     expect(hasCell(g, "경북 의성군 · 2012년 1월")).toBe(true);
     expect(hasCell(g, "경북 의성군 · 2011년 12월")).toBe(false);
-    expect(screen.queryByRole("button", { name: /^\d{4}–\d{4}$/ })).toBeNull();
-    // 2011년이 보이지 않으니 2012년 구분선도 없다
-    expect(screen.queryByText(/2012년 2월 · S-NPP 관측 시작/)).toBeNull();
+    expect(screen.queryByRole("group", { name: "표시 연도" })).toBeNull();
+    // 2011년이 보이지 않으니 2012년 전환은 빠지고 2018년만
+    expect(screen.getByText("2018년 4월 NOAA-20 — 점무늬는 NOAA-20 기준 환산값")).toBeTruthy();
     fireEvent.mouseEnter(cell(g, "경북 의성군 · 2025년 3월"));
     const tip = await screen.findByRole("tooltip");
     expect(tip.textContent).toContain("384 화재 감지일");
@@ -141,17 +144,16 @@ describe("히트맵 (3장)", () => {
 
   it("표시 연도를 VIIRS 시기로 바꾸면 2012년부터, Tab으로 들어갈 칸이 남고, 지역을 바꾸면 전체로 돌아간다", async () => {
     const { router } = renderRoute("/dashboard/KOR?month=2005-03");
-    fireEvent.click(await screen.findByRole("button", { name: "2001–2026" }));
-    const dialog = await screen.findByRole("dialog", { name: "표시 연도" });
-    fireEvent.click(within(dialog).getByRole("button", { name: /2012–2026 VIIRS 시기/ }));
-    expect(await screen.findByRole("button", { name: "2012–2026" })).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: "2012년부터" }));
+    expect(screen.getByRole("button", { name: "2012년부터" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByText(/^2012–2026 · 대한민국/)).toBeTruthy();
     const g = await grid();
     expect(hasCell(g, "대한민국 · 2011년 12월")).toBe(false);
     // 선택한 달(2005-03)이 빠져도 Tab으로 들어갈 칸이 하나 있다
     expect(within(g).getAllByRole("button").filter((b: HTMLElement) => b.tabIndex === 0)).toHaveLength(1);
 
     await router.navigate(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
-    expect(await screen.findByRole("button", { name: /^2001–2026$/ })).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole("button", { name: "전체 해" }).getAttribute("aria-pressed")).toBe("true"));
   });
 
   it("범례는 그 지역의 경계 숫자, 상태 설명은 NOAA-20 기준 문구", async () => {
@@ -165,10 +167,40 @@ describe("히트맵 (3장)", () => {
     expect(screen.getByText("이전 위성 기록을 NOAA-20 기준으로 맞춘 값")).toBeTruthy();
   });
 
+  it("선택한 달 줄, 상태 칩(설명은 툴팁), 각주(한국 목 data_end 10-31 → 집계 중 문장 없음)", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    await grid();
+    // 선택한 달 줄(상태 칩 "선택한 달"과 이름이 같아 줄 안에서 찾는다)
+    const row = screen.getByText("1,093 화재 감지일 · 보정 후").parentElement as HTMLElement;
+    expect(within(row).getByText("선택한 달")).toBeTruthy();
+    expect(within(row).getByText("2025년 3월")).toBeTruthy();
+    const chip = screen.getByRole("button", { name: "관측 자료 없음" });
+    expect(document.getElementById(chip.getAttribute("aria-describedby") ?? "")?.textContent).toBe("자료가 없어 값을 판단할 수 없음");
+    // 상태 칩은 상태 목록 안에 정확히 6개
+    const chips = within(chip.closest("ul") as HTMLElement).getAllByRole("button");
+    expect(chips.map((b) => b.textContent)).toEqual(["집계 중", "감지 없음", "센서 환산값", "관측 자료 없음", "선택한 달", "아직 집계 전"]);
+    expect(screen.getByText("NASA FIRMS · 0, 그리고 0이 아닌 월값의 50·75·90 백분위로 색을 나눕니다. 빠진 기록은 0이 아닙니다.")).toBeTruthy();
+  });
+
+  it("집계 중인 달을 고르면 선택한 달 줄에 집계 중", async () => {
+    renderRoute("/dashboard/KOR?month=2026-11");
+    await grid();
+    expect(await screen.findByText(/^[\d,.]+ 화재 감지일 · 보정 후 · 집계 중$/)).toBeTruthy();
+  });
+
+  it("각주: data_end가 달 중간이면 그 달은 집계 중(캘리포니아 목 11-09, 영문)", async () => {
+    renderRoute("/en/dashboard/CAL?month=2025-08");
+    await grid();
+    expect(
+      screen.getByText("NASA FIRMS · zero plus nonzero monthly P50/P75/P90 color breaks. November 2026 is collecting through Nov 9; missing history is not zero."),
+    ).toBeTruthy();
+    expect(screen.getAllByText("Selected month")).toHaveLength(2);
+  });
+
   it("목 모드에서는 CSV를 내려받을 수 없다고 화면에 보인다", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     await grid();
-    expect(screen.getByRole("button", { name: /월별 데이터 CSV/ }).getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByRole("button", { name: "월별 CSV" }).getAttribute("aria-disabled")).toBe("true");
     expect(screen.getByText("목 모드에서는 내려받을 수 없습니다")).toBeTruthy();
   });
 
@@ -176,6 +208,8 @@ describe("히트맵 (3장)", () => {
     renderRoute("/en/dashboard/KOR?month=2025-03");
     const g = await grid();
     expect(hasCell(g, "Republic of Korea · March 2025")).toBe(true);
-    expect(screen.getByText(/April 2018 · NOAA-20 observations begin/)).toBeTruthy();
+    expect(screen.getByText("Feb 2012 S-NPP / Apr 2018 NOAA-20 — dotted values are converted to the NOAA-20 basis")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Year-by-month fire calendar" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "All years" }).getAttribute("aria-pressed")).toBe("true");
   });
 });

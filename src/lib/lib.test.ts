@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { cacheMode } from "./cacheMode";
 import { parseCountry } from "./country";
 import { errorKind } from "./errorKind";
-import { parseMonthParam } from "./month";
+import { formatFullDate } from "./format";
+import { isLastDayOfMonth, parseMonthParam } from "./month";
 import { starField } from "./cosmic";
 import { revealImmediately } from "./reveal";
 import { routeDirection, routeInfo } from "./route";
@@ -16,6 +17,21 @@ describe("parseCountry", () => {
     expect(parseCountry("JPN")).toBeNull();
     expect(parseCountry("")).toBeNull();
     expect(parseCountry(undefined)).toBeNull();
+  });
+});
+
+describe("isLastDayOfMonth · formatFullDate", () => {
+  it("달 마지막 날(윤년 2월 포함)만 참", () => {
+    expect(isLastDayOfMonth("2026-10-31")).toBe(true);
+    expect(isLastDayOfMonth("2026-11-14")).toBe(false);
+    expect(isLastDayOfMonth("2024-02-29")).toBe(true);
+    expect(isLastDayOfMonth("2025-02-28")).toBe(true);
+    expect(isLastDayOfMonth("2024-02-28")).toBe(false);
+  });
+
+  it("한글은 연·월·일, 영문은 일 달 연", () => {
+    expect(formatFullDate("2026-11-14", "ko")).toBe("2026년 11월 14일");
+    expect(formatFullDate("2026-11-04", "en")).toBe("4 November 2026");
   });
 });
 

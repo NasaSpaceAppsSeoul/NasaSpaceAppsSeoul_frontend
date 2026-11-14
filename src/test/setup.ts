@@ -15,6 +15,12 @@ vi.mock("../components/about/EarthScene", async () => {
   return { EarthScene: () => createElement("figure", { "data-testid": "earth-scene" }) };
 });
 
+// jsdom에는 Tailwind CSS가 없다. 닫혀 있는 도움말 판(`InfoTip`, `invisible`)은 브라우저처럼 접근성 트리에서 빠지도록
+// 그 한 줄만 넣는다(히트맵 상태 칩 툴팁이 늘 DOM에 있어 칸 툴팁 조회와 겹쳤다)
+const tailwindSubset = document.createElement("style");
+tailwindSubset.textContent = ".invisible { visibility: hidden; }";
+document.head.appendChild(tailwindSubset);
+
 // jsdom은 `window.scrollTo`를 구현하지 않고 경고만 남긴다. 라우터 스크롤 복원(`ScrollRestoration`)이 부른다
 window.scrollTo = () => undefined;
 // jsdom 요소에는 `scrollIntoView`가 없다. 첫 화면 "스크롤해서 읽기"가 부른다
