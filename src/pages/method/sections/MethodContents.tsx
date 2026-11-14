@@ -1,8 +1,12 @@
 import { MethodToc } from "../../../components/method/MethodToc";
 import { useActiveSection } from "../../../hooks/useActiveSection";
 import { useMethodMessages } from "../../../i18n/method";
+import { CellSection } from "./CellSection";
+import { ChipSection } from "./ChipSection";
 import { DataSection } from "./DataSection";
+import { HarmonizeSection } from "./HarmonizeSection";
 import { QuestionSection } from "./QuestionSection";
+import { ValidateSection } from "./ValidateSection";
 
 /*
  * 기법 페이지 본문: 왼쪽 목차 + 오른쪽 절. 목차의 "지금 보는 절" 추적을 여기서 맡는다(페이지는 배치만).
@@ -12,6 +16,10 @@ import { QuestionSection } from "./QuestionSection";
 const SECTIONS = [
   { id: "question", key: "question", Body: QuestionSection },
   { id: "data", key: "data", Body: DataSection },
+  { id: "cell", key: "cell", Body: CellSection },
+  { id: "harmonize", key: "harmonize", Body: HarmonizeSection },
+  { id: "validate", key: "validate", Body: ValidateSection },
+  { id: "chip", key: "chip", Body: ChipSection },
 ] as const;
 
 const SECTION_IDS = SECTIONS.map((section) => section.id);

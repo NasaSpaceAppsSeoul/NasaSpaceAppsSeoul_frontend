@@ -1,10 +1,11 @@
-import { act, cleanup, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
+import { mockGet } from "../../api/mock/index";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { resetEntryHashForTest } from "../../hooks/useActiveSection";
 import { renderRoute } from "../../test/render";
 
 /*
- * 기법 페이지(`/method`). 지금 있는 절: 머리, 01 질문, 02 데이터(`plans/method-page.md` 12절).
+ * 기법 페이지(`/method`). 지금 있는 절: 머리, 01~06(`plans/method-page.md` 12절).
  * 목차의 "지금 보는 절"은 IntersectionObserver를 쓰는데 jsdom에는 없어 손으로 부를 수 있는 가짜를 넣는다.
  */
 type Callback = (entries: { isIntersecting: boolean; target: Element }[]) => void;
@@ -36,13 +37,20 @@ afterEach(() => {
 const title = () => screen.findByRole("heading", { level: 1 });
 
 describe("기법 페이지", () => {
-  it("머리 · 숫자 카드 3장 · 01 · 02 순서, 머리글은 소개가 켜진다", async () => {
+  it("머리 · 숫자 카드 3장 · 01~06 순서, 머리글은 소개가 켜진다", async () => {
     renderRoute("/method");
     expect((await title()).textContent).toBe("25년의 불을 하나의 자로.");
     const stats = within(screen.getByRole("list", { name: "요약 숫자" })).getAllByRole("listitem");
     expect(stats).toHaveLength(3);
     expect(stats[2]?.textContent).toContain("날짜를 30일 옮기면 3–54%");
-    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["우리가 답하는 질문", "데이터"]);
+    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual([
+      "우리가 답하는 질문",
+      "데이터",
+      "화재 칸: 무엇을 세나",
+      "센서를 하나의 자로 맞추기",
+      "보정이 맞는지 어떻게 아나",
+      "판단 칩",
+    ]);
     const nav = screen.getByRole("navigation", { name: "주 메뉴" });
     expect(within(nav).getByRole("link", { name: "소개" }).getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("link", { name: "← 소개로 돌아가기" }).getAttribute("href")).toBe("/");
@@ -144,5 +152,104 @@ describe("기법 페이지", () => {
     renderRoute("/method/x");
     expect(await screen.findByRole("heading", { level: 1 })).toBeTruthy();
     expect(screen.queryByText("25년의 불을 하나의 자로.")).toBeNull();
+  });
+});
+
+describe("기법 페이지 03·04", () => {
+  it("03: 설명용 칸 그림 두 장, 칸 크기 표는 사용한 0.01° 줄을 강조, 바뀐 과정 묶음", async () => {
+    renderRoute("/method");
+    const cell = within(await screen.findByRole("region", { name: "화재 칸: 무엇을 세나" }));
+    expect(cell.getAllByRole("img").map((img) => img.getAttribute("aria-label"))).toEqual([
+      "MODIS: 점 4개가 칸 3개에 떨어짐",
+      "VIIRS: 점 19개가 같은 칸 3개에 떨어짐",
+    ]);
+    expect(cell.getByText("설명용 예시이며 실제 탐지가 아닙니다")).toBeTruthy();
+    const used = cell.getByRole("rowheader", { name: "0.01° (사용)" }).closest("tr");
+    expect(used?.className).toContain("bg-tone-orange");
+    expect(cell.getByText("바뀐 과정: 고정 열원 마스크")).toBeTruthy();
+  });
+
+  it("04: 연간 그림은 한국으로 시작하고, 나라 탭을 누르면 그 나라 값으로 바뀐다", async () => {
+    renderRoute("/method");
+    const section = within(await screen.findByRole("region", { name: "센서를 하나의 자로 맞추기" }));
+    expect(await section.findByRole("img", { name: "한국 연간 화재 칸 2001–2025, 보정 전과 보정 후" })).toBeTruthy();
+    const tabs = section.getByRole("group", { name: "나라 고르기" });
+    expect(within(tabs).getByRole("button", { name: "한국" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(within(tabs).getByRole("button", { name: "BC" }));
+    expect(within(tabs).getByRole("button", { name: "BC" }).getAttribute("aria-pressed")).toBe("true");
+    expect(await section.findByRole("img", { name: "BC 연간 화재 칸 2001–2025, 보정 전과 보정 후" })).toBeTruthy();
+    // 사슬 네 칸, 배제한 대안 10줄(머리 줄 제외)
+    expect(within(section.getByRole("list", { name: /보정 사슬/ })).getAllByRole("listitem")).toHaveLength(4);
+    const excluded = section.getByRole("table", { name: "검토했지만 쓰지 않은 보정 방법과 이유" });
+    expect(excluded.querySelectorAll("tbody tr")).toHaveLength(10);
+    // 숨긴 값 표: 25개 해, 그림 설명에 고른 나라 이름
+    expect(section.getByRole("table", { name: "BC 연간 화재 칸 2001–2025, 보정 전과 보정 후" }).querySelectorAll("tbody tr")).toHaveLength(25);
+    expect(section.getByText(/^BC · 연간 화재 칸 2001–2025/)).toBeTruthy();
+  });
+});
+
+describe("기법 페이지 05·06", () => {
+  it("05: 결과 표 5줄, 크기별 감지율 다섯 단계(공용 이름 표로 옮김), BC 탭", async () => {
+    renderRoute("/method");
+    const section = within(await screen.findByRole("region", { name: "보정이 맞는지 어떻게 아나" }));
+    expect(section.getByRole("table", { name: "지역별 검증 결과" }).querySelectorAll("tbody tr")).toHaveLength(5);
+    const values = await section.findByRole("table", { name: "한국 산불 크기별 위성 감지율과 우연 기준" });
+    expect(within(values).getAllByRole("rowheader").map((h) => h.textContent)).toEqual([
+      "0.1 ha 미만",
+      "0.1–1 ha",
+      "1–10 ha",
+      "10–100 ha",
+      "100 ha 이상",
+    ]);
+    fireEvent.click(within(section.getByRole("group", { name: "나라 고르기" })).getByRole("button", { name: "BC" }));
+    expect(await section.findByRole("img", { name: "BC 산불 크기별 위성 감지율과 우연 기준" })).toBeTruthy();
+    expect(section.getByText("BC를 \"판단 보류\"로 둔 이유")).toBeTruthy();
+  });
+
+  it("06: 사이트와 같은 칩 네 개, 대표 달 제목(배수·순위), 같은 달 25개 해", async () => {
+    renderRoute("/method");
+    const section = within(await screen.findByRole("region", { name: "판단 칩" }));
+    expect(within(section.getByRole("list", { name: "판단 칩 네 가지" })).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "매우 이례적",
+      "평소보다 많음",
+      "평소 범위",
+      "평소보다 적음",
+    ]);
+    expect(await section.findByText("2025년 3월은 평년 3월의 6.28배, 25년 중 가장 많았습니다")).toBeTruthy();
+    const values = section.getByRole("table", { name: "한국 2001–2025년 3월 화재 칸과 보통 범위" });
+    expect(values.querySelectorAll("tbody tr")).toHaveLength(25);
+  });
+});
+
+describe("기법 페이지 04 그림 (서버 에러)", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    fetchMock.mockReset();
+  });
+
+  it("/landing이 실패하면 그것을 쓰는 그림 자리(04·05·06)에만 다시 시도, 글은 남고, 한 곳에서 다시 시도하면 모두 그려진다", async () => {
+    vi.stubEnv("VITE_API_MODE", "live");
+    vi.stubEnv("VITE_API_BASE", "https://api.test/api/v1");
+    vi.stubGlobal("fetch", fetchMock);
+    let down = true;
+    fetchMock.mockImplementation(async (input) => {
+      const path = String(input).replace("https://api.test/api/v1", "");
+      if (down && path === "/KOR/landing") {
+        return new Response(JSON.stringify({ code: "UPSTREAM_UNAVAILABLE", message: "x" }), { status: 503 });
+      }
+      return new Response(JSON.stringify(await mockGet(path)), { status: 200 });
+    });
+    renderRoute("/method");
+    const section = within(await screen.findByRole("region", { name: "센서를 하나의 자로 맞추기" }));
+    const retry = await section.findByRole("button", { name: "다시 시도" });
+    expect(section.getByText("보정 사슬")).toBeTruthy();
+    expect(await screen.findAllByRole("button", { name: "다시 시도" })).toHaveLength(3);
+    down = false;
+    fireEvent.click(retry);
+    expect(await section.findByRole("img", { name: /한국 연간 화재 칸/ })).toBeTruthy();
+    expect(await screen.findByRole("img", { name: /한국 산불 크기별 위성 감지율/ })).toBeTruthy();
+    expect(await screen.findByRole("img", { name: /한국 2001–2025년 3월 화재 칸/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "다시 시도" })).toBeNull();
   });
 });
