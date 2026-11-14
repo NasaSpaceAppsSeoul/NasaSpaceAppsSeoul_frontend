@@ -1,4 +1,6 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { EarthErrorBoundary } from "../../components/about/EarthPanel";
+import { lazy, Suspense } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { korMeta } from "../../api/mock/kor";
 import { mockGet } from "../../api/mock/index";
@@ -77,11 +79,56 @@ describe("소개 화면 (목)", () => {
     expect(nav.getByRole("link", { name: "캘리포니아 →" }).getAttribute("href")).toBe("/dashboard/CAL");
   });
 
+  it("'작동 방식 보기'는 언어에 맞는 기법 페이지로 가고, 지구 자리를 그린다", async () => {
+    renderRoute("/");
+    // 화살표는 장식이라 읽는 이름에 들어가지 않는다
+    expect(screen.getByRole("link", { name: "작동 방식 보기" }).getAttribute("href")).toBe("/method");
+    expect(await screen.findByTestId("earth-scene")).toBeTruthy();
+    cleanup();
+    renderRoute("/en");
+    expect(screen.getByRole("link", { name: "See how it works" }).getAttribute("href")).toBe("/en/method");
+  });
+
   it("영어 화면도 같은 구조다", async () => {
     renderRoute("/en");
     expect(await screen.findByRole("img", { name: "Raw bar chart, 2001–2025" })).toBeTruthy();
     expect(screen.getByText("100 ha or more: detected 91%, chance baseline 3%")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Republic of Korea →" }).getAttribute("href")).toBe("/en/dashboard/KOR");
+  });
+});
+
+describe("지구 자리 에러 경계", () => {
+  it("지구 묶음이 실패하면 그 자리에만 안내를 두고 바깥(첫 화면 글)은 남는다", () => {
+    function Broken(): never {
+      throw new Error("chunk load failed");
+    }
+    // React가 잡힌 예외도 콘솔에 남긴다. 이 테스트에서는 예상한 것이라 가린다
+    const silence = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    render(
+      <div>
+        <p>첫 화면 글</p>
+        <EarthErrorBoundary fallback={<p>지구 없음</p>}>
+          <Broken />
+        </EarthErrorBoundary>
+      </div>,
+    );
+    silence.mockRestore();
+    expect(screen.getByText("첫 화면 글")).toBeTruthy();
+    expect(screen.getByText("지구 없음")).toBeTruthy();
+  });
+
+  it("lazy 묶음 받기가 실패해도(거부된 import) 경계가 받는다", async () => {
+    const Missing = lazy(() => Promise.reject(new Error("Failed to fetch dynamically imported module")));
+    const silence = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    render(
+      <EarthErrorBoundary fallback={<p>지구 없음</p>}>
+        <Suspense fallback={<p>받는 중</p>}>
+          <Missing />
+        </Suspense>
+      </EarthErrorBoundary>,
+    );
+    expect(await screen.findByText("지구 없음")).toBeTruthy();
+    silence.mockRestore();
   });
 });
 

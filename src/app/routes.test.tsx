@@ -14,12 +14,12 @@ function heading() {
 describe("routes", () => {
   it("/는 한글 소개 화면이다", async () => {
     renderAt("/");
-    expect((await heading()).textContent).toBe("우리 지역의 화재 활동,\n평소와 얼마나 다를까요?");
+    expect((await heading()).textContent).toBe("더 길게 보는\n화재 기록.");
   });
 
   it("/en은 영어 소개 화면이다", async () => {
     renderAt("/en");
-    expect((await heading()).textContent).toBe("How unusual is fire activity\nin your region?");
+    expect((await heading()).textContent).toBe("A longer view\nof fire.");
   });
 
   it("대문자 /EN은 라우터도 lib/locale도 영어로 보지 않는다", async () => {

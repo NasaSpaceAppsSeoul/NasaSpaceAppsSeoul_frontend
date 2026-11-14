@@ -10,7 +10,8 @@ import { errorKind } from "../../../lib/errorKind";
  * `/meta`가 404 `COUNTRY_NOT_READY`일 때만 "준비 중"으로 막는다. 받는 중이거나 다른 에러면 링크로 두고,
  * 서버가 꺼진 경우는 대시보드가 안내한다(1-4).
  */
-const WIDE = "min-w-56";
+/** 히어로 왼쪽 칸에 세 개를 한 줄로 같은 너비로 둔다(칸이 좁아 큰 버튼은 넘친다) */
+const WIDE = "w-full";
 
 export function CountryButton({ country }: { country: Country }) {
   const t = useMessages();
@@ -20,13 +21,13 @@ export function CountryButton({ country }: { country: Country }) {
 
   if (meta.isError && errorKind(meta.error) === "notReady") {
     return (
-      <Button size="lg" disabled title={t.common.comingSoon} className={WIDE}>
+      <Button size="sm" disabled title={t.common.comingSoon} className={WIDE}>
         {t.about.hero.countryNotReady(name)}
       </Button>
     );
   }
   return (
-    <ButtonLink size="lg" to={dashboardPath(locale, country)} className={WIDE}>
+    <ButtonLink size="sm" to={dashboardPath(locale, country)} className={WIDE}>
       {t.about.hero.countryLink(name)}
     </ButtonLink>
   );

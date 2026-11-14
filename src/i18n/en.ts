@@ -22,11 +22,11 @@ export const en: Messages = {
   },
   about: {
     hero: {
-      eyebrow: "REGIONAL FIRE ACTIVITY · NASA FIRMS",
-      titleLead: "",
-      titleAccent: "How unusual",
-      titleTail: " is fire activity\nin your region?",
-      lead: "Compare the same month across past years to understand activity, seasonality and data quality.",
+      eyebrow: "MODIS + VIIRS fire records",
+      title: "A longer view\nof fire.",
+      lead: "Explore South Korea’s fire history—from the whole country to individual districts—and compare each month with its past.",
+      howItWorks: "See how it works",
+      scrollCue: "Scroll to read",
       browse: "Browse regions",
       examples: "Try Uiseong, Gyeongbuk · Goseong, Gangwon · Jung-gu, Daegu",
       countriesLabel: "Country dashboards",
@@ -37,6 +37,12 @@ export const en: Messages = {
       countryRowSub: "Country dashboard",
       provinceRowSub: (lv1: string) => `${lv1} dashboard`,
       dataEnd: (date: string) => `Data through ${date}`,
+    },
+    earth: {
+      label: "Two conceptual observation satellites slowly orbiting a three-dimensional Earth on different paths",
+      loading: "Loading Earth surface",
+      unavailable: "Earth surface unavailable",
+      caption: "Surface: NASA Earth Observatory · Blue Marble Next Generation · Concept visualization",
     },
     correction: {
       eyebrow: "ONE CONSISTENT RECORD",

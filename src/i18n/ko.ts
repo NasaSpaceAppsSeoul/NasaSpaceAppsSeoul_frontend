@@ -21,12 +21,12 @@ export const ko = {
   // 소개 화면 (screens/kr/about.png). 데모·합성 문구는 뺐고(1-10), 사실관계는 백엔드 기준으로 고쳐 썼다(4-3a, 4-9)
   about: {
     hero: {
-      eyebrow: "NASA FIRMS로 읽는 지역별 화재 기록",
-      // 제목은 앞·강조·뒤 세 조각. 줄바꿈은 문구 안의 "\n"
-      titleLead: "우리 지역의 화재 활동,\n",
-      titleAccent: "평소와 얼마나",
-      titleTail: " 다를까요?",
-      lead: "같은 달의 지난 기록과 비교해 화재 활동의 크기와 계절 패턴을 살펴보세요.",
+      eyebrow: "MODIS + VIIRS 화재 기록",
+      // 줄바꿈은 문구 안의 "\n"
+      title: "더 길게 보는\n화재 기록.",
+      lead: "대한민국의 화재 기록을 나라 전체부터 시·군·구까지 살펴보고, 매달을 지난 기록과 비교해 보세요.",
+      howItWorks: "작동 방식 보기",
+      scrollCue: "스크롤해서 읽기",
       browse: "지역 둘러보기",
       examples: "예: 경북 의성 · 강원 고성 · 대구 중구",
       countriesLabel: "나라별 대시보드",
@@ -37,6 +37,13 @@ export const ko = {
       countryRowSub: "나라 대시보드",
       provinceRowSub: (lv1: string) => `${lv1} 대시보드`,
       dataEnd: (date: string) => `${date}까지 자료`,
+    },
+    // 히어로 3D 지구 (Make 원문 번역). 위성은 개념도라 출처 줄에 "개념도"를 남긴다(about-revise 10절 ③)
+    earth: {
+      label: "서로 다른 궤도로 3차원 지구를 천천히 도는 개념상의 관측 위성 두 대",
+      loading: "지구 표면 불러오는 중",
+      unavailable: "지구 표면을 불러오지 못했습니다",
+      caption: "지표: NASA Earth Observatory · Blue Marble Next Generation · 개념도",
     },
     correction: {
       eyebrow: "하나로 이어진 기록",

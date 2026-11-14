@@ -11,7 +11,10 @@ export function AboutPage() {
   return (
     <main className="flex flex-col gap-8 pt-2 pb-4">
       <HeroSection />
-      <CorrectionSection />
+      {/* 히어로 "스크롤해서 읽기"가 가는 곳. 조각 3에서 새 01 구역(Connected records)으로 옮긴다 */}
+      <div id="connected">
+        <CorrectionSection />
+      </div>
       <HowItWorksSection />
       <DetectionSection />
     </main>
