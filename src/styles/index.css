@@ -252,6 +252,47 @@
 }
 
 /*
+ * 스크롤 등장 (`hooks/useScrollReveal.ts`가 상태를 붙인다, 시안 v9 `index.css` `[data-reveal-state]` 값 그대로):
+ * 28px 아래·투명 → 제자리로 850ms 페이드·1050ms 이동. `data-reveal-delay="1"`은 90ms 늦게. 움직임 줄이기·인쇄면 바로.
+ */
+@layer components {
+  [data-reveal-state="pending"] {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+  [data-reveal-state="visible"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition:
+      opacity 850ms ease,
+      transform 1050ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  [data-reveal-delay="1"] {
+    --reveal-delay: 90ms;
+  }
+  [data-reveal-instant="true"] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+  @media print {
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+/*
  * 우주 배경 층 (`components/CosmicBackdrop.tsx`, 시안 `cosmic-backdrop.css` 값 그대로).
  * 사용자가 승인한 배경이라 값을 바꾸지 않는다. 장면 상수 예외라 토큰이 아니다.
  * 고정 배경을 화면 뒤에 두려고 감싸는 칸에 `isolate`를 둔다(`app/RootLayout.tsx`).

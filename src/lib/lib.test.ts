@@ -4,6 +4,7 @@ import { parseCountry } from "./country";
 import { errorKind } from "./errorKind";
 import { parseMonthParam } from "./month";
 import { starField } from "./cosmic";
+import { revealImmediately } from "./reveal";
 import { routeInfo, routeTheme } from "./route";
 
 describe("parseCountry", () => {
@@ -80,6 +81,16 @@ describe("routeInfo", () => {
     expect(routeInfo("/dashboard")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/dashboard/kor")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/nope")).toEqual({ section: null, country: undefined });
+  });
+});
+
+describe("revealImmediately (스크롤 등장)", () => {
+  it("움직임 줄이기·관찰자 없음·인쇄 중이면 숨기지 않고 바로 보인다", () => {
+    const base = { reducedMotion: false, hasObserver: true, print: false };
+    expect(revealImmediately(base)).toBe(false);
+    expect(revealImmediately({ ...base, reducedMotion: true })).toBe(true);
+    expect(revealImmediately({ ...base, hasObserver: false })).toBe(true);
+    expect(revealImmediately({ ...base, print: true })).toBe(true);
   });
 });
 
