@@ -128,6 +128,59 @@ describe("주소와 지역", () => {
 });
 
 describe("선택 줄과 대화상자", () => {
+  it("검색 칸이 첫 칸이고 지금 위치를 보인다(7-7)", async () => {
+    const view = renderRoute("/dashboard/KOR?month=2025-03");
+    const first = async () => {
+      await screen.findByRole("heading", { level: 1 });
+      return screen.getAllByRole("button", { name: /지역 검색, 지금:/ });
+    };
+    let found = await first();
+    expect(found).toHaveLength(1);
+    expect(found[0]?.textContent).toBe("대한민국");
+    // 읽히는 이름에 이름표 "지역"이 겹치지 않는다
+    expect(screen.getByRole("button", { name: "지역 검색, 지금: 대한민국" })).toBe(found[0]);
+    // 선택 줄 칸 중 맨 앞(문서 순서)
+    const bar = found[0]?.closest("section");
+    if (bar === null || bar === undefined) throw new Error("선택 줄 없음");
+    const fields = within(bar).getAllByRole("button").filter((b) => b.getAttribute("aria-haspopup") === "dialog");
+    expect(fields[0]).toBe(found[0]);
+    view.unmount();
+    renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
+    found = await first();
+    expect(found[0]?.textContent).toBe("대한민국 · 경북");
+  });
+
+  it("시·군·구는 시·도를 붙인 이름, 영문 화면은 영문", async () => {
+    const view = renderRoute("/dashboard/KOR/91817680B75376031789242?month=2025-03");
+    expect(await screen.findByRole("button", { name: "지역 검색, 지금: 경북 의성군" })).toBeTruthy();
+    view.unmount();
+    renderRoute("/en/dashboard/KOR/91817680B75376031789242?month=2025-03");
+    expect(await screen.findByRole("button", { name: "Region search, now: North Gyeongsang Uiseong-gun" })).toBeTruthy();
+  });
+
+  it("선택 줄 순서: 지역 → 시·도 → 시·군·구 → 기준 월, 캘리포니아는 지역 → 카운티 → 기준 월", async () => {
+    // 선택 줄(검색 칸이 든 section) 안의 칸만 문서 순서대로. 시·도·시·군·구 화면은 칸에 이름표가 없어 글자가 곧 이름
+    const order = () => {
+      const search = screen.getByRole("button", { name: /지역 검색, 지금:/ });
+      const bar = search.closest("section");
+      if (bar === null) throw new Error("선택 줄 없음");
+      return within(bar)
+        .getAllByRole("button")
+        .filter((b) => b.getAttribute("aria-haspopup") === "dialog")
+        .map((b) => b.getAttribute("aria-label") ?? b.textContent ?? "");
+    };
+    const view = renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
+    await screen.findByRole("button", { name: "지역 검색, 지금: 대한민국 · 경북" });
+    expect(order().slice(0, 4)).toEqual(["지역 검색, 지금: 대한민국 · 경북", "시·도 · 경북", "시·군·구 · 전체 시·군·구", "2025년 3월"]);
+    view.unmount();
+    const cal = renderRoute("/dashboard/CAL?month=2025-08");
+    expect(await screen.findByRole("button", { name: "지역 검색, 지금: 캘리포니아" })).toBeTruthy();
+    cal.unmount();
+    renderRoute("/dashboard/CAL/52423323B10000000000002?month=2025-08");
+    await screen.findByRole("button", { name: "지역 검색, 지금: Butte" });
+    expect(order().slice(0, 3)).toEqual(["지역 검색, 지금: Butte", "카운티 · Butte", "2025년 8월"]);
+  });
+
   it("한국 나라 단계: 시·군·구 칸은 시·도를 먼저 고르라고 비활성", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     const district = await screen.findByRole("button", { name: /시·도를 먼저 선택하세요/ });
@@ -152,7 +205,7 @@ describe("선택 줄과 대화상자", () => {
 
   it("검색 대화상자에서 다른 나라를 고르면 달을 빼고 그 나라의 마지막 달로", async () => {
     const { router } = renderRoute("/dashboard/KOR?month=2025-03");
-    fireEvent.click(await screen.findByRole("button", { name: /국가·시·도·시·군·구 검색/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /지역 검색/ }));
     const dialog = await screen.findByRole("dialog", { name: "지역 검색" });
     fireEvent.click(within(dialog).getByRole("button", { name: "캘리포니아" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard/CAL"));
@@ -161,7 +214,7 @@ describe("선택 줄과 대화상자", () => {
 
   it("나라 이름만 맞는 검색어는 결과 없음(나라는 맨 위 버튼으로 고른다)", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
-    fireEvent.click(await screen.findByRole("button", { name: /국가·시·도·시·군·구 검색/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /지역 검색/ }));
     const dialog = await screen.findByRole("dialog", { name: "지역 검색" });
     fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "대한민국" } });
     expect(within(dialog).getByText("맞는 지역이 없습니다.")).toBeTruthy();
@@ -170,7 +223,7 @@ describe("선택 줄과 대화상자", () => {
 
   it("검색어로 시·군·구를 찾아 간다", async () => {
     const { router } = renderRoute("/dashboard/KOR?month=2025-03");
-    fireEvent.click(await screen.findByRole("button", { name: /국가·시·도·시·군·구 검색/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /지역 검색/ }));
     const dialog = await screen.findByRole("dialog", { name: "지역 검색" });
     fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "의성" } });
     fireEvent.click(within(dialog).getByRole("button", { name: /경북 의성군/ }));

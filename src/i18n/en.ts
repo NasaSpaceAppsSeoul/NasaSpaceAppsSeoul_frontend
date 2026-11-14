@@ -230,7 +230,9 @@ export const en: Messages = {
         return `All ${lower.endsWith("y") ? `${lower.slice(0, -1)}ies` : `${lower}s`}`;
       },
       pickProvinceFirst: (lv1: string) => `Choose a ${lv1.toLowerCase()} first`,
-      search: "Search by name",
+      search: "Region",
+      // 보이는 이름표 "Region"이 읽히는 이름에 그대로 들어가게(음성 조작)
+      searchHint: "Region search, now:",
       searchPlaceholder: "Search a country, province, city or county",
       month: "Reference month",
     },

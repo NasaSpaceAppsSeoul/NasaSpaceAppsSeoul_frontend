@@ -226,7 +226,9 @@ export const ko = {
     controls: {
       all: (level: string) => `전체 ${level}`,
       pickProvinceFirst: (lv1: string) => `${lv1}를 먼저 선택하세요`,
-      search: "이름으로 검색",
+      // 선택 줄 첫 칸: 지금 위치를 보이고 누르면 검색(2026-11-14 사용자 결정)
+      search: "지역",
+      searchHint: "지역 검색, 지금:",
       searchPlaceholder: "국가·시·도·시·군·구 검색",
       month: "기준 월",
     },
