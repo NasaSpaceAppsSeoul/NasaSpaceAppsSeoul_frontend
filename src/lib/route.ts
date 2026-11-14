@@ -17,6 +17,8 @@ export type RouteInfo = {
 export function routeInfo(pathname: string): RouteInfo {
   const [first, second] = stripLocale(pathname).split("/").filter(Boolean);
   if (first === undefined) return { section: "about", country: undefined };
+  // 기법 페이지는 소개의 하위 페이지라 머리글에서 "소개"가 켜진다(`plans/method-page.md` 0절)
+  if (first === "method" && second === undefined) return { section: "about", country: undefined };
   if (first === "dashboard" || first === "insight") {
     return { section: "dashboard", country: parseCountry(second) ?? undefined };
   }
@@ -30,14 +32,18 @@ export function routeInfo(pathname: string): RouteInfo {
 export type RouteDirection = "forward" | "back" | "fade";
 
 /** 슬라이드로 오가는 페이지. 같은 페이지 안의 달·지역·언어 바꾸기는 페이지 이동이 아니다 */
-export type RoutePage = "about" | "dashboard" | "insight" | "other";
+export type RoutePage = "about" | "method" | "dashboard" | "insight" | "other";
 
-/** 깊이 순서: 첫 화면 → 대시보드 → 월간 인사이트. 없는 주소 안내는 가장 깊은 쪽으로 둔다 */
-const PAGE_DEPTH: Record<RoutePage, number> = { about: 0, dashboard: 1, insight: 2, other: 3 };
+/**
+ * 깊이 순서: 첫 화면 → 기법 페이지 → 대시보드 → 월간 인사이트. 없는 주소 안내는 가장 깊은 쪽으로 둔다.
+ * 기법 페이지는 첫 화면에서 들어가는 하위 페이지라 첫 화면 바로 다음(2026-11-15 사용자 권장안)
+ */
+const PAGE_DEPTH: Record<RoutePage, number> = { about: 0, method: 1, dashboard: 2, insight: 3, other: 4 };
 
 export function routePage(pathname: string): RoutePage {
-  const [first] = stripLocale(pathname).split("/").filter(Boolean);
+  const [first, second] = stripLocale(pathname).split("/").filter(Boolean);
   if (first === undefined) return "about";
+  if (first === "method" && second === undefined) return "method";
   if (first === "dashboard" || first === "insight") return first;
   return "other";
 }
