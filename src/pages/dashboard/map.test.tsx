@@ -126,6 +126,26 @@ describe("나라 지도 (4장)", () => {
     expect(screen.getByRole("button", { name: "처음 크기로" })).toHaveProperty("disabled", false);
   });
 
+  it("언어를 바꾸면 휠 안내 문구가 바뀌도록 지도를 새로 만든다", async () => {
+    const { router } = renderRoute("/dashboard/KOR?month=2025-03");
+    const first = await loadedMap();
+    expect(first.options).toMatchObject({ locale: { "CooperativeGesturesHandler.WindowsHelpText": "Ctrl + 스크롤로 지도를 확대·축소합니다" } });
+    await waitFor(() => expect(first.featureStates.get(UISEONG)).toEqual({ bin: 4 }));
+    const outlines = first.sources.get("outlines")?.data;
+    expect(outlines).not.toBeNull();
+    fireEvent.click(await screen.findByRole("button", { name: "확대" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "처음 크기로" })).toHaveProperty("disabled", false));
+
+    await act(() => router.navigate("/en/dashboard/KOR?month=2025-03"));
+    await waitFor(() => expect(fakeMaps.at(-1)).not.toBe(first));
+    const second = fakeMaps.at(-1);
+    expect(second?.options).toMatchObject({ locale: { "CooperativeGesturesHandler.WindowsHelpText": "Use Ctrl + scroll to zoom the map" } });
+    // 새 지도에 칸 단계·시·도 경계선이 다시 들어가고, 확대는 처음 크기로 돌아간다
+    await waitFor(() => expect(second?.featureStates.get(UISEONG)).toEqual({ bin: 4 }));
+    expect(second?.sources.get("outlines")?.data).toEqual(outlines);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reset view" })).toHaveProperty("disabled", true));
+  });
+
   it("/geo가 실패하면 지도 카드 안에 에러와 다시 시도, 표본이면 안내", async () => {
     vi.stubEnv("VITE_API_MODE", "live");
     vi.stubEnv("VITE_API_BASE", "https://api.test/api/v1");
