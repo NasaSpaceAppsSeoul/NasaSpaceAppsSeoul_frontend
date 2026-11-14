@@ -27,15 +27,16 @@ export const ko = {
       lead: "대한민국의 화재 기록을 나라 전체부터 시·군·구까지 살펴보고, 매달을 지난 기록과 비교해 보세요.",
       howItWorks: "작동 방식 보기",
       scrollCue: "스크롤해서 읽기",
-      browse: "지역 둘러보기",
+      // 검색 줄 오른쪽 밝은 칸(장식, 줄 전체가 검색 버튼). 예전 "지역 둘러보기"는 검색에 합쳤다(about-revise 11절)
+      find: "지역 찾기",
+      // 예시 줄: 앞말 + 지역 링크(받기 전에는 `examples` 글 그대로)
+      examplesLead: "예:",
       examples: "예: 경북 의성 · 강원 고성 · 대구 중구",
+      examplesLabel: "예시 지역",
       countriesLabel: "나라별 대시보드",
       countryLink: (country: string) => `${country} →`,
       countryNotReady: (country: string) => `${country} · 준비 중`,
-      browseTitle: "지역 선택",
-      browseDescription: "대시보드에서 볼 나라나 시·도를 고르세요.",
       countryRowSub: "나라 대시보드",
-      provinceRowSub: (lv1: string) => `${lv1} 대시보드`,
       dataEnd: (date: string) => `${date}까지 자료`,
     },
     // 히어로 3D 지구 (Make 원문 번역). 위성은 개념도라 출처 줄에 "개념도"를 남긴다(about-revise 10절 ③)
@@ -255,6 +256,8 @@ export const ko = {
       countriesHeading: "나라",
       noResults: "맞는 지역이 없습니다.",
       truncated: "결과가 많습니다. 검색어를 더 입력하세요.",
+      // 입력 전 계층 목록 끝 안내(about-revise 11절)
+      searchHint: "시·군·구와 카운티는 이름을 입력해 찾으세요.",
       monthTitle: "기준 월 선택",
       monthDescription: (first: string, last: string) => `${first}부터 ${last}까지 고를 수 있습니다.`,
       previousYear: "이전 해",

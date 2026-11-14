@@ -1,21 +1,19 @@
 import { SearchIcon } from "../icons";
 
 /*
- * 첫 화면 히어로의 검색 줄 (`plans/about-revise.md` 0절: Make "Explore dashboard" 자리).
- * 어두운 칸 안 오른쪽에 밝은 "지역 둘러보기" 버튼(Make의 밝은 버튼 + 주황 마름모)이 들어 있다.
- * 2장 `SearchField`를 쓰지 않는 이유: 칸 안에 다른 버튼을 품을 수 없고, 자료를 받기 전에 막을 `disabled`가 없다.
- * 검색 칸은 칸 모양의 버튼이다. 누르면 검색 대화상자가 열리고 거기서 입력한다(2장과 같은 방식).
+ * 첫 화면 히어로의 검색 줄 (`plans/about-revise.md` 0·11절: Make "Explore dashboard" 자리).
+ * 줄 전체가 버튼 하나다. 누르면 지역 검색 대화상자가 열리고 거기서 입력한다(2장과 같은 방식).
+ * 오른쪽 밝은 칸(Make의 밝은 버튼 + 주황 마름모)은 같은 버튼의 일부인 장식이다. 예전 "지역 둘러보기"는 검색에 합쳤다(11절).
+ * 2장 `SearchField`를 쓰지 않는 이유: 자료를 받기 전에 막을 `disabled`가 없다.
  * 마름모 장식은 공용 `Button`에 변형을 더하지 않고 여기서만 그린다(9-6).
  */
 type HeroSearchBarProps = {
   placeholder: string;
-  browseLabel: string;
+  /** 오른쪽 밝은 칸 글자(예: "지역 찾기") */
+  actionLabel: string;
   disabled: boolean;
-  onSearch: () => void;
-  onBrowse: () => void;
+  onOpen: () => void;
 };
-
-const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-selection";
 
 /**
  * Make `.button-object`: 남색→주황 비스듬한 판 위에 기울어진 테두리 사각형. 호버하면 돈다.
@@ -37,35 +35,33 @@ function ButtonObject() {
   );
 }
 
-export function HeroSearchBar({ placeholder, browseLabel, disabled, onSearch, onBrowse }: HeroSearchBarProps) {
+export function HeroSearchBar({ placeholder, actionLabel, disabled, onOpen }: HeroSearchBarProps) {
   return (
-    <div className="flex h-14 items-center gap-2 rounded-control border border-border bg-surface p-1">
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        disabled={disabled}
-        onClick={onSearch}
+    <button
+      type="button"
+      aria-haspopup="dialog"
+      // 읽는 이름에 화면에 보이는 두 글자를 모두 넣는다(음성 입력으로 "지역 찾기"라고 불러도 눌리게, WCAG 2.5.3)
+      aria-label={`${actionLabel}, ${placeholder}`}
+      disabled={disabled}
+      onClick={onOpen}
+      className={
+        "group flex h-14 w-full items-center gap-2 rounded-control border border-border bg-surface p-1 pl-4 text-left " +
+        "transition-colors hover:border-muted disabled:cursor-not-allowed " +
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-selection"
+      }
+    >
+      <SearchIcon className="size-4 shrink-0 text-muted" />
+      <span className="min-w-0 flex-1 truncate text-base text-muted group-hover:text-ink">{placeholder}</span>
+      <span
+        aria-hidden="true"
         className={
-          "flex h-full min-w-0 flex-1 items-center gap-2 rounded-control-sm px-3 text-left text-base text-muted " +
-          `hover:text-ink disabled:cursor-not-allowed ${FOCUS}`
+          "flex h-full shrink-0 items-center gap-4 rounded-control-sm bg-inverse pr-1 pl-4 text-sm font-medium " +
+          "whitespace-nowrap text-surface transition-colors group-hover:bg-inverse-hover group-disabled:opacity-50"
         }
       >
-        <SearchIcon className="size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate">{placeholder}</span>
-      </button>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        disabled={disabled}
-        onClick={onBrowse}
-        className={
-          "group flex h-full shrink-0 items-center gap-4 rounded-control-sm bg-inverse pr-1 pl-4 text-sm font-medium " +
-          `whitespace-nowrap text-surface transition-colors hover:bg-inverse-hover disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`
-        }
-      >
-        {browseLabel}
+        {actionLabel}
         <ButtonObject />
-      </button>
-    </div>
+      </span>
+    </button>
   );
 }

@@ -8,27 +8,43 @@ import { useRegions } from "../../../hooks/useRegions";
 import { useLocale, useMessages } from "../../../i18n";
 import { COUNTRIES } from "../../../lib/country";
 import { errorKind } from "../../../lib/errorKind";
+import { dashboardPath } from "../../../lib/dashboardPath";
 import { localizePath } from "../../../lib/locale";
+import { indexRegions, regionName } from "../../../lib/region";
 import { CountryButton } from "./CountryButton";
-import { HeroDialogs, type HeroDialog } from "./HeroDialogs";
+import { HeroDialogs } from "./HeroDialogs";
 
 /*
  * 첫 화면 히어로 (Figma Make `design/extra/landing-hero.jpg`, `plans/about-revise.md` 0·1·10절).
  * 왼쪽 글(작은 제목·큰 제목·설명) → 지역 검색 줄 → 예시 줄 → 나라 버튼 3개 → "작동 방식 보기"(기법 페이지).
  * 오른쪽은 3D 지구. 1280(xl) 미만에서는 지구가 글 아래로 내려간다(10절 ④).
- * 검색과 둘러보기는 한국 `/regions`·`/meta`를 쓴다(소개 화면은 한국 고정, `decisions.md` 2-7).
- * 받는 동안은 두 버튼을 막고, 실패하면 예시 줄 자리에 구역 에러를 보인다.
+ * 검색은 한국 `/regions`·`/meta`를 쓴다(소개 화면은 한국 고정, `decisions.md` 2-7). 예전 "지역 둘러보기"는 검색에 합쳤다(11절).
+ * 받는 동안은 검색 줄을 막고, 실패하면 예시 줄 자리에 구역 에러를 보인다.
  */
+
+/** 예시 지역: [시·도 ID, 한글 이름]. 화면 이름은 받은 `/regions`로 그 언어에 맞게 만든다 */
+const EXAMPLES: readonly (readonly [string, string])[] = [
+  ["경북", "의성군"],
+  ["강원", "고성군"],
+  ["대구", "중구"],
+];
+
 export function HeroSection() {
   const t = useMessages();
   const locale = useLocale();
   const h = t.about.hero;
   const regions = useRegions("KOR");
   const meta = useMeta("KOR");
-  const [dialog, setDialog] = useState<HeroDialog>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const failed = regions.isError ? regions : meta.isError ? meta : null;
   const ready = regions.isSuccess && meta.isSuccess;
+  const items = regions.data?.items ?? [];
+  const index = indexRegions(items);
+  // 예시 지역(시·도 + 이름으로 찾는다. 같은 이름의 시·군·구가 여러 시·도에 있다). 못 찾은 것은 뺀다
+  const examples = EXAMPLES.flatMap(([province, name]) =>
+    items.filter((r) => r.level === "dist" && r.province === province && r.label_ko === name),
+  );
 
   return (
     <section className="flex flex-col gap-10 pt-12 pb-8 xl:pt-20">
@@ -50,10 +66,9 @@ export function HeroSection() {
           <div className="mt-10">
             <HeroSearchBar
               placeholder={t.dashboard.controls.searchPlaceholder}
-              browseLabel={h.browse}
+              actionLabel={h.find}
               disabled={!ready}
-              onSearch={() => setDialog("search")}
-              onBrowse={() => setDialog("browse")}
+              onOpen={() => setSearchOpen(true)}
             />
           </div>
           {failed !== null ? (
@@ -65,8 +80,24 @@ export function HeroSection() {
               }}
               className="mt-4"
             />
+          ) : examples.length > 0 ? (
+            // 예시는 누르면 그 대시보드로 바로 간다(11절: 예시가 검색 칸의 약속과 맞게)
+            <nav aria-label={h.examplesLabel} className="mt-4 flex flex-wrap items-baseline gap-x-2 text-sm text-muted">
+              <span aria-hidden="true">{h.examplesLead}</span>
+              {examples.map((r, i) => (
+                <span key={r.id} className="flex items-baseline gap-2">
+                  {i > 0 && <span aria-hidden="true">·</span>}
+                  <Link
+                    to={dashboardPath(locale, "KOR", r.id)}
+                    className="underline decoration-border underline-offset-4 hover:text-ink hover:decoration-ink focus-visible:outline-2 focus-visible:outline-selection"
+                  >
+                    {regionName(r, index, locale)}
+                  </Link>
+                </span>
+              ))}
+            </nav>
           ) : (
-            // Make는 Mono지만 한글이 Mono에 없어 글자 사이가 벌어진다. 본문 글꼴로 둔다
+            // 받기 전에는 글만. Make는 Mono지만 한글이 Mono에 없어 글자 사이가 벌어져 본문 글꼴로 둔다
             <p className="mt-4 text-sm text-muted">{h.examples}</p>
           )}
           <nav aria-label={h.countriesLabel} className="mt-6">
@@ -107,7 +138,15 @@ export function HeroSection() {
         </span>
       </Link>
 
-      {ready && <HeroDialogs dialog={dialog} close={() => setDialog(null)} regions={regions.data.items} meta={meta.data} />}
+      {ready && (
+        <HeroDialogs
+          open={searchOpen}
+          close={() => setSearchOpen(false)}
+          regions={regions.data.items}
+          index={index}
+          meta={meta.data}
+        />
+      )}
     </section>
   );
 }
