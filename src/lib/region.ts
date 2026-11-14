@@ -91,6 +91,19 @@ export function regionPath<T extends NamedRegion>(region: T, countryId: string, 
   return path;
 }
 
+/**
+ * 검색 결과 줄의 소속 경로(`plans/about-revise.md` 11절). 자기 위의 지역을 가까운 것부터: 시·군·구 → [시·도, 나라], 시·도 → [나라].
+ * 시·도가 없는 나라(CAL·BC)의 지역은 [나라]. 나라 이름은 화면 문구(`countries`)라 받아 쓴다.
+ */
+export function ancestorNames(region: NamedRegion, index: RegionIndex, locale: Locale, countryName: string): string[] {
+  if (region.level === "nat") return [];
+  if (region.level === "dist" && region.province !== null) {
+    const province = index.get(region.province);
+    return [province !== undefined ? ownName(province, locale) : region.province, countryName];
+  }
+  return [countryName];
+}
+
 /** 시·도 목록과 시·군·구 목록의 정렬: 가나다순(영어 화면은 알파벳순) (`decisions.md` 7-4). */
 export function sortByName<T extends NamedRegion>(items: readonly T[], index: RegionIndex, locale: Locale): T[] {
   const collator = new Intl.Collator(locale === "ko" ? "ko" : "en");

@@ -30,7 +30,13 @@ export function MenuRow({ title, sub, selected = false, disabled = false, disabl
       }
     >
       <span className={`text-sm font-medium ${disabled ? "text-muted" : "text-ink"}`}>{title}</span>
-      {sub !== undefined && <span className="text-xs text-muted">{sub}</span>}
+      {sub !== undefined && (
+        <span className="text-xs text-muted">
+          {/* 읽을 때 제목과 보조 줄이 한 단어로 붙지 않게 쉼표로 끊는다(화면에는 안 보임) */}
+          <span className="sr-only">, </span>
+          {sub}
+        </span>
+      )}
     </button>
   );
 }

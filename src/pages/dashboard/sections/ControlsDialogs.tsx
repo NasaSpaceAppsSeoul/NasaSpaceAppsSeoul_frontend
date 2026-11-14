@@ -83,7 +83,9 @@ export function ControlsDialogs({ scope, dialog, close, navigate, share }: Contr
         open={dialog === "search"}
         onClose={close}
         countries={COUNTRIES.map((code) => ({ code, label: t.countries[code], selected: code === country }))}
+        regionsCountry={country}
         regions={regions}
+        currentRegionId={region.id}
         index={index}
         levelName={levelName}
         onPickCountry={(code) => {
