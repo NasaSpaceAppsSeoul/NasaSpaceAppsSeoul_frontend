@@ -159,6 +159,7 @@ function uiseong202503(spatial: Spatial): Spatial {
           { id: UISEONG, label_ko: "의성군" },
           { id: "91817680B16014600177045", label_ko: "안동시" },
         ],
+        region_days: [22, 23, 24, 25, 26, 27, 28],   // daily 키 중 22~29일 안 (지어낸 값, 백엔드 기대값에 없음)
       },
       clusters: { fire_days: 7, peak_day_cells: 108, events: 3, big_events: 1 },
       near50: { n: 330, first: 21 },

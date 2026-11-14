@@ -135,6 +135,8 @@ export function spatialFor(country: Country, region: RegionSummary, month: strin
           { id: region.id, label_ko: region.label_ko },
           ...(value >= 30 && neighbor !== null ? [{ id: neighbor.id, label_ko: neighbor.label_ko }] : []),
         ],
+        // 묶음이 이 달 첫 감지일~끝 감지일이라 감지일 전부가 기간 안이다(SpatialService region_days)
+        region_days: [...days].sort((a, b) => a - b),
       }
     : null;
   const hasEvents = month >= NOAA20_START && value !== null && value > 0;

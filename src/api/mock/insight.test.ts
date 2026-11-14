@@ -29,6 +29,7 @@ describe("/insight 목: 의성 2025-03 (spec_test.py 기대값)", () => {
     expect(r.prov).toEqual(r.ref);
     expect(r.calendar?.main_cluster).toMatchObject({
       start: "2025-03-22", end: "2025-03-29", days: 8, cells: 919, peak_cells: 551, peak_date: "2025-03-26",
+      region_days: [22, 23, 24, 25, 26, 27, 28],
     });
     expect(r.calendar?.clusters).toMatchObject({ events: 3, big_events: 1 });
     expect(r.calendar?.daily["26"]).toBe(r.head.dmax);
@@ -66,6 +67,25 @@ describe("/insight 목: 달에 따라", () => {
     expect([r.head.value, r.head.fire_days, r.head.dmax, r.head.reason]).toEqual([null, null, null, "PRE_2012_DISTRICT"]);
     expect(Object.keys(r.calendar?.daily ?? {}).length).toBeGreaterThan(0);
     expect(r.calendar?.main_cluster).toBeNull();
+  });
+
+  it("묶음의 region_days는 그 달 감지일 중 start~end 안, 오름차순", async () => {
+    let checked = 0;
+    for (const month of ["2019-04", "2022-03", "2025-04", "2026-03"]) {
+      const r = await insight(`/KOR/insight/${ANDONG}?month=${month}`);
+      const cluster = r.calendar?.main_cluster;
+      if (cluster === null || cluster === undefined || r.calendar === null) continue;
+      const inside = Object.keys(r.calendar.daily)
+        .map(Number)
+        .filter((d) => {
+          const date = `${month}-${String(d).padStart(2, "0")}`;
+          return date >= cluster.start && date <= cluster.end;
+        })
+        .sort((a, b) => a - b);
+      expect(cluster.region_days).toEqual(inside);
+      checked += 1;
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 
   it("이웃은 백엔드 정렬(값 큰 순, null은 0보다 앞)", async () => {

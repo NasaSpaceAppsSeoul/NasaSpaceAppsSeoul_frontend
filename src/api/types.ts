@@ -1,6 +1,6 @@
 // Burnline API 응답 타입. 이 파일이 원본이다(`.claude/reference/api-types.ts`에서 옮김, 2026-11-14).
-// 백엔드 커밋 6c52daf의 코드를 읽고 작성했다. 실제 응답으로 확인한 것이 아니다.
-// 서버가 켜지면 화면마다 실제 응답과 대조하고(roadmap 8장), 다르면 이 파일을 고친다.
+// 백엔드 커밋 7dff960의 코드를 읽고 작성했다(PR #13 필드 반영). 실제 응답으로 확인한 것이 아니다.
+// 서버가 켜지면 화면마다 실제 응답과 대조하고(roadmap 9장), 다르면 이 파일을 고친다.
 
 import type { Country } from "../lib/country";
 
@@ -96,14 +96,24 @@ export interface Judgement {
   ratio_to_median: number | null;
   ytd_sum: number | null;               // 반올림 안 됨. 표시할 때 소수 한 자리로
   ytd_ratio: number | null;
+  // 평소 누적 범위: 1월~그 달 band_low·band_high 합. 자체 판정이 아니거나 ytd_sum이 null이거나 합 ≤ 0이면 null
+  ytd_lo: number | null; ytd_hi: number | null;
   quality: Quality | null; estimated: boolean; status: Status;
   reason: Reason | null;                // 하나만 온다. value·status·region_type·median 을 직접 본다
   ref: JudgementRef | null;
 }
 
+// ---- /judgement?month=   (지도용 일괄 판정, 시·군·구만)
+// 그 달 series 줄이 있는 시·군·구만 온다(전체 목록이 아닐 수 있음).
+// 자체 판정이 아니거나 값이 null·0 이하이면 chip·ratio_to_median이 null
+export interface BulkJudgementRegion { id: string; chip: Chip | null; ratio_to_median: number | null }
+export interface BulkJudgement { month: string; regions: BulkJudgementRegion[] }
+
 // ---- /series/{id}?from=&to= , /baseline/{id}
 export interface SeriesMonth {
-  month: string; value: number | null; source: Source | null; quality: Quality | null;
+  month: string; value: number | null;
+  raw_before: number | null;            // 보정 전 값(척도가 value와 다름). 시·도는 늘 null, 원자료에 없으면 모두 null
+  source: Source | null; quality: Quality | null;
   estimated: boolean; status: Status; rank: number | null; n: number | null; ratio_to_median: number | null;
 }
 export interface SeriesResponse { id: string; level: Level; months: SeriesMonth[] }
@@ -147,6 +157,7 @@ export interface InsightHead {
 export interface InsightCluster {
   start: string; end: string; days: number; cells: number; peak_cells: number; peak_date: string;
   regions: { id: string; label_ko: string | null }[];
+  region_days: number[];                // 묶음 기간 안에서 이 지역에 감지가 있던 날(일, 오름차순)
 }
 export interface Insight {
   id: string; country: Country; month: string; label_ko: string; province: string | null;
