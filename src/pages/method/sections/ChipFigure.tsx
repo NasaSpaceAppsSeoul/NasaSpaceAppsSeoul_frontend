@@ -13,7 +13,7 @@ import { useMethodMessages } from "../../../i18n/method";
 import { COUNTRIES, DEFAULT_COUNTRY, type Country } from "../../../lib/country";
 import { errorKind } from "../../../lib/errorKind";
 import { formatFireDays, formatRatio } from "../../../lib/format";
-import { caseMonth, sameMonthBars } from "../../../lib/methodFigures";
+import { caseMonth, chipFigureModel } from "../../../lib/methodFigures";
 
 /*
  * 06절 그림: 고른 나라의 대표 달(`/landing` `case_month_ratio`, 백엔드 `LandingService.java:25`와 같은 달)의 2001–2025 값을
@@ -65,16 +65,12 @@ export function ChipFigure() {
   const target = caseMonth(landing.data.stats);
   if (target === null) return figure(f.title, <p className="py-10 text-center text-sm text-muted">{f.empty}</p>);
 
-  const row = baseline.data.by_month.find((b) => b.month === target.month);
-  const band = row === undefined ? null : { median: row.median, low: row.band_low, high: row.band_high };
-  const bars = sameMonthBars(series.data.months, target.month, band);
+  const { bars, band, headline } = chipFigureModel(series.data.months, baseline.data.by_month, target);
   if (bars.length === 0) return figure(f.title, <p className="py-10 text-center text-sm text-muted">{f.empty}</p>);
-  const key = `${target.year}-${String(target.month).padStart(2, "0")}`;
-  const caseRow = series.data.months.find((m) => m.month === key);
   const title =
-    caseRow !== undefined && caseRow.rank === 1 && caseRow.ratio_to_median !== null && caseRow.n !== null
-      ? f.titleFull(target.year, target.month, formatRatio(caseRow.ratio_to_median, locale), caseRow.n)
-      : f.titleShort(target.year, target.month);
+    headline === null
+      ? f.titleShort(target.year, target.month)
+      : f.titleFull(target.year, target.month, formatRatio(headline.ratio, locale), headline.n);
   const record = bars.find((bar) => bar.chip === "record");
 
   return figure(

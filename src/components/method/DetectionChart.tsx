@@ -6,10 +6,11 @@ import type { DetectRow } from "../../lib/landing";
  * 첫 화면의 옛 `DetectionBars`(흰 카드 HTML 막대)와 모양이 달라 새로 그린다.
  */
 type DetectionChartProps = {
-  rows: readonly (DetectRow & { n: number })[];
+  rows: readonly DetectRow[];
   label: string;
-  percent: (value: number) => string;
-  count: (n: number) => string;
+  /** 값이 없으면 "—"를 돌려준다 */
+  percent: (value: number | null) => string;
+  count: (n: number | null) => string;
   rowTitle: (bin: string, detected: string, chance: string, n: string) => string;
 };
 
@@ -24,8 +25,8 @@ export function DetectionChart({ rows, label, percent, count, rowTitle }: Detect
     <svg viewBox={`0 0 720 ${height}`} className="block h-auto w-full" role="img" aria-label={label}>
       {rows.map((row, i) => {
         const y = 12 + i * ROW;
-        const detected = row.detected === null ? "—" : percent(row.detected);
-        const chance = row.chance === null ? "—" : percent(row.chance);
+        const detected = percent(row.detected);
+        const chance = percent(row.chance);
         return (
           <g key={row.bin}>
             <title>{rowTitle(row.label, detected, chance, count(row.n))}</title>

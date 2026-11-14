@@ -47,3 +47,37 @@ export function caseMonth(stats: readonly { key: string; month?: unknown }[]): C
   if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return null;
   return { year, month };
 }
+
+export type BandRow = { month: number; median: number | null; band_low: number | null; band_high: number | null };
+export type CaseRow = { month: string; rank: number | null; n: number | null; ratio_to_median: number | null };
+export type ChipFigureModel = {
+  bars: SameMonthBar[];
+  /** 아래 끝은 0으로 자른 범위. 그 달 줄이 없으면 `null` */
+  band: Band | null;
+  /** 대표 달이 1위이고 배수·비교 해 수가 있으면 긴 제목에 쓸 값, 아니면 `null`(짧은 제목) */
+  headline: { ratio: number; n: number } | null;
+};
+
+/**
+ * 06절 그림에 쓸 값을 한 번에 만든다: 대표 달의 해별 막대·칩, 범위, 제목 종류.
+ * 제목의 배수·순위는 `/landing`이 아니라 그림과 같은 `/series`의 그 달 줄에서 읽는다(백엔드도 그 줄에서 만든다, 제목과 막대가 어긋나지 않게).
+ */
+export function chipFigureModel(
+  months: readonly (SameMonthInput & CaseRow)[],
+  byMonth: readonly BandRow[],
+  target: CaseMonth,
+): ChipFigureModel {
+  const row = byMonth.find((b) => b.month === target.month);
+  const band =
+    row === undefined
+      ? null
+      : { median: row.median, low: row.band_low === null ? null : Math.max(0, row.band_low), high: row.band_high };
+  const bars = sameMonthBars(months, target.month, band);
+  const key = `${target.year}-${String(target.month).padStart(2, "0")}`;
+  const caseRow = months.find((m) => m.month === key);
+  const headline =
+    caseRow !== undefined && caseRow.rank === 1 && caseRow.ratio_to_median !== null && caseRow.n !== null
+      ? { ratio: caseRow.ratio_to_median, n: caseRow.n }
+      : null;
+  return { bars, band, headline };
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caseMonth, sameMonthBars } from "./methodFigures";
+import { caseMonth, chipFigureModel, sameMonthBars } from "./methodFigures";
 
 const m = (month: string, value: number | null, rank: number | null = null) => ({ month, value, rank });
 
@@ -43,5 +43,31 @@ describe("caseMonth", () => {
     expect(caseMonth(bad)).toBeNull();
     expect(caseMonth([{ key: "case_month_ratio", month: "2020-xx" }])).toBeNull();
     expect(caseMonth([{ key: "case_month_ratio" }])).toBeNull();
+  });
+});
+
+describe("chipFigureModel", () => {
+  const row = (month: string, value: number | null, rank: number | null, ratio: number | null) => ({
+    month,
+    value,
+    rank,
+    n: 25,
+    ratio_to_median: ratio,
+  });
+  const byMonth = [{ month: 3, median: 174, band_low: -5, band_high: 294.8 }];
+
+  it("대표 달이 1위면 그 줄의 배수·해 수로 긴 제목, 범위 아래 끝은 0으로 자른다", () => {
+    const model = chipFigureModel([row("2024-03", 100, 9, 0.57), row("2025-03", 1093, 1, 6.28)], byMonth, { year: 2025, month: 3 });
+    expect(model.headline).toEqual({ ratio: 6.28, n: 25 });
+    expect(model.band).toEqual({ median: 174, low: 0, high: 294.8 });
+    expect(model.bars.map((b) => b.chip)).toEqual(["normal", "record"]);
+  });
+
+  it("대표 달이 1위가 아니거나 배수가 없으면 짧은 제목, 그 달 범위가 없으면 band null", () => {
+    expect(chipFigureModel([row("2020-09", 802, 7, 1.22)], byMonth, { year: 2020, month: 9 })).toMatchObject({
+      headline: null,
+      band: null,
+    });
+    expect(chipFigureModel([row("2025-03", 5, 1, null)], byMonth, { year: 2025, month: 3 }).headline).toBeNull();
   });
 });

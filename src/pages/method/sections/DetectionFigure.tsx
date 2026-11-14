@@ -10,7 +10,7 @@ import { useLocale, useMessages } from "../../../i18n";
 import { useMethodMessages } from "../../../i18n/method";
 import { COUNTRIES, DEFAULT_COUNTRY, type Country } from "../../../lib/country";
 import { errorKind } from "../../../lib/errorKind";
-import { formatFireDays } from "../../../lib/format";
+import { formatCount, formatPercent } from "../../../lib/format";
 import { detectRows } from "../../../lib/landing";
 
 /*
@@ -25,8 +25,8 @@ export function DetectionFigure() {
   const locale = useLocale();
   const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
   const landing = useLanding(country);
-  const percent = (value: number) => `${Math.round(value * 100)}%`;
-  const count = (n: number) => f.count(formatFireDays(n, locale));
+  const percent = (value: number | null) => formatPercent(value, locale);
+  const count = (n: number | null) => (n === null ? "—" : f.count(formatCount(n, locale)));
 
   let body;
   if (landing.isPending || (landing.isError && landing.isFetching)) {
@@ -36,16 +36,14 @@ export function DetectionFigure() {
   } else if (landing.data.detect_by_size.length === 0) {
     body = <p className="py-10 text-center text-sm text-muted">{f.empty}</p>;
   } else {
-    const items = landing.data.detect_by_size;
-    const rows = detectRows(items, binNames).map((row, i) => ({ ...row, n: items[i]?.n ?? 0 }));
-    const show = (value: number | null) => (value === null ? "—" : percent(value));
+    const rows = detectRows(landing.data.detect_by_size, binNames);
     body = (
       <>
         <DetectionChart rows={rows} label={f.label(t.countryTabs[country])} percent={percent} count={count} rowTitle={f.row} />
         <FigureDataTable
           caption={f.label(t.countryTabs[country])}
           head={[f.binHead, f.detectedHead, f.chanceHead, f.countHead]}
-          rows={rows.map((row) => ({ key: row.bin, cells: [row.label, show(row.detected), show(row.chance), count(row.n)] }))}
+          rows={rows.map((row) => ({ key: row.bin, cells: [row.label, percent(row.detected), percent(row.chance), count(row.n)] }))}
         />
       </>
     );

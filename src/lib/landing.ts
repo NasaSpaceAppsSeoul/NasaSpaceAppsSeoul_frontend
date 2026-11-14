@@ -126,7 +126,7 @@ export function axisTicks(values: readonly number[]): number[] {
   return Array.from({ length: count + 1 }, (_, i) => Number((i * step).toPrecision(12)));
 }
 
-export type DetectInput = { bin: string; detected: number | null; chance: number | null };
+export type DetectInput = { bin: string; detected: number | null; chance: number | null; n?: number };
 
 /**
  * 단계 이름: 화면 문구 표(`i18n`)에서 찾고, 표에 없으면 받은 문자열 그대로(나라마다 단계 이름이 다를 수 있다, H-5).
@@ -145,6 +145,8 @@ export type DetectRow = {
   chanceAt: number | null;
   detected: number | null;
   chance: number | null;
+  /** 그 단계의 공식 기록 수(받은 값에 있을 때) */
+  n: number | null;
 };
 
 /** 감지율 줄. 받은 순서 그대로, 이름은 표에서 찾는다(H-5). */
@@ -156,6 +158,7 @@ export function detectRows(items: readonly DetectInput[], names: Readonly<Record
     chanceAt: item.chance === null ? null : clampRatio(item.chance),
     detected: item.detected,
     chance: item.chance,
+    n: item.n ?? null,
   }));
 }
 

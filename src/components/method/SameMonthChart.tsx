@@ -1,5 +1,5 @@
 import { axisTicks } from "../../lib/landing";
-import type { SameMonthBar, SameMonthChip } from "../../lib/methodFigures";
+import type { Band, SameMonthBar, SameMonthChip } from "../../lib/methodFigures";
 
 /*
  * 06절 같은 달 연도별 값 (시안 `DRAW.band`): 해마다 막대 하나(색 = 그해 칩), 보통 범위 음영, 평년(중앙값) 점선,
@@ -8,7 +8,8 @@ import type { SameMonthBar, SameMonthChip } from "../../lib/methodFigures";
  */
 type SameMonthChartProps = {
   bars: readonly SameMonthBar[];
-  band: { median: number | null; low: number | null; high: number | null } | null;
+  /** 아래 끝은 이미 0으로 자른 범위(`lib/methodFigures`) */
+  band: Band | null;
   label: string;
   format: (value: number) => string;
   chipName: Readonly<Record<SameMonthChip, string>>;
@@ -36,7 +37,7 @@ export function SameMonthChart(props: SameMonthChartProps) {
   const top = ticks.at(-1) ?? 1;
   const y = (value: number) => YB - (Math.min(value, top) / top) * (YB - YT);
   const width = (X1 - X0) / Math.max(1, bars.length);
-  const low = band?.low === null || band?.low === undefined ? null : Math.max(0, band.low);
+  const low = band?.low ?? null;
   const high = band?.high ?? null;
   const median = band?.median ?? null;
   const recordIndex = bars.findIndex((bar) => bar.chip === "record");
