@@ -30,7 +30,8 @@ function Shell({ locale }: { locale: Locale }) {
         locale={locale}
         localeHrefs={{ ko: localeHref("ko"), en: localeHref("en") }}
       />
-      <div className="flex-1">
+      {/* 첫 화면 ↔ 대시보드 슬라이드는 이 칸만 움직인다(머리글·푸터·우주 배경은 고정, `app/routeTransition.ts`) */}
+      <div className="route-page flex-1">
         <Outlet />
       </div>
       <Footer sources={meta.data?.sources} processedOn={meta.data?.generated_at?.slice(0, 10)} />

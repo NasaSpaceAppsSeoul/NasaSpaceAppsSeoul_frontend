@@ -356,3 +356,101 @@
     }
   }
 }
+
+/*
+ * 첫 화면 ↔ 대시보드 화면 전환 슬라이드 (시안 v9 `.route-page` 값 그대로, `app/routeTransition.ts`).
+ * 화면 내용 칸만 움직인다: 새 화면은 48px 옆에서 620ms로 들어오고, 이전 화면은 반대쪽으로 420ms에 나간다.
+ * 문서 전체(머리글·푸터·우주 배경)는 그대로 두어 배경이 고정으로 보인다. 움직임 줄이기면 바로 바뀐다.
+ */
+@layer components {
+  .route-page {
+    view-transition-name: route-page;
+  }
+  /*
+   * 칸 자체의 위치·크기 애니메이션은 끈다: 새 화면은 맨 위에서 시작해(스크롤 복원) 이전 위치에서 옮겨 오면
+   * 세로로 크게 쏟아져 보인다. 가로 슬라이드는 아래 old/new 그림이 맡는다
+   */
+  ::view-transition-group(route-page) {
+    animation: none;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(route-page) {
+    animation: route-out 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  ::view-transition-new(route-page) {
+    animation: route-in 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  :root[data-route-direction="forward"] {
+    --route-in-x: 48px;
+    --route-out-x: -48px;
+  }
+  :root[data-route-direction="back"] {
+    --route-in-x: -48px;
+    --route-out-x: 48px;
+  }
+  @keyframes route-in {
+    from {
+      opacity: 0;
+      transform: translateX(var(--route-in-x, 48px));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes route-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(var(--route-out-x, -48px));
+    }
+  }
+  /*
+   * 같은 페이지 안에서 라우터가 전환을 켠 경우(뒤로 가기)는 바로 바뀐다.
+   * 이전 그림은 숨긴다(애니메이션만 끄면 두 그림이 한 프레임 겹쳐 밝게 번쩍일 수 있다)
+   */
+  :root[data-route-direction="none"]::view-transition-old(route-page) {
+    display: none;
+  }
+  :root[data-route-direction="none"]::view-transition-new(route-page) {
+    animation: none;
+  }
+  /*
+   * 언어 전환: 같은 페이지라 미끄러지지 않고 겹쳐 바뀐다. 머리글 글자도 바뀌므로 문서 전체(루트)도 함께 겹친다
+   * (우주 배경은 두 그림이 같아 그대로 보인다). 이전 것은 0.22초에 옅어지고 새 것은 0.32초에 나타난다
+   */
+  :root[data-route-direction="fade"]::view-transition-old(root),
+  :root[data-route-direction="fade"]::view-transition-old(route-page) {
+    animation: route-fade-out 220ms ease both;
+  }
+  :root[data-route-direction="fade"]::view-transition-new(root),
+  :root[data-route-direction="fade"]::view-transition-new(route-page) {
+    animation: route-fade-in 320ms ease both;
+  }
+  @keyframes route-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes route-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(route-page),
+    ::view-transition-old(route-page),
+    ::view-transition-new(route-page),
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none !important;
+    }
+  }
+}

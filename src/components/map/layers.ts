@@ -160,10 +160,14 @@ export function addLayers(map: MapLibreMap, colors: MapColors, glowCanvases: rea
     id: LAYER.points,
     type: "circle",
     source: SOURCE.points,
+    // 처음엔 투명. 첫 맞춤 뒤 `applyPointZoom`·`applyStaticPoints`가 보이게 한다(지도를 새로 만들 때, 예를 들어 언어를
+    // 바꿀 때 숨겨야 할 점이 잠깐 보였다 사라지지 않게, 2026-11-15 사용자 지적)
     paint: {
       "circle-color": dotColor,
       "circle-stroke-color": colors.line,
       "circle-stroke-width": 0.5,
+      "circle-opacity": 0,
+      "circle-stroke-opacity": 0,
     },
   });
 }

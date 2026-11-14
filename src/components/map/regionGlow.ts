@@ -90,6 +90,8 @@ export function redrawGlow(
   const mapCanvas = map.getCanvas();
   const viewW = mapCanvas.clientWidth;
   const viewH = mapCanvas.clientHeight;
+  // 지도 칸이 아직 자리를 잡지 못했으면(크기 0, 화면 전환 중 등) 그리지 않는다. 다음 `moveend`·`resize`가 다시 그린다
+  if (viewW === 0 || viewH === 0) return;
   const shift: [number, number] = [viewW * MARGIN, viewH * MARGIN];
   const width = Math.max(1, Math.round(viewW * (1 + 2 * MARGIN)));
   const height = Math.max(1, Math.round(viewH * (1 + 2 * MARGIN)));
@@ -131,7 +133,10 @@ export function redrawGlow(
     ctx.drawImage(scratch, 0, 0);
   }
 
-  source.setCoordinates(coverCorners(map, viewW, viewH));
+  const corners = coverCorners(map, viewW, viewH);
+  // 지도가 아직 위치를 못 잡아 좌표가 무한대면 넘기지 않는다(MapLibre가 예외를 낸다)
+  if (!corners.every(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat))) return;
+  source.setCoordinates(corners);
   // 정지 소스는 그린 뒤 한 번 다시 읽게 하고 바로 멈춘다(움직이는 동안 매 프레임 올리지 않게)
   source.play();
   requestAnimationFrame(() => source.pause());

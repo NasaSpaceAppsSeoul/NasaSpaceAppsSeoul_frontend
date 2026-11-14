@@ -1,5 +1,5 @@
 import { parseCountry, type Country } from "./country";
-import { stripLocale } from "./locale";
+import { localeFromPath, stripLocale } from "./locale";
 
 /** 머리글 메뉴에서 이 주소에 맞는 항목. 월간 인사이트는 대시보드에서 들어가므로 대시보드로 본다. */
 export type RouteSection = "about" | "dashboard";
@@ -21,4 +21,35 @@ export function routeInfo(pathname: string): RouteInfo {
     return { section: "dashboard", country: parseCountry(second) ?? undefined };
   }
   return { section: null, country: undefined };
+}
+
+/**
+ * 화면 전환 모양. 더 깊은 페이지로 가면 앞으로(오른쪽에서 슬라이드), 돌아가면 뒤로,
+ * 같은 페이지에서 언어만 바뀌면 부드럽게 겹쳐 바뀐다(2026-11-15 사용자: 언어 전환이 너무 휙 바뀜)
+ */
+export type RouteDirection = "forward" | "back" | "fade";
+
+/** 슬라이드로 오가는 페이지. 같은 페이지 안의 달·지역·언어 바꾸기는 페이지 이동이 아니다 */
+export type RoutePage = "about" | "dashboard" | "insight" | "other";
+
+/** 깊이 순서: 첫 화면 → 대시보드 → 월간 인사이트. 없는 주소 안내는 가장 깊은 쪽으로 둔다 */
+const PAGE_DEPTH: Record<RoutePage, number> = { about: 0, dashboard: 1, insight: 2, other: 3 };
+
+export function routePage(pathname: string): RoutePage {
+  const [first] = stripLocale(pathname).split("/").filter(Boolean);
+  if (first === undefined) return "about";
+  if (first === "dashboard" || first === "insight") return first;
+  return "other";
+}
+
+/**
+ * 두 주소 사이에 슬라이드를 할지와 방향(`plans/cosmic-redesign.md` 8-1, 시안 v9 화면 전환).
+ * 페이지가 바뀌는 이동이면 모두(2026-11-15 사용자: 페이지가 전환되는 곳에는 모두 동일하게). 같은 페이지에서 언어만
+ * 바뀌면 `fade`. 같은 페이지·같은 언어 안(달·지역 바꾸기)은 `null`.
+ */
+export function routeDirection(fromPath: string, toPath: string): RouteDirection | null {
+  const from = routePage(fromPath);
+  const to = routePage(toPath);
+  if (from === to) return localeFromPath(fromPath) === localeFromPath(toPath) ? null : "fade";
+  return PAGE_DEPTH[to] > PAGE_DEPTH[from] ? "forward" : "back";
 }
