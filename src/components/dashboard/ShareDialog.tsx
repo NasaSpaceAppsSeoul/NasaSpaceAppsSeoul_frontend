@@ -1,5 +1,5 @@
 import { useMessages } from "../../i18n";
-import type { CopyState } from "../../hooks/useCopyText";
+import type { CopyState } from "../../lib/copyState";
 import { Button } from "../Button";
 import { Dialog } from "../Dialog";
 

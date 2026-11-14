@@ -6,7 +6,7 @@ import { useLocale, useMessages } from "../../../i18n";
 import { COUNTRIES, parseCountry } from "../../../lib/country";
 import { formatMonth } from "../../../lib/format";
 import { ownName, parentOf, regionPath, sortByName } from "../../../lib/region";
-import type { CopyState } from "../../../hooks/useCopyText";
+import type { CopyState } from "../../../lib/copyState";
 import { ShareDialog } from "../../../components/dashboard/ShareDialog";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "../scope";
 

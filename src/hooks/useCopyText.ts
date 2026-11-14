@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-
-export type CopyState = "idle" | "copied" | "failed";
+import type { CopyState } from "../lib/copyState";
 
 /**
  * 글자를 클립보드에 복사하고 결과를 상태로 돌려준다(공유 대화상자, `plans/dashboard-sections.md` 6절·11-7·13절).
