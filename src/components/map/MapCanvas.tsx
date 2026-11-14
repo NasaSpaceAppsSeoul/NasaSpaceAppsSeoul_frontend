@@ -49,11 +49,15 @@ type MapCanvasProps = {
   fallbackBounds: Bounds | null;
   label: string;
   /**
-   * `national`(기본, 4장): Ctrl·⌘+휠·핀치·끌기로 확대, 처음엔 점 대신 연기 번짐, 확대하면 점.
-   * `regional`(5장 시·도·시·군·구, 7장): 확대·끌기 없는 고정 지도, 처음부터 작은 점(2026-11-14 사용자 결정). 만들 때 한 번만 읽는다.
+   * 점 모양만 다르다. 확대·끌기(Ctrl·⌘+휠·핀치·끌기)는 둘 다 같다. 만들 때 한 번만 읽는다.
+   * `national`(기본, 4장): 처음엔 점 대신 연기 번짐, 확대하면 점.
+   * `regional`(5장 시·도·시·군·구, 7장): 처음부터 작은 점, 확대할수록 조금 커진다(2026-11-14 사용자 결정, `plans/dashboard-sections.md` 14절).
    */
   variant?: "national" | "regional";
-  /** `national`에서 그냥 휠을 굴렸을 때 지도 위에 잠깐 뜨는 "Ctrl+휠로 확대" 안내(만들 때 한 번 쓴다) */
+  /**
+   * 그냥 휠을 굴렸을 때 지도 위에 잠깐 뜨는 "Ctrl+휠로 확대" 안내(나라·지역 지도). 지도를 만들 때 한 번만 쓰므로
+   * 언어가 바뀌면 쓰는 쪽이 `key`로 지도를 새로 만든다(`/`와 `/en`은 같은 자리에 그려져 다시 만들어지지 않는다)
+   */
   gestureHelp?: { windows: string; mac: string; mobile: string };
   /** 구역을 눌렀을 때. 없으면 누름을 받지 않는다 */
   onRegionClick?: (id: string) => void;
@@ -75,7 +79,7 @@ export function MapCanvas(props: MapCanvasProps) {
   const startBounds = useRef<Bounds | null>(null);
   const [ready, setReady] = useState(false);
   const colorsRef = useRef<MapColors | null>(null);
-  // 안내 문구는 지도를 만들 때 한 번만 쓴다(언어가 바뀌면 주소가 바뀌어 지도를 새로 만든다)
+  // 안내 문구는 지도를 만들 때 한 번만 쓴다(언어가 바뀌면 쓰는 쪽의 `key`로 지도를 새로 만든다, `gestureHelp` 설명)
   const [gestureHelp] = useState(props.gestureHelp);
   const [regional] = useState(props.variant === "regional");
 
@@ -122,7 +126,7 @@ export function MapCanvas(props: MapCanvasProps) {
     map.setMaxZoom(startZoom.current + ZOOM_RANGE);
     // 끌어서 나라가 지도 칸 밖으로 나가지 않게, 처음 맞춘 화면 범위 안으로 묶는다
     map.setMaxBounds(map.getBounds());
-    if (regional) applyStaticPoints(map);
+    if (regional) applyStaticPoints(map, startZoom.current);
     else if (colorsRef.current !== null) applyPointZoom(map, colorsRef.current, startZoom.current);
     reportZoom(map);
   });
@@ -142,14 +146,13 @@ export function MapCanvas(props: MapCanvasProps) {
   useEffect(() => {
     const el = container.current;
     if (el === null) return;
-    // 나라 지도: 지도 위 Ctrl+휠·트랙패드 핀치는 페이지가 아니라 지도를 확대한다. 그냥 휠은 페이지 스크롤로 남기고 안내만 띄운다.
-    // 지역 지도: 확대·끌기를 모두 끈다(올림·누름 이벤트는 그대로 온다). 휠은 페이지 스크롤이라 안내도 없다
-    const zoomable = !regional;
+    // 지도 위 Ctrl+휠·트랙패드 핀치는 페이지가 아니라 지도를 확대한다. 그냥 휠은 페이지 스크롤로 남기고 안내만 띄운다
+    // (나라·지역 지도 모두, 2026-11-14 사용자 결정으로 지역 지도도 확대한다)
     const map = new MapLibreMap({
       container: el,
       style: emptyStyle(),
       attributionControl: false,
-      cooperativeGestures: zoomable && gestureHelp !== undefined,
+      cooperativeGestures: gestureHelp !== undefined,
       ...(gestureHelp !== undefined && {
         locale: {
           "CooperativeGesturesHandler.WindowsHelpText": gestureHelp.windows,
@@ -157,9 +160,9 @@ export function MapCanvas(props: MapCanvasProps) {
           "CooperativeGesturesHandler.MobileHelpText": gestureHelp.mobile,
         },
       }),
-      dragPan: zoomable,
-      scrollZoom: zoomable,
-      touchZoomRotate: zoomable,
+      dragPan: true,
+      scrollZoom: true,
+      touchZoomRotate: true,
       doubleClickZoom: false,
       boxZoom: false,
       dragRotate: false,
@@ -168,7 +171,7 @@ export function MapCanvas(props: MapCanvasProps) {
       keyboard: false,
       renderWorldCopies: false,
     });
-    if (zoomable) map.touchZoomRotate.disableRotation();
+    map.touchZoomRotate.disableRotation();
     map.on("load", () => {
       // 키로 할 수 있는 일이 없으니 캔버스는 초점을 받지 않고, 뜻은 바깥 칸의 `aria-label`이 전한다
       const canvas = map.getCanvas();
@@ -185,12 +188,9 @@ export function MapCanvas(props: MapCanvasProps) {
     map.on("click", (e) => click(map, e));
     map.on("resize", () => resized(map));
     // Safari 트랙패드 핀치는 휠이 아니라 gesture 이벤트라 페이지 확대를 따로 막는다
-    // 확대하지 않는 지역 지도에서는 막지 않는다(지도도 페이지도 확대되지 않게 되므로)
     const blockPageZoom = (e: Event) => e.preventDefault();
-    if (zoomable) {
-      el.addEventListener("gesturestart", blockPageZoom);
-      el.addEventListener("gesturechange", blockPageZoom);
-    }
+    el.addEventListener("gesturestart", blockPageZoom);
+    el.addEventListener("gesturechange", blockPageZoom);
     mapRef.current = map;
     return () => {
       el.removeEventListener("gesturestart", blockPageZoom);
@@ -198,7 +198,7 @@ export function MapCanvas(props: MapCanvasProps) {
       map.remove();
       mapRef.current = null;
     };
-  }, [gestureHelp, regional]);
+  }, [gestureHelp]);
 
 
   // 보이는 구역이 바뀔 때만 도형을 넣고 맞춘다

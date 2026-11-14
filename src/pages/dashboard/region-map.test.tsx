@@ -31,7 +31,7 @@ describe("지역 지도 (5장)", () => {
     vi.unstubAllGlobals();
   });
 
-  it("시·도: 그 시·도의 시·군·구만, 확대·끌기 없음, 선택 테두리·범례 줄 없음", async () => {
+  it("시·도: 그 시·도의 시·군·구만, 확대·끌기 가능·번짐 없음, 선택 테두리·범례 줄 없음", async () => {
     renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
     expect(await screen.findByRole("heading", { name: "경북의 시·군·구" })).toBeTruthy();
     const map = await loadedMap(/경북의 시·군·구/);
@@ -40,12 +40,14 @@ describe("지역 지도 (5장)", () => {
     const regions = (await mockGet("/KOR/regions")) as { items: { id: string; province: string | null; level: string }[] };
     const others = regions.items.filter((r) => r.level === "dist" && r.province !== "경북").map((r) => r.id);
     expect(regionIds(map).some((id) => others.includes(id))).toBe(false);
-    // 고정 지도, 처음부터 점(2026-11-14 사용자 결정)
-    expect(map.options).toMatchObject({ dragPan: false, scrollZoom: false, cooperativeGestures: false });
-    expect(screen.queryByRole("button", { name: "확대" })).toBeNull();
+    // 나라 지도처럼 확대·끌기, 점은 처음부터 점이고 번짐 없음(2026-11-14 사용자 결정, 14절)
+    expect(map.options).toMatchObject({ dragPan: true, scrollZoom: true, cooperativeGestures: true });
     await waitFor(() => expect(map.paint.get("points.circle-opacity")).toBe(0.95));
     expect(map.paint.get("points-heat.heatmap-opacity")).toBe(0);
+    // 처음 맞춘 확대값(가짜 지도의 `fitBounds`는 늘 5)에서 3.5, +4에서 6
+    expect(map.paint.get("points.circle-radius")).toEqual(["interpolate", ["linear"], ["zoom"], 5, 3.5, 9, 6]);
     expect(screen.queryByText(/확대하면 점으로 보입니다/)).toBeNull();
+    expect(screen.getByText("+ / − 확대·축소 · 점에 올려 확인")).toBeTruthy();
     expect(map.filters.get("selected-line")).toEqual(["==", ["get", "id"], ""]);
     expect(screen.queryByText("선택 지역 · 파란 테두리")).toBeNull();
   });
@@ -83,6 +85,50 @@ describe("지역 지도 (5장)", () => {
     act(() => map.emit("click", { point: { x: 10, y: 10 } }));
     await waitFor(() => expect(router.state.location.pathname).toBe(`/dashboard/KOR/${ANDONG}`));
     expect(router.state.location.search).toBe("?month=2025-03");
+  });
+
+  it("확대 버튼: 처음에는 축소·처음 크기가 꺼져 있고, 확대하면 켜진다", async () => {
+    renderRoute(`/dashboard/KOR/${UISEONG}?month=2025-03`);
+    const map = await loadedMap(/의성군과 주변 지역/);
+    const zoomOut = await screen.findByRole("button", { name: "축소" });
+    const reset = screen.getByRole("button", { name: "처음 크기로" });
+    await waitFor(() => expect((zoomOut as HTMLButtonElement).disabled).toBe(true));
+    expect((reset as HTMLButtonElement).disabled).toBe(true);
+    const before = map.zoom;
+    fireEvent.click(screen.getByRole("button", { name: "확대" }));
+    expect(map.zoom).toBe(before + 1);
+    await waitFor(() => expect((zoomOut as HTMLButtonElement).disabled).toBe(false));
+    expect((reset as HTMLButtonElement).disabled).toBe(false);
+    // 처음 크기로: 처음 상자로 다시 맞추고 버튼이 다시 꺼진다
+    const fits = map.fitCalls.length;
+    act(() => fireEvent.click(reset));
+    act(() => map.emit("zoomend", {}));
+    expect(map.fitCalls.length).toBe(fits + 1);
+    await waitFor(() => expect((zoomOut as HTMLButtonElement).disabled).toBe(true));
+    expect((reset as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("확대한 채로 달을 바꾸면 다시 맞추지 않아 확대가 남는다", async () => {
+    const { router } = renderRoute(`/dashboard/KOR/${UISEONG}?month=2025-03`);
+    const map = await loadedMap(/의성군과 주변 지역/);
+    await waitFor(() => expect(map.fitCalls.length).toBe(1));
+    fireEvent.click(await screen.findByRole("button", { name: "확대" }));
+    const zoomed = map.zoom;
+    const points = map.sources.get("points")?.data;
+    await act(() => router.navigate(`/dashboard/KOR/${UISEONG}?month=2025-04`));
+    // 4월 점이 지도에 들어간 뒤에 확인한다(주소만 바뀐 시점에는 아직 새 응답이 없다)
+    await waitFor(() => expect(map.sources.get("points")?.data).not.toBe(points));
+    expect(map.fitCalls.length).toBe(1);
+    expect(map.zoom).toBe(zoomed);
+  });
+
+  it("언어를 바꾸면 휠 안내 문구가 바뀌도록 지도를 새로 만든다", async () => {
+    const { router } = renderRoute(`/dashboard/KOR/${UISEONG}?month=2025-03`);
+    const first = await loadedMap(/의성군과 주변 지역/);
+    expect(first.options).toMatchObject({ locale: { "CooperativeGesturesHandler.WindowsHelpText": "Ctrl + 스크롤로 지도를 확대·축소합니다" } });
+    await act(() => router.navigate(`/en/dashboard/KOR/${UISEONG}?month=2025-03`));
+    await waitFor(() => expect(fakeMaps.at(-1)).not.toBe(first));
+    expect(fakeMaps.at(-1)?.options).toMatchObject({ locale: { "CooperativeGesturesHandler.WindowsHelpText": "Use Ctrl + scroll to zoom the map" } });
   });
 
   it("달이 바뀌면 지난 응답의 점 툴팁을 버린다", async () => {

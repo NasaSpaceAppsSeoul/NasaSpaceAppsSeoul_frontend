@@ -172,13 +172,15 @@ export function applyPointZoom(map: MapLibreMap, colors: MapColors, startZoom: n
 }
 
 /**
- * 지역 지도(시·도, 시·군·구 + 맞닿은 지역, 7장 월간 인사이트)의 점. 확대하지 않는 고정 지도라 처음부터 작은 점
- * (경과일 4색)으로 그리고 번짐은 쓰지 않는다(디자인 `06-maps-regional`, 2026-11-14 사용자 결정).
+ * 지역 지도(시·도, 시·군·구 + 맞닿은 지역, 7장 월간 인사이트)의 점. 처음부터 작은 점(경과일 4색)으로 그리고
+ * 번짐은 쓰지 않는다(디자인 `06-maps-regional`, 2026-11-14 사용자 결정). 확대할수록 조금 커진다
+ * (겹친 점은 좌표가 벌어지며 떨어지고, 크기는 올려 보기 쉽게만. `plans/dashboard-sections.md` 14절).
+ * 확대 단계는 지도마다 다르므로 처음 맞춘 확대값(`startZoom`)을 기준으로 정한다. 맞출 때마다 다시 부른다.
  * 테두리는 나라 지도보다 진하게 한다(주황 면 위의 +2일 주황 점이 묻히지 않게, review-ui).
  */
-export function applyStaticPoints(map: MapLibreMap): void {
+export function applyStaticPoints(map: MapLibreMap, startZoom: number): void {
   map.setPaintProperty(LAYER.heat, "heatmap-opacity", 0);
-  map.setPaintProperty(LAYER.points, "circle-radius", 3.5);
+  map.setPaintProperty(LAYER.points, "circle-radius", ["interpolate", ["linear"], ["zoom"], startZoom, 3.5, startZoom + 4, 6]);
   map.setPaintProperty(LAYER.points, "circle-opacity", 0.95);
   map.setPaintProperty(LAYER.points, "circle-stroke-opacity", 0.55);
 }

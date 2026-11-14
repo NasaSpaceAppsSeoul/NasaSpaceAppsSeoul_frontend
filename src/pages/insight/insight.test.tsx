@@ -257,8 +257,9 @@ describe("월간 인사이트 지도", () => {
     expect(within(section).getByText("선택 지역 · 파란 테두리")).toBeTruthy();
     expect(within(section).getByText("점은 의성군 안에서 감지된 칸만 표시합니다.")).toBeTruthy();
     expect(within(section).queryByRole("alert")).toBeNull();
-    // 고정 지도(확대 없음)
-    expect(map.options).toMatchObject({ dragPan: false, scrollZoom: false });
+    // 확대·축소(대시보드 지역 지도와 같은 `RegionMap`, `plans/dashboard-sections.md` 14절)
+    expect(map.options).toMatchObject({ dragPan: true, scrollZoom: true });
+    expect(within(section).getByRole("button", { name: "확대" })).toBeTruthy();
   });
 
   it("툴팁: 이웃은 이름과 값, 점은 자기 이름과 날짜. 이웃을 누르면 그 이웃의 같은 달 인사이트(자기는 무시)", async () => {
