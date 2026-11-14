@@ -32,7 +32,7 @@ export function ShareDialog({ open, onClose, label, url, state, onCopy }: ShareD
               readOnly
               value={url}
               onFocus={(e) => e.currentTarget.select()}
-              className="h-10 w-full rounded-control-sm border border-border bg-page px-3 text-sm text-ink focus-visible:outline-2 focus-visible:outline-selection"
+              className="h-10 w-full rounded-control-sm border border-line bg-wash px-3 text-sm text-ink focus-visible:outline-2 focus-visible:outline-selection"
             />
           </label>
           <div className="flex flex-wrap items-center gap-3">

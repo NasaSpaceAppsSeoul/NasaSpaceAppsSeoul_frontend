@@ -80,7 +80,7 @@ export function RegionMap(props: RegionMapProps) {
       <div className="flex flex-col gap-2">
         <div
           aria-busy={dimmed}
-          className={`relative aspect-video w-full overflow-hidden rounded-card bg-page transition-opacity ${dimmed ? "opacity-60" : ""}`}
+          className={`relative aspect-video w-full overflow-hidden rounded-card bg-wash transition-opacity ${dimmed ? "opacity-60" : ""}`}
         >
           {/* 휠 안내 문구는 지도를 만들 때 한 번만 쓰므로 언어가 바뀌면 지도를 새로 만든다 */}
           <MapCanvas

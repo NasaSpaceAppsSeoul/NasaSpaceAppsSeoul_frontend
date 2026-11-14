@@ -25,7 +25,7 @@ export function CumulativeCard({ month, sum, usual, partial, stale }: Cumulative
   return (
     <section
       aria-busy={stale}
-      className={`flex flex-col gap-4 rounded-card border border-border glass p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
+      className={`flex flex-col gap-4 glass rounded-card border border-line p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
     >
       <h2 className="text-base font-medium">{c.title(monthYear(month), m, formatMonthName(m, locale))}</h2>
       <div className="flex flex-wrap items-center gap-3">

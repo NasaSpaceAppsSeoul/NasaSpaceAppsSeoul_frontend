@@ -15,7 +15,7 @@ const LEVEL_CLASS: Record<HeatLevel, string> = {
 function cellClass(cell: HeatCell): string {
   switch (cell.state) {
     case "future":
-      return "border border-dashed border-heat-future bg-page text-heat-future";
+      return "border border-dashed border-heat-future bg-transparent text-heat-future";
     case "blank":
       return "bg-transparent";
     case "noData":

@@ -25,7 +25,7 @@ export function InsightTable({ caption, head, rows, variant = "data", fixed = fa
     <div className="overflow-x-auto">
       <table className={`w-full border-collapse text-sm ${fixed ? "table-fixed" : ""}`.trim()}>
         <caption className="sr-only">{caption}</caption>
-        <thead className="bg-page text-muted">
+        <thead className="bg-wash text-muted">
           <tr>
             {head.map((title, i) => (
               <th key={title} scope="col" className={`px-4 py-3 font-normal ${align(i)}`}>

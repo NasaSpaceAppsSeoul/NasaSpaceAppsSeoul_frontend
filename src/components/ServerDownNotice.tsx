@@ -13,7 +13,7 @@ export function ServerDownNotice({ kind, onRetry }: { kind: ErrorKind; onRetry: 
   const t = useMessages();
   const text = kind === "notReady" ? t.countryNotReady : kind === "offline" ? t.serverDown : t.loadFailed;
   return (
-    <section role="alert" className="flex flex-col items-start gap-4 rounded-card bg-surface p-12">
+    <section role="alert" className="flex flex-col items-start gap-4 glass rounded-card border border-line p-12">
       <h2 className="text-title-lg font-semibold text-ink">{text.title}</h2>
       <p className="text-base text-muted">{text.body}</p>
       {kind !== "notReady" && (

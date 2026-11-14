@@ -50,7 +50,7 @@ const STATE_SWATCH: Record<StateKey, string> = {
   noData: "heat-hatch",
   partial: "bg-heat-3 border-2 border-dashed border-heat-partial",
   selected: "bg-heat-3 outline-2 outline-selection",
-  future: "bg-page border border-dashed border-heat-future",
+  future: "bg-transparent border border-dashed border-heat-future",
 };
 
 const STATE_ORDER: StateKey[] = ["zero", "converted", "noData", "partial", "selected", "future"];
@@ -60,7 +60,7 @@ export function StateLegend() {
   return (
     <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {STATE_ORDER.map((key) => (
-        <li key={key} className="flex items-center gap-4 rounded-control bg-page p-3">
+        <li key={key} className="flex items-center gap-4 rounded-control bg-wash p-3">
           <span aria-hidden="true" className={`h-6 w-14 shrink-0 rounded-cell ${STATE_SWATCH[key]}`} />
           <span className="flex min-w-0 flex-col">
             <span className="text-sm text-ink">{s[key].title}</span>

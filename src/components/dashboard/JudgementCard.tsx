@@ -32,7 +32,7 @@ export function JudgementCard({ view, regionLabel, refName, showYtd, showDetecti
     <section
       aria-labelledby={titleId}
       aria-busy={stale}
-      className={`flex flex-col gap-5 rounded-card border border-border glass p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
+      className={`flex flex-col gap-5 glass rounded-card border border-line p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
     >
       <header className="flex flex-col gap-3">
         <p className="text-xs text-muted">{t.dashboard.card.heading(regionLabel, month)}</p>

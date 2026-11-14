@@ -26,6 +26,11 @@
   --text-display--line-height: 3.75rem;
   --text-number: 6rem;
   --text-number--line-height: 6rem;
+  /* 시안 v9 Mono 대문자 머리말(`.db-overline` 10/16)과 칸 이름표(`.db-filter-label` 9/16). 자간은 아래 `mono-overline`·`mono-tag` 유틸리티 */
+  --text-overline: 0.625rem;
+  --text-overline--line-height: 1rem;
+  --text-tag: 0.5625rem;
+  --text-tag--line-height: 1rem;
 
   /* 움직임: 첫 화면 "스크롤해서 읽기" 선 (Make `@keyframes scroll-line` 값 그대로) */
   --animate-scroll-line: scroll-line 2s ease-in-out infinite;
@@ -41,10 +46,15 @@
 
   /* 유리 표면 바탕(`glass` 유틸리티가 흐림과 함께 쓴다). 시안 v9 카드 */
   --color-glass: rgba(18, 21, 27, 0.4);
-  /* 대화상자 유리 판과 뒤 막(시안 v9 `.db-modal`) */
-  --color-dialog: rgba(25, 35, 48, 0.94);
-  --color-dialog-line: rgba(220, 234, 255, 0.14);
-  --color-scrim: rgba(2, 6, 11, 0.7);
+  /*
+   * 유리 재료 (시안 v9 원칙: 40% 어두운 반투명 + 흐림 + 얇은 흰 선 하나, 반사 테두리·양각 그림자 없음).
+   * `line`은 유리 판의 선(시안 `--line` 흰 14%보다 한 단계 옅게), `wash`는 판 안의 옅은 흰 막(칸·표 머리·안내 상자),
+   * 대화상자는 글을 읽어야 해서 카드보다 진한 유리, 뒤 막은 별이 살짝 비치게 어둡게만 한다
+   */
+  --color-line: rgba(255, 255, 255, 0.12);
+  --color-wash: rgba(255, 255, 255, 0.05);
+  --color-dialog: rgba(14, 16, 21, 0.72);
+  --color-scrim: rgba(5, 5, 6, 0.55);
 
   /*
    * 둥근 모서리 (시안 v9: 카드 16, 대화상자 18, 지도 위 판 12, 버튼 묶음·검색 칸 6, 칩 4).
@@ -71,8 +81,9 @@
   --color-selection: #7ab6ff;
   --color-fire: #f47a32;
   --color-action: #4c9eff;
-  --color-row-hover: #1a1a1d;
-  --color-row-selected: #0f1e30;
+  /* 줄·칸 호버와 선택. 유리 위에 겹치는 반투명 막이다(투명도를 다시 거는 사용처 없음) */
+  --color-row-hover: rgba(255, 255, 255, 0.08);
+  --color-row-selected: rgba(76, 158, 255, 0.16);
 
   /*
    * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`). 시안 v9 `.primary-nav`·`.language-switch` 값.
@@ -95,6 +106,8 @@
   --color-header-line: rgba(255, 255, 255, 0.1);
   /* muted보다 한 단계 밝은 보조 글자(시안 `.hero-body` #a7a8ac) */
   --color-subtle: #a7a8ac;
+  /* 선택 줄 칸 테두리·밑줄(시안 `.db-region-filter` #34373e, `.db-select` #3c414b를 하나로) */
+  --color-field-line: #3c414b;
 
   /* 색: 히트맵 8단계 (낮은 값 → 높은 값). 시안 v9 `calendarTheme.ts` harmonized */
   --color-heat-0: #dfe2e5;
@@ -175,6 +188,31 @@
      */
     @apply bg-page font-sans text-base text-ink;
     font-synthesis: none;
+  }
+}
+
+/*
+ * Mono 대문자 머리말·이름표 (시안 v9 `.db-overline` 자간 .11em, `.db-filter-label` .08em).
+ * 자간은 영문 화면에만 준다: 한글은 Mono 글꼴에 없어 Plex Sans KR로 넘어가는데, 자간을 넓히면 "대 한 민 국"처럼 벌어진다.
+ */
+/* Tailwind 기본 `overline`(윗줄 장식)과 겹치지 않게 `mono-` 접두사 */
+@utility mono-overline {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  line-height: var(--text-overline--line-height);
+  text-transform: uppercase;
+  &:lang(en) {
+    letter-spacing: 0.11em;
+  }
+}
+
+@utility mono-tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-tag);
+  line-height: var(--text-tag--line-height);
+  text-transform: uppercase;
+  &:lang(en) {
+    letter-spacing: 0.08em;
   }
 }
 

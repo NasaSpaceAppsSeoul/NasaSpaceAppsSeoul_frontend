@@ -19,14 +19,10 @@ function Shell({ locale }: { locale: Locale }) {
   const localeHref = (target: Locale) => `${switchLocalePath(pathname, target)}${search}${hash}`;
 
   return (
-    // 폭: 소개 구역(첫 화면)은 시안 v9처럼 내용 최대 1200px + 좌우 48px(= 1296px).
-    // 대시보드·인사이트·없는 주소는 시안 대시보드 `.db-shell`: 내용 최대 1280px + 좌우 48px(= 1376px), 1120px 이하 좌우 32px
-    <div
-      className={
-        "mx-auto flex min-h-screen flex-col " +
-        (section === "about" ? "max-w-324 px-12" : "max-w-344 px-8 min-[1121px]:px-12")
-      }
-    >
+    // 폭: 모든 화면이 같은 틀이라 머리글·푸터 위치가 화면마다 같다(2026-11-15 사용자).
+    // 시안 대시보드 `.db-shell` 값: 내용 최대 1280px + 좌우 48px(= 1376px), 1120px 이하 좌우 32px.
+    // (시안 첫 화면은 1200px였지만 화면마다 머리글이 40px씩 어긋나 하나로 맞췄다)
+    <div className="mx-auto flex min-h-screen max-w-344 flex-col px-8 min-[1121px]:px-12">
       <Header
         homeHref={localizePath("/", locale)}
         hrefs={{ about: localizePath("/", locale), dashboard: localizePath("/dashboard", locale) }}

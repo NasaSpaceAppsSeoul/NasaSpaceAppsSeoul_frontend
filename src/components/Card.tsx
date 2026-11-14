@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 
 /** 카드: 흰 바탕, 모서리 24, 안쪽 24. 높이는 내용에 맞춘다(tokens.md 배치 원칙). */
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-card bg-surface p-6 ${className}`.trim()}>{children}</section>;
+  // 시안 v9 유리 카드: 40% 어두운 반투명 + 흐림(`glass`) + 흰 선 하나
+  return <section className={`glass rounded-card border border-line p-6 ${className}`.trim()}>{children}</section>;
 }
 
 /** 카드 머리 (components/sheet/03-nav-b): 제목 + 기준 기간·단위 한 줄. */

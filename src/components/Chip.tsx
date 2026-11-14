@@ -28,7 +28,7 @@ export function Chip({ value }: { value: ChipValue }) {
 export type BadgeTone = "neutral" | "sand" | "dark" | "yellow" | "red" | "green" | "blue" | "orange";
 
 const BADGE_CLASS: Record<BadgeTone, string> = {
-  neutral: "bg-page text-muted",
+  neutral: "bg-wash text-muted",
   sand: "bg-row-hover text-ink",
   dark: "bg-inverse-hover text-surface",
   yellow: "bg-tone-yellow text-tone-yellow-ink",

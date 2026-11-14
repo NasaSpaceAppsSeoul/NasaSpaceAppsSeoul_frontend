@@ -15,15 +15,16 @@ const BASE =
   "disabled:cursor-not-allowed aria-disabled:cursor-not-allowed";
 
 const VARIANT: Record<ButtonVariant, string> = {
+  // 기본 버튼: 유리 위 옅은 흰 막 + 흰 선(시안 v9 `.db-quiet-button`·머리글 세그먼트와 같은 재료)
   light:
-    "border-border bg-surface text-ink hover:bg-page active:bg-border/40 " +
-    "disabled:bg-surface disabled:text-muted aria-disabled:bg-surface aria-disabled:text-muted",
+    "border-line bg-wash text-ink hover:bg-row-hover active:bg-nav-hover " +
+    "disabled:bg-transparent disabled:text-muted aria-disabled:bg-transparent aria-disabled:text-muted",
   dark:
     "border-inverse bg-inverse text-surface hover:bg-inverse-hover active:bg-inverse-hover " +
-    "disabled:border-page disabled:bg-page disabled:text-muted aria-disabled:border-page aria-disabled:bg-page aria-disabled:text-muted",
+    "disabled:border-line disabled:bg-transparent disabled:text-muted aria-disabled:border-line aria-disabled:bg-transparent aria-disabled:text-muted",
   blue:
     "border-action bg-action text-surface hover:bg-selection active:bg-selection " +
-    "disabled:border-page disabled:bg-page disabled:text-muted aria-disabled:border-page aria-disabled:bg-page aria-disabled:text-muted",
+    "disabled:border-line disabled:bg-transparent disabled:text-muted aria-disabled:border-line aria-disabled:bg-transparent aria-disabled:text-muted",
   // 우주 배경 위 반투명 유리 버튼(시안 v9 표면 + 머리글 세그먼트 테두리). 어두운 화면에서만 쓴다
   glass:
     "glass border-segment-line text-ink hover:border-muted active:bg-nav-hover " +

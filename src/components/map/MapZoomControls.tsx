@@ -9,14 +9,14 @@ type MapZoomControlsProps = { state: ZoomState; onZoomIn: () => void; onZoomOut:
 
 // 묶음이 둥근 모서리를 자르므로(overflow-hidden) 초점 표시는 버튼 안쪽 링으로 그린다
 const BUTTON =
-  "flex size-9 items-center justify-center text-ink transition-colors hover:bg-page disabled:cursor-not-allowed " +
+  "flex size-9 items-center justify-center text-ink transition-colors hover:bg-row-hover disabled:cursor-not-allowed " +
   "disabled:text-muted/50 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 " +
   "focus-visible:ring-inset focus-visible:ring-selection";
 
 export function MapZoomControls({ state, onZoomIn, onZoomOut, onReset }: MapZoomControlsProps) {
   const t = useMessages().map.zoom;
   return (
-    <div className="flex flex-col overflow-hidden rounded-control border border-border bg-surface shadow-sm">
+    <div className="flex flex-col overflow-hidden glass rounded-control border border-line">
       <button type="button" className={BUTTON} onClick={onZoomIn} disabled={!state.canZoomIn} aria-label={t.in}>
         <PlusIcon />
       </button>

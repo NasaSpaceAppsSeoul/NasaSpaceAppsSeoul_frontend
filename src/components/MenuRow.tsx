@@ -15,7 +15,7 @@ type MenuRowProps = {
 };
 
 export function MenuRow({ title, sub, selected = false, disabled = false, disabledHint, onSelect }: MenuRowProps) {
-  const background = selected ? "bg-row-selected" : disabled ? "bg-surface" : "bg-surface hover:bg-row-hover";
+  const background = selected ? "bg-row-selected" : disabled ? "bg-transparent" : "bg-transparent hover:bg-row-hover";
   return (
     <button
       type="button"

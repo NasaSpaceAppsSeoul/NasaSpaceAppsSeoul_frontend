@@ -44,7 +44,7 @@ export function OfficialSection({ scope, insight }: { scope: InsightScope; insig
         />
       )}
       {rate !== null && (
-        <p className="rounded-card bg-page px-6 py-4 text-sm text-muted">
+        <p className="rounded-card bg-wash px-6 py-4 text-sm text-muted">
           {t.rate(formatMonth(rate.since, locale), formatCount(rate.n, locale), formatCount(rate.detected, locale), rate.windowDays, rate.percent)}
         </p>
       )}

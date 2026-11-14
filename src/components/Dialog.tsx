@@ -93,10 +93,11 @@ export function Dialog({ open, onClose, title, description, children, placement 
         releasedOnBackdrop.current = false;
       }}
       // 스크롤은 안쪽에서만 생기게 해 대화상자 자신(바깥으로 판정됨)의 스크롤바를 누르는 일이 없게 한다.
-      // 모양은 시안 v9 `.db-modal`: 어두운 유리 판(흐림 20px) + 어둡게 흐린 뒤 막(6px)
+      // 모양은 카드와 같은 유리 재료(진한 반투명 + 흐림 24px + 흰 선 하나), 뒤 막은 어둡게 흐려 별이 살짝 비친다
       className={
-        `${PLACEMENT[placement]} flex-col w-full max-w-xl overflow-hidden open:flex rounded-card border border-dialog-line ` +
-        "bg-dialog p-0 text-ink shadow-[0_24px_80px_#0005] backdrop-blur-[20px] backdrop:bg-scrim backdrop:backdrop-blur-[6px]"
+        `${PLACEMENT[placement]} flex-col w-full max-w-xl overflow-hidden open:flex rounded-card border border-line ` +
+        "bg-dialog p-0 text-ink shadow-[0_24px_80px_#0006] backdrop-blur-[24px] backdrop-saturate-[1.1] " +
+        "backdrop:bg-scrim backdrop:backdrop-blur-[8px]"
       }
     >
       <div className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto p-6">

@@ -103,7 +103,7 @@ function YearBars({ scope, bars, year }: { scope: InsightScope; bars: YearBar[];
           <p>{t.years.zeroNote}</p>
         </div>
       )}
-      <p className="rounded-card bg-page px-6 py-4 text-sm text-muted">{t.years.note(from, to, scope.monthName)}</p>
+      <p className="rounded-card bg-wash px-6 py-4 text-sm text-muted">{t.years.note(from, to, scope.monthName)}</p>
     </Card>
   );
 }
