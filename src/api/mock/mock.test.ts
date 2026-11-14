@@ -136,7 +136,7 @@ describe("목에 없는 요청 (decisions 10-6)", () => {
   });
 
   it("목에 아직 없는 경로는 NOT_FOUND이고 message로 구분한다", async () => {
-    const error = await caught(mockGet("/KOR/baseline/KOR"));
+    const error = await caught(mockGet("/KOR/map?month=2025-03"));
     expect(error).toMatchObject({ status: 404, code: "NOT_FOUND" });
     expect(error instanceof ApiError && error.message.startsWith("mock: not implemented")).toBe(true);
   });

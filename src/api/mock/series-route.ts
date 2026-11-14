@@ -13,7 +13,7 @@ import type { CountryMock } from "./types";
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
-function findRegion(country: Country, mock: CountryMock | undefined, id: string): RegionSummary {
+export function findRegion(country: Country, mock: CountryMock | undefined, id: string): RegionSummary {
   const region = mock?.regions.find((r) => r.id === id);
   if (region === undefined) throw new ApiError(404, "REGION_NOT_FOUND", `region not found: ${country}/${id}`);
   return region;

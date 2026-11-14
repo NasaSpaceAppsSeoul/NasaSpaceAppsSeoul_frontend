@@ -13,6 +13,7 @@ import { ApiError } from "../client";
 import type { GeoFeatureCollection, RegionSummary, RegionsResponse } from "../types";
 import { bc } from "./bc";
 import { cal } from "./cal";
+import { mockBaseline } from "./baseline-route";
 import { isLevel } from "./guards";
 import { kor } from "./kor";
 import { mockJudgement, mockSeries } from "./series-route";
@@ -97,6 +98,7 @@ function route(table: MockTable, path: string): unknown {
   if (resource === "geo" && id === undefined) return geo(mock, url.searchParams, path);
   if (resource === "series" && id !== undefined) return mockSeries(country, mock, id, url.searchParams);
   if (resource === "judgement" && id !== undefined) return mockJudgement(country, mock, id, url.searchParams);
+  if (resource === "baseline" && id !== undefined) return mockBaseline(country, mock, id);
   throw notImplemented(path);
 }
 
