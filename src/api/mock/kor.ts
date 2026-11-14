@@ -12,14 +12,18 @@
  * - 영광군(`PATCH-KOR-Yeonggwang`)은 경계 파일에 도형이 없어 `/geo`에 없고, `/regions`의 `center`·`bbox`가
  *   `null`, `region_type`은 지어낸 값(`sparse`)이다. 실제 서버에는 도형이 있다.
  * - 시·도 경계(`/geo?level=prov`)는 아직 없다(4장에서 넣는다). 실제 서버는 17곳을 준다.
+ * - 의성군의 `region_type`은 경계 원천에서 `sufficient`로 나오지만 백엔드 기대값(`spec_test.py`, 명세 7-2)은
+ *   `sparse`라 읽을 때 `sparse`로 바꾼다. `/regions`와 `/judgement`가 같은 값을 주게 하려는 것이다.
  *
  * 지어낸 값: `/meta`의 `data_version`, `generated_at`, `data_range`, `calibration.modis_to_snpp_by_month`
- * (옛 MODIS 파이프라인 계수), `validation`, `external_validation`.
+ * (옛 MODIS 파이프라인 계수, 3월만 백엔드 기대값 1.721), `external_validation`.
+ * `validation`은 백엔드 `spec_test.py` 기대값(0.99, [0.92, 1.05], 2.67 → 1.04).
  */
-import type { Meta } from "../types";
+import type { Meta, RegionSummary } from "../types";
 import korGeo from "./data/kor-dist.geo.json";
 import korRegions from "./data/kor-regions.json";
 import { expectFeatureCollection, expectRegions } from "./guards";
+import { UISEONG } from "./series-overrides";
 import type { CountryMock, MockGeo } from "./types";
 
 export const korMeta: Meta = {
@@ -38,14 +42,14 @@ export const korMeta: Meta = {
   calibration: {
     chain: "Terra → MODIS → S-NPP → NOAA-20",
     modis_to_snpp_by_month: {
-      "1": 3.32, "2": 2.162, "3": 1.847, "4": 1.76, "5": 1.568, "6": 3.248,
+      "1": 3.32, "2": 2.162, "3": 1.721, "4": 1.76, "5": 1.568, "6": 3.248,
       "7": 0.786, "8": 0.812, "9": 2.201, "10": 1.725, "11": 1.543, "12": 4.712,
     },
   },
   validation: {
-    break_test_ratio: 0.97,
-    break_test_ci95: [0.89, 1.05],
-    official_break: { before: 1.82, after: 0.97, inconclusive: false },
+    break_test_ratio: 0.99,
+    break_test_ci95: [0.92, 1.05],
+    official_break: { before: 2.67, after: 1.04, inconclusive: false },
   },
   labels: {
     country: "대한민국",
@@ -75,7 +79,9 @@ function korGeoList(): MockGeo[] {
 
 export const kor: CountryMock = {
   meta: korMeta,
-  regions: expectRegions(korRegions, "kor-regions.json"),
+  regions: expectRegions(korRegions, "kor-regions.json").map((r): RegionSummary =>
+    r.id === UISEONG ? { ...r, region_type: "sparse" } : r,
+  ),
   geo: korGeoList,
   missingGeoLevels: ["prov"],
 };

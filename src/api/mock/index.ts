@@ -5,6 +5,7 @@
  * - 목 묶음이 없는 나라 → `/meta` 404 `COUNTRY_NOT_READY`, `/regions`·`/geo`는 200 빈 목록 (준비 안 된 나라, 2-6)
  * - 모르는 지역 ID → 404 `REGION_NOT_FOUND`
  * - 잘못된 `level` → 400 `INVALID_PARAM`
+ * - `/series`·`/judgement`의 달 검사는 `series-route.ts`(지역 먼저, 달 나중)
  * - 목에 아직 없는 경로 → 404 `NOT_FOUND`, message가 "mock: not implemented"로 시작한다(경로 오타와 구분)
  */
 import { parseCountry, type Country } from "../../lib/country";
@@ -14,6 +15,7 @@ import { bc } from "./bc";
 import { cal } from "./cal";
 import { isLevel } from "./guards";
 import { kor } from "./kor";
+import { mockJudgement, mockSeries } from "./series-route";
 import type { CountryMock } from "./types";
 
 export type MockTable = Partial<Record<Country, CountryMock>>;
@@ -93,6 +95,8 @@ function route(table: MockTable, path: string): unknown {
     throw notImplemented(path);
   }
   if (resource === "geo" && id === undefined) return geo(mock, url.searchParams, path);
+  if (resource === "series" && id !== undefined) return mockSeries(country, mock, id, url.searchParams);
+  if (resource === "judgement" && id !== undefined) return mockJudgement(country, mock, id, url.searchParams);
   throw notImplemented(path);
 }
 
