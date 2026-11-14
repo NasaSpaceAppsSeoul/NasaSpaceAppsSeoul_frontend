@@ -19,6 +19,18 @@ export function formatRatio(value: number, locale: Locale): string {
   }).format(value);
 }
 
+/** 건수: 정수, 천 단위 쉼표. */
+export function formatCount(value: number, locale: Locale): string {
+  return new Intl.NumberFormat(NUMBER_LOCALE[locale], { maximumFractionDigits: 0 }).format(value);
+}
+
+/** 비율을 백분율로: 0.91 → "91%". 0보다 크고 0.5% 미만은 "<1%", 값이 없으면 "—". */
+export function formatPercent(ratio: number | null, locale: Locale): string {
+  if (ratio === null || !Number.isFinite(ratio)) return "—";
+  if (ratio > 0 && ratio < 0.005) return "<1%";
+  return new Intl.NumberFormat(NUMBER_LOCALE[locale], { style: "percent", maximumFractionDigits: 0 }).format(ratio);
+}
+
 const EN_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 /** "2026년 7월" / "July 2026" */
