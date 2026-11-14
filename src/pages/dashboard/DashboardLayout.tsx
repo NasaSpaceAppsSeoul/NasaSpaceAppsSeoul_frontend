@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useScrollReveal } from "../../hooks/useScrollReveal";
 import { apiMode } from "../../api/client";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "./scope";
 import { ControlsSection } from "./sections/ControlsSection";
@@ -37,8 +38,10 @@ export function DashboardLayout({ scope, navigate, openDialog, dialogs }: Dashbo
   const national = region.level === "nat";
   const controls = <ControlsSection scope={scope} navigate={navigate} openDialog={openDialog} />;
   const head = <HeadSection scope={scope} />;
+  // 카드는 화면에 들어올 때 떠오른다(시안 v9, 첫 화면과 같은 `useScrollReveal`). 오른쪽 칸 카드는 90ms 늦게
+  const reveal = useScrollReveal();
   return (
-    <main className="flex flex-col gap-8 py-12">
+    <main ref={reveal} className="flex flex-col gap-8 py-12">
       {/* 모든 단계에서 머리 → 선택 줄·경로 줄(시안 v9 순서, `plans/cosmic-redesign.md` 8-3) */}
       {head}
       {controls}
@@ -48,15 +51,20 @@ export function DashboardLayout({ scope, navigate, openDialog, dialogs }: Dashbo
        */}
       {/* 한 격자 안의 형제라 지역별로 다시 그리는 구역의 key가 겹치지 않게 앞에 이름을 붙인다 */}
       <div className={GRID}>
-        {national ? (
-          <MapSection key={`map-${region.id}`} scope={scope} navigate={navigate} />
-        ) : (
-          <RegionMapSection key={`map-${region.id}`} scope={scope} navigate={navigate} />
-        )}
-        <JudgementSection scope={scope} navigate={navigate} openDialog={openDialog} />
+        {/* 지도 카드는 줄 높이만큼 늘어나야 해서 감싸는 칸도 늘린다 */}
+        <div data-reveal className="grid self-stretch">
+          {national ? (
+            <MapSection key={`map-${region.id}`} scope={scope} navigate={navigate} />
+          ) : (
+            <RegionMapSection key={`map-${region.id}`} scope={scope} navigate={navigate} />
+          )}
+        </div>
+        <div data-reveal data-reveal-delay="1">
+          <JudgementSection scope={scope} navigate={navigate} openDialog={openDialog} />
+        </div>
         {/* 시·도: 두드러진 곳 3곳, 시·군·구: 인접 지역. 나라 화면은 디자인대로 목록 없음 */}
         {!national && (
-          <div className="col-span-2">
+          <div data-reveal className="col-span-2">
             <RegionListSection key={`list-${region.id}`} scope={scope} navigate={navigate} />
           </div>
         )}
@@ -64,10 +72,18 @@ export function DashboardLayout({ scope, navigate, openDialog, dialogs }: Dashbo
          * "자료 가져가기" 카드는 뺐다(2026-11-15 사용자): 감지 지점 내려받기는 백엔드에 없고(`/map` 점은 표본),
          * 달별 CSV는 히트맵에 있다. "이 화면 링크 복사"는 경로 줄 오른쪽으로 옮겼다(`ControlsSection`)
          */}
-        {national && <MonthlySection scope={scope} />}
-        {national && <RiskSeasonSection scope={scope} />}
+        {national && (
+          <div data-reveal>
+            <MonthlySection scope={scope} />
+          </div>
+        )}
+        {national && (
+          <div data-reveal data-reveal-delay="1">
+            <RiskSeasonSection scope={scope} />
+          </div>
+        )}
         {/* 지역이 바뀌면 다시 그려 표시 연도를 기본으로 되돌린다 */}
-        <div className="col-span-2">
+        <div data-reveal className="col-span-2">
           <HeatmapSection key={region.id} scope={scope} navigate={navigate} openDialog={openDialog} mockMode={apiMode() === "mock"} />
         </div>
       </div>

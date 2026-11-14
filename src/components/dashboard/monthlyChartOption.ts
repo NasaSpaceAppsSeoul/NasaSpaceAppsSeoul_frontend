@@ -56,6 +56,8 @@ export function buildOption(
   selectedMonth: number | null,
   text: MonthlyChartText,
   c: ChartColors,
+  /** 등장 애니메이션(움직임 줄이기면 `false`) */
+  animate = false,
 ): EChartsCoreOption {
   // 점·값을 보일 달: 고른 달, 그 해 최고값, 집계 중인 달(점선 테두리로 상태를 보인다)
   const values = points.map((p) => p.value).filter((v): v is number => v !== null);
@@ -67,7 +69,12 @@ export function buildOption(
   const axisText = { fontFamily: "IBM Plex Mono, monospace", fontSize: 10 };
 
   return {
-    animation: false,
+    // 등장: 선이 왼쪽부터 1.1초 동안 그려진다(첫 화면 02 막대와 같은 길이·부드러운 감속). 달을 바꾸면 0.6초로 바뀐다
+    animation: animate,
+    animationDuration: 1100,
+    animationEasing: "quinticOut",
+    animationDurationUpdate: 600,
+    animationEasingUpdate: "cubicOut",
     // ECharts 6은 축 글자를 기본(`outerBoundsMode: "auto"`)으로 칸 안에 넣는다(`containLabel`은 옛 방식)
     grid: { left: 8, right: 16, top: 28, bottom: 8 },
     xAxis: {
