@@ -17,6 +17,8 @@ vi.mock("../components/about/EarthScene", async () => {
 
 // jsdom은 `window.scrollTo`를 구현하지 않고 경고만 남긴다. 라우터 스크롤 복원(`ScrollRestoration`)이 부른다
 window.scrollTo = () => undefined;
+// jsdom 요소에는 `scrollIntoView`가 없다. 첫 화면 "스크롤해서 읽기"가 부른다
+if (typeof Element.prototype.scrollIntoView !== "function") Element.prototype.scrollIntoView = () => undefined;
 
 /*
  * jsdom 29의 `<dialog>`에는 `open` 속성만 있고 `showModal()`·`close()`가 없다.

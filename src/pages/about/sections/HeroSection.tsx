@@ -124,11 +124,23 @@ export function HeroSection() {
       </div>
 
       {/*
-       * 다음 구역(01)으로 내려가는 안내. 라우터 링크로 해시만 바꾼다: 일반 `<a href="#…">`는 브라우저가 만든 기록 항목을
-       * 라우터가 처음 항목과 같은 키로 읽어, 스크롤 복원이 저장된 옛 위치로 되돌릴 수 있다
+       * 다음 구역(01)으로 내려가는 안내. 주소는 바꾸지 않고 화면만 내린다(2026-11-14 사용자 확인):
+       * 주소에 `#connected`가 남으면 언어를 바꿀 때 해시를 들고 가는 규칙(`decisions.md` 1-7) 때문에 다시 01로 내려간다.
+       * 일반 `<a href>` 이동도 피한다(라우터가 처음 기록 항목과 같은 키로 읽어 스크롤 복원이 옛 위치로 되돌릴 수 있다).
        */}
-      <Link
-        to={{ hash: "connected" }}
+      <a
+        href="#connected"
+        onClick={(event) => {
+          // 새 탭·새 창 열기(수정키, 왼쪽 버튼 외)는 브라우저에 맡긴다
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          const target = document.getElementById("connected");
+          if (target === null) return;
+          event.preventDefault();
+          const reduce = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+          // 키보드·화면 낭독기도 01에서 이어 읽게 초점을 옮긴다(스크롤은 위에서 했으니 다시 하지 않는다)
+          target.focus({ preventScroll: true });
+        }}
         className="flex flex-col items-center gap-3 self-center font-mono text-xs tracking-widest text-muted uppercase hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-selection"
       >
         {h.scrollCue}
@@ -136,7 +148,7 @@ export function HeroSection() {
         <span aria-hidden="true" className="relative h-8 w-px overflow-hidden bg-border">
           <span className="absolute top-0 left-0 h-3.5 w-px animate-scroll-line bg-ink motion-reduce:animate-none" />
         </span>
-      </Link>
+      </a>
 
       {ready && (
         <HeroDialogs
