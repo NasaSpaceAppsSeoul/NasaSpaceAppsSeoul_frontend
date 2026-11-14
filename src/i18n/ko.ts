@@ -194,6 +194,24 @@ export const ko = {
       tableCaption: (year: number) => `${year}년 월별 화재 감지일과 평소 값`,
       columns: { month: "달", value: "값", median: "평소 중앙값", band: "보통 해 범위" },
     },
+    // 자료 가져가기(5장, screens/kr/dashboard-national 맨 아래). 감지 지점 내려받기는 자리만(1-9)
+    export: {
+      title: "이 지역·월의 자료를 가져가세요.",
+      points: "감지 지점 CSV / GeoJSON",
+      share: "이 화면 링크 복사",
+      // 단계 이름은 나라마다(시·군·구, 카운티, 지역구. 모두 받침 없음)
+      footnote: (lv2: string) => `${lv2}를 선택하면 같은 달의 월간 인사이트를 확인할 수 있습니다.`,
+    },
+    // 이 화면 공유(overlays/kr/share-link). 디자인의 "프로토타입 미리보기·복사 지원 안 함"은 실제 동작으로 고쳐 씀
+    share: {
+      title: "이 화면 공유",
+      description: "링크에 선택 지역과 기준 월을 유지합니다.",
+      urlLabel: "주소",
+      copy: "링크 복사",
+      copied: "링크를 복사했습니다.",
+      failed: "복사하지 못했습니다. 위 주소를 직접 복사하세요.",
+      done: "완료",
+    },
     // 시·군·구 화면의 인접 지역 목록(5장, 6-2). 값 큰 순, 0도 보인다
     neighbors: {
       title: (monthName: string) => `인접 지역의 ${monthName} 기록`,

@@ -4,7 +4,10 @@ import { SearchDialog } from "../../../components/dashboard/SearchDialog";
 import type { RegionSummary } from "../../../api/types";
 import { useLocale, useMessages } from "../../../i18n";
 import { COUNTRIES, parseCountry } from "../../../lib/country";
-import { ownName, parentOf, sortByName } from "../../../lib/region";
+import { formatMonth } from "../../../lib/format";
+import { ownName, parentOf, regionPath, sortByName } from "../../../lib/region";
+import type { CopyState } from "../../../hooks/useCopyText";
+import { ShareDialog } from "../../../components/dashboard/ShareDialog";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "../scope";
 
 /*
@@ -16,9 +19,11 @@ type ControlsDialogsProps = {
   dialog: ControlsDialog;
   close: () => void;
   navigate: DashboardNavigate;
+  /** 공유 대화상자의 주소, 복사 결과, 복사하기(화면이 만들고 복사한다. 구역은 주소를 읽지 않는다) */
+  share: { url: string; state: CopyState; copy: () => void };
 };
 
-export function ControlsDialogs({ scope, dialog, close, navigate }: ControlsDialogsProps) {
+export function ControlsDialogs({ scope, dialog, close, navigate, share }: ControlsDialogsProps) {
   const t = useMessages();
   const d = t.dashboard.dialogs;
   const locale = useLocale();
@@ -93,6 +98,14 @@ export function ControlsDialogs({ scope, dialog, close, navigate }: ControlsDial
         range={scope.range}
         selected={scope.month}
         onPick={(month) => pick(() => navigate.toMonth(month))}
+      />
+      <ShareDialog
+        open={dialog === "share"}
+        onClose={close}
+        label={[...regionPath(region, country, meta.labels.single, index).map((r) => ownName(r, locale)), formatMonth(scope.month, locale)].join(" / ")}
+        url={share.url}
+        state={share.state}
+        onCopy={share.copy}
       />
     </>
   );

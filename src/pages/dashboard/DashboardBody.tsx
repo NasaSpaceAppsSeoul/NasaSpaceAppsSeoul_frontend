@@ -4,6 +4,7 @@ import type { Meta, RegionSummary } from "../../api/types";
 import { Button } from "../../components/Button";
 import { SectionError } from "../../components/SectionError";
 import { apiMode } from "../../api/client";
+import { useCopyText } from "../../hooks/useCopyText";
 import { useRegions } from "../../hooks/useRegions";
 import { useSeries } from "../../hooks/useSeries";
 import { useLocale, useMessages } from "../../i18n";
@@ -16,6 +17,7 @@ import { DashboardMessage, DashboardSkeleton } from "./DashboardSkeleton";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "./scope";
 import { ControlsDialogs } from "./sections/ControlsDialogs";
 import { ControlsSection } from "./sections/ControlsSection";
+import { ExportSection } from "./sections/ExportSection";
 import { HeadSection } from "./sections/HeadSection";
 import { HeatmapSection } from "./sections/HeatmapSection";
 import { JudgementSection } from "./sections/JudgementSection";
@@ -37,10 +39,12 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
   const locale = useLocale();
   const routerNavigate = useNavigate();
   const [dialog, setDialog] = useState<ControlsDialog>(null);
+  const copier = useCopyText();
   const regions = useRegions(country);
   const series = useSeries(country, country);
 
   const current = regionId ?? null;
+  const shareUrl = window.location.origin + dashboardPath(locale, country, current, monthParam ?? null);
   const go = (region: string | null, month: string | null, c: Country = country) =>
     void routerNavigate(dashboardPath(locale, c, region, month));
   const navigate: DashboardNavigate = {
@@ -48,6 +52,11 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
     toMonth: (month) => go(current, month),
     toCountry: (c) => go(null, null, c),
     regionHref: (id) => dashboardPath(locale, country, id, monthParam),
+    // 공유 대화상자를 연다. 복사는 대화상자 안 "링크 복사"를 눌렀을 때(2026-11-14 사용자 결정)
+    share: () => {
+      copier.reset();
+      setDialog("share");
+    },
   };
 
   // 지역 자리에 나라 ID가 오면 나라 주소로
@@ -105,7 +114,9 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
     countrySeries: series.data,
     levelNames: locale === "ko" ? { lv1: meta.labels.lv1, lv2: meta.labels.lv2 } : t.levelNames[country],
   };
-  const dialogs = <ControlsDialogs scope={scope} dialog={dialog} close={() => setDialog(null)} navigate={navigate} />;
+  const dialogs = (
+    <ControlsDialogs scope={scope} dialog={dialog} close={() => setDialog(null)} navigate={navigate} share={{ url: shareUrl, state: copier.state, copy: () => copier.copy(shareUrl) }} />
+  );
 
   // 주소의 지역이 목록에 없다: 구역들 대신 안내 한 장과 지역 검색(나라 기준으로 연다)
   if (found === undefined) {
@@ -158,6 +169,8 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
       )}
       {/* 지역이 바뀌면 다시 그려 표시 연도를 기본으로 되돌린다 */}
       <HeatmapSection key={region.id} scope={scope} navigate={navigate} openDialog={setDialog} mockMode={apiMode() === "mock"} />
+      {/* 자료 가져가기: 모든 단계(디자인은 나라만, 2026-11-14 사용자 결정으로 시·도·시·군·구에도) */}
+      <ExportSection navigate={navigate} insightLevel={region.level === "dist" ? null : scope.levelNames.lv2} />
       {dialogs}
     </main>
   );

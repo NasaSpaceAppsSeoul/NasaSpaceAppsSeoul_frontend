@@ -199,6 +199,21 @@ export const en: Messages = {
       tableCaption: (year: number) => `Monthly fire grid-days in ${year} and usual values`,
       columns: { month: "Month", value: "Value", median: "Usual median", band: "Usual range" },
     },
+    export: {
+      title: "Take this region and month with you.",
+      points: "Detection points CSV / GeoJSON",
+      share: "Copy link to this view",
+      footnote: (lv2: string) => `Choose a ${lv2.toLowerCase()} to open the monthly insight for the same month.`,
+    },
+    share: {
+      title: "Share this view",
+      description: "The link keeps the selected region and reference month.",
+      urlLabel: "Address",
+      copy: "Copy link",
+      copied: "Link copied.",
+      failed: "Couldn't copy. Copy the address above yourself.",
+      done: "Done",
+    },
     neighbors: {
       title: (monthName: string) => `Neighboring areas in ${monthName}`,
       sub: "Same-month values for adjacent areas, in the same unit.",
