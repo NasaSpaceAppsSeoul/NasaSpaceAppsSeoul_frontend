@@ -57,12 +57,13 @@ describe("routes", () => {
   });
 
   it("월간 인사이트 주소를 받는다", async () => {
-    renderAt("/insight/KOR/abc?month=2025-03");
-    expect((await heading()).textContent).toBe("월간 인사이트");
+    const uiseong = "91817680B75376031789242";
+    renderAt(`/insight/KOR/${uiseong}?month=2025-03`);
+    expect((await heading()).textContent).toBe("의성군 · 2025년 3월 화재 인사이트");
     cleanup();
 
-    renderAt("/en/insight/KOR/abc?month=2025-03");
-    expect((await heading()).textContent).toBe("Monthly insight");
+    renderAt(`/en/insight/KOR/${uiseong}?month=2025-03`);
+    expect((await heading()).textContent).toBe("Uiseong-gun · March 2025 fire insight");
   });
 
   it("지역 없는 월간 인사이트 주소는 안내 화면으로 간다", async () => {

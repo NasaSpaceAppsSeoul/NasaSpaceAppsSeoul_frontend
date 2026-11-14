@@ -23,6 +23,8 @@ import type { Country } from "../types";
 export const UISEONG = "91817680B75376031789242";
 export const GOSEONG_GANGWON = "91817680B50485812736392";
 export const GUNPO = "91817680B51138241033746";
+/** 안동시 2025-03: 220 (`spec_test.py`의 의성 인사이트 이웃 값) */
+export const ANDONG = "91817680B16014600177045";
 
 /** `startYear`부터 해마다 같은 달(`month`, 1~12)의 값 */
 function sameMonth(startYear: number, month: number, values: readonly number[]): [string, number][] {
@@ -51,6 +53,7 @@ const TABLE: Partial<Record<Country, Record<string, [string, number][]>>> = {
     [UISEONG]: UISEONG_VALUES,
     [GOSEONG_GANGWON]: GOSEONG_VALUES,
     [GUNPO]: [["2025-04", 1]],
+    [ANDONG]: [["2025-03", 220]],
   },
 };
 
