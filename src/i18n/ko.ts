@@ -303,8 +303,6 @@ export const ko = {
       month: "기준 월",
     },
     stepper: {
-      label: "기준 월",
-      latest: "최신",
       previous: "이전 달",
       next: "다음 달",
     },

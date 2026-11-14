@@ -297,8 +297,6 @@ export const en: Messages = {
       month: "Reference month",
     },
     stepper: {
-      label: "Month",
-      latest: "Latest",
       previous: "Previous month",
       next: "Next month",
     },

@@ -14,7 +14,7 @@ import { RiskSeasonSection } from "./sections/RiskSeasonSection";
 
 /*
  * 대시보드 단계별 배치 (screens/kr/dashboard-national·province·district, `plans/dashboard-sections.md` 0절·4-4).
- * - 나라: 선택 줄 → 머리, 숫자 카드(+누적) | 나라 지도, 집중 시기 | 월별 그래프, 히트맵, 가져가기
+ * - 나라: 머리 → 선택 줄, 숫자 카드(+누적) | 나라 지도, 집중 시기 | 월별 그래프, 히트맵, 가져가기
  * - 시·도: 머리 → 선택 줄, 숫자 카드 + 두드러진 곳 3곳 | 시·도 지도, 히트맵, 가져가기
  * - 시·군·구: 머리 → 선택 줄, 숫자 카드(+인사이트 버튼) + 인접 지역 | 주변 지역 지도, 히트맵, 가져가기
  * CAL·BC는 시·도 단계가 없어 나라·카운티(지역구) 두 가지만 나온다. 지역별 구역은 `key={region.id}`로 다시 그린다.
@@ -32,11 +32,12 @@ export function DashboardLayout({ scope, navigate, openDialog, dialogs }: Dashbo
   const national = region.level === "nat";
   const district = region.level === "dist";
   const controls = <ControlsSection scope={scope} navigate={navigate} openDialog={openDialog} />;
-  const head = <HeadSection scope={scope} navigate={navigate} />;
+  const head = <HeadSection scope={scope} />;
   return (
     <main className="flex flex-col gap-8 py-12">
-      {national ? controls : head}
-      {national ? head : controls}
+      {/* 모든 단계에서 머리 → 선택 줄·경로 줄(시안 v9 순서, `plans/cosmic-redesign.md` 8-3) */}
+      {head}
+      {controls}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-1">
           <JudgementSection scope={scope} navigate={navigate} openDialog={openDialog} />
