@@ -273,6 +273,47 @@ export const ko = {
       viirsSub: "S-NPP 관측이 시작된 2012년부터",
     },
   },
+  // 지도(4장, components/sheet/06-maps-*). 데모 문구는 뺐고, 점 색 기준·범례 구간은 백엔드 뜻으로 고쳐 썼다(5-2, 8절 질문 1)
+  map: {
+    title: (month: string) => `${month} · 화재 칸과 감지 위치`,
+    sub: "지역색은 월간 화재 칸 수, 점은 감지 위치와 첫 감지일을 나타냅니다.",
+    modes: { cells: "화재 칸·위치", usual: "평소 대비" },
+    views: { map: "지도", list: "목록" },
+    soon: "준비 중",
+    zoom: { in: "확대", out: "축소", reset: "처음 크기로" },
+    hint: "+ / − 확대·축소 · 점에 올려 확인",
+    legend: {
+      fillTitle: "색 · 이번 달 화재 칸 수",
+      below: (to: string) => `${to} 미만`,
+      between: (from: string, to: string) => `${from}–${to}`,
+      above: (from: string) => `${from} 이상`,
+      noValue: "값 없음",
+      rangeNote: "구간은 앞 값 이상, 뒤 값 미만입니다.",
+      fillNote: "약 1 km 칸을 한 달에 한 번만 셉니다. 화재 건수·화재 감지일과 다릅니다.",
+      dotTitle: "점 · 첫 감지일 이후 경과일",
+      ages: ["첫 감지일", "+1일", "+2일", "+3일~"],
+      dotNote: "점은 감지된 칸의 대표 위치입니다. 색은 지금 보이는 지역의 첫 감지일 기준입니다.",
+      dotZoomNote: "전국 크기에서는 감지 위치가 연기처럼 번져 보이고, 확대하면 점으로 보입니다.",
+      selected: "선택 지역 · 파란 테두리",
+    },
+    notes: {
+      sample: (count: string, shown: string) => `감지 ${count}개 중 ${shown}개 표시`,
+      pre2012: (sensor: string) => `2012년 2월 이전은 시·군·구 값이 없어 감지 지점(${sensor})만 표시합니다.`,
+      outOfRange: "이 달은 감지 지점 자료가 없습니다.",
+    },
+    tooltip: {
+      cells: (value: string) => `화재 칸 ${value}`,
+      noValue: "값 없음",
+      firstDetected: "이 칸의 첫 감지일",
+    },
+    gestureHelp: {
+      windows: "Ctrl + 스크롤로 지도를 확대·축소합니다",
+      mac: "⌘ + 스크롤 또는 트랙패드 핀치로 지도를 확대·축소합니다",
+      mobile: "두 손가락으로 지도를 움직입니다",
+    },
+    canvasLabel: (title: string, regions: number, cells: number) =>
+      `${title}. 지역 ${regions}곳, 감지된 칸 ${cells}개. 지역 이동은 위의 선택 줄로도 할 수 있습니다.`,
+  },
 };
 
 export type Messages = typeof ko;

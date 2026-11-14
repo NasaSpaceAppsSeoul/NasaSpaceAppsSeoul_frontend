@@ -19,6 +19,7 @@ import { ControlsSection } from "./sections/ControlsSection";
 import { HeadSection } from "./sections/HeadSection";
 import { HeatmapSection } from "./sections/HeatmapSection";
 import { JudgementSection } from "./sections/JudgementSection";
+import { MapSection } from "./sections/MapSection";
 
 type DashboardBodyProps = { country: Country; regionId: string | undefined; monthParam: string | undefined; meta: Meta };
 
@@ -129,6 +130,12 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
         <div className="lg:col-span-1">
           <JudgementSection scope={scope} navigate={navigate} openDialog={setDialog} />
         </div>
+        {/* 지도는 나라 단계만(4장). 시·도·시·군·구 지도는 5장(2026-11-14 사용자 결정, 안 A) */}
+        {national && (
+          <div className="lg:col-span-2">
+            <MapSection key={region.id} scope={scope} navigate={navigate} />
+          </div>
+        )}
       </div>
       {/* 지역이 바뀌면 다시 그려 표시 연도를 기본으로 되돌린다 */}
       <HeatmapSection key={region.id} scope={scope} navigate={navigate} openDialog={setDialog} mockMode={apiMode() === "mock"} />
