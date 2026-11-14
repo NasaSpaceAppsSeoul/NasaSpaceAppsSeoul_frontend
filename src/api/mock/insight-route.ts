@@ -12,7 +12,7 @@
  *
  * 지어낸 값
  * - `annual`·`annual_all`·`longterm`·`risk_months`(비중 큰 달부터 합이 절반을 넘을 때까지). 이웃 목록은 `/regions/{id}` 목과 같은 원천(`mock.detail`).
- * - 일부 실패 경우(10-5): 의성군 2024-03은 `spatial`, 의성군 2023-03은 `series`가 실패한 응답.
+ * - 일부 실패 경우(10-5): 의성군 2024-03은 `spatial`, 의성군 2023-03은 `series`, 의성군 2022-03은 `judge`(+`neighbors`)가 실패한 응답.
  * - 의성군 2025-03의 두 번째 공식 기록(면적 0)과 감지율, `daily`의 날짜별 나눔(합 384, 26일 108칸).
  */
 import type { Country } from "../../lib/country";
@@ -268,7 +268,26 @@ export function mockInsight(country: Country, mock: CountryMock | undefined, id:
   if (isUiseong202503) return uiseongExpected(response);
   if (country === "KOR" && region.id === UISEONG && month === "2024-03") return spatialFailed(response);
   if (country === "KOR" && region.id === UISEONG && month === "2023-03") return seriesFailed(response);
+  if (country === "KOR" && region.id === UISEONG && month === "2022-03") return judgeFailed(response);
   return response;
+}
+
+/**
+ * 판정 호출만 실패한 경우(예: 판정 시간 초과. timeseries가 통째로 꺼지면 `series`·`series_ref`도 함께 실패한다):
+ * 판정 쪽 필드가 `null`(G-2 표). 이웃 값도 이웃마다 판정을 부르므로 모두 실패해 목록에서 빠지고
+ * `neighbors`가 함께 들어온다(`InsightService.java:146-154`).
+ * 의성은 빌린 지역이 시·도(경북)라 `prov`도 `null`. `head.rank`·`n`은 자기 시계열 순위로 채워진 그대로 둔다
+ */
+function judgeFailed(r: Insight): Insight {
+  return {
+    ...r,
+    head: { ...r.head, value: null, chip: null, reason: null },
+    ref: null,
+    prov: null,
+    years: { ...r.years, median: null, band_low: null, band_high: null },
+    neighbors: [],
+    unavailable: ["judge", "neighbors"],
+  };
 }
 
 function uiseongExpected(r: Insight): Insight {

@@ -1,7 +1,9 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../api/client";
 import { mockGet } from "../../api/mock";
+import type { Insight } from "../../api/types";
+import { fakeMaps, type FakeMap } from "../../test/fakeMaplibre";
 import { renderRoute } from "../../test/render";
 
 /*
@@ -82,7 +84,7 @@ describe("월간 인사이트", () => {
       "같은 달의 우리 지역과 이웃을 살펴보세요.",
       "수치마다 비교 기준을 확인하세요.",
     ]);
-    expect(screen.getByText("지도는 준비 중입니다.")).toBeTruthy();
+    expect(await screen.findByText("점은 의성군 안에서 감지된 칸만 표시합니다.")).toBeTruthy();
     expect(screen.getByText("경북의 계절 패턴 참고")).toBeTruthy();
     expect(screen.getByText(/공식 기록 41건 중 17건을 위성이 2일 안에 감지했습니다\(41%\)/)).toBeTruthy();
   });
@@ -202,5 +204,160 @@ describe("월간 인사이트", () => {
     renderRoute(`/en/insight/KOR/${UISEONG}?month=2025-03`);
     expect(await screen.findByRole("heading", { name: "Uiseong-gun · March 2025 fire insight" })).toBeTruthy();
     expect(screen.getByText("7 days / Mar 26")).toBeTruthy();
+  });
+});
+
+/* 지도 구역 (`plans/insight.md` 12절). 지도 그림은 가짜 maplibre로 확인한다(`test/fakeMaplibre.ts`). */
+const ANDONG = "91817680B16014600177045";
+
+async function mapSection(): Promise<HTMLElement> {
+  const heading = await screen.findByRole("heading", { name: "이번 달 어디서 불이 감지됐을까요?" });
+  const section = heading.closest("section");
+  if (section === null) throw new Error("지도 카드가 없다");
+  return section;
+}
+
+async function loadedMap(): Promise<FakeMap> {
+  await screen.findByRole("img", { name: /^이번 달 어디서 불이 감지됐을까요\? 지역 \d+곳/ });
+  return waitFor(() => {
+    const map = fakeMaps.at(-1);
+    if (map === undefined || map.sources.get("regions")?.data === null) throw new Error("아직");
+    return map;
+  });
+}
+
+const regionIds = (map: FakeMap) =>
+  ((map.sources.get("regions")?.data as { features: { properties: { id: string } }[] } | null)?.features ?? []).map((f) => f.properties.id);
+
+describe("월간 인사이트 지도", () => {
+  beforeEach(() => {
+    vi.stubEnv("VITE_API_MODE", "live");
+    vi.stubEnv("VITE_API_BASE", BASE);
+    vi.stubGlobal("fetch", fetchMock);
+    fetchMock.mockImplementation(serve);
+    override = () => null;
+  });
+
+  afterEach(() => {
+    fakeMaps.length = 0;
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  it("의성 2025-03: 자기 + 응답의 이웃, 자기에 파란 테두리, 점은 자기 안의 것만이라는 줄", async () => {
+    renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
+    const section = await mapSection();
+    expect(await within(section).findByText("의성군과 주변 지역 · 2025년 3월")).toBeTruthy();
+    const map = await loadedMap();
+    const r = (await mockGet(`/KOR/insight/${UISEONG}?month=2025-03`)) as Insight;
+    await waitFor(() => expect(regionIds(map)).toContain(ANDONG));
+    expect(regionIds(map).every((id) => id === UISEONG || r.neighbors.some((n) => n.id === id))).toBe(true);
+    await waitFor(() => expect(map.filters.get("selected-line")).toEqual(["==", ["get", "id"], UISEONG]));
+    expect(within(section).getByText("선택 지역 · 파란 테두리")).toBeTruthy();
+    expect(within(section).getByText("점은 의성군 안에서 감지된 칸만 표시합니다.")).toBeTruthy();
+    expect(within(section).queryByRole("alert")).toBeNull();
+    // 고정 지도(확대 없음)
+    expect(map.options).toMatchObject({ dragPan: false, scrollZoom: false });
+  });
+
+  it("툴팁: 이웃은 이름과 값, 점은 자기 이름과 날짜. 이웃을 누르면 그 이웃의 같은 달 인사이트(자기는 무시)", async () => {
+    const { router } = renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
+    const map = await loadedMap();
+    await waitFor(() => expect(regionIds(map)).toContain(ANDONG));
+    map.hits = [{ layer: "region-fill", properties: { id: ANDONG } }];
+    act(() => map.emit("mousemove", { point: { x: 10, y: 10 } }));
+    expect((await screen.findByRole("tooltip")).textContent).toMatch(/^안동시.*화재 칸 220$/);
+    map.hits = [{ layer: "points", properties: { index: 0 } }];
+    act(() => map.emit("mousemove", { point: { x: 10, y: 10 } }));
+    await waitFor(() => expect(screen.getByRole("tooltip").textContent).toMatch(/^의성군이 칸의 첫 감지일2025-03-\d{2}$/));
+
+    // 자기 지역을 눌러도 같은 주소로 다시 가지 않는다(같은 경로라 경로 대신 기록 항목으로 확인)
+    const before = router.state.location.key;
+    map.hits = [{ layer: "region-fill", properties: { id: UISEONG } }];
+    act(() => map.emit("click", { point: { x: 10, y: 10 } }));
+    expect(router.state.location.key).toBe(before);
+    map.hits = [{ layer: "region-fill", properties: { id: ANDONG } }];
+    act(() => map.emit("click", { point: { x: 10, y: 10 } }));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/insight/KOR/${ANDONG}`));
+    expect(router.state.location.search).toBe("?month=2025-03");
+  });
+
+  it("의성 2024-03(spatial 실패): 면은 그리고 점 실패 안내와 다시 시도(reload), 점 설명 줄 없음", async () => {
+    renderRoute(`/insight/KOR/${UISEONG}?month=2024-03`);
+    const section = await mapSection();
+    const alert = await within(section).findByRole("alert");
+    expect(alert.textContent).toMatch(/감지 지점을 불러오지 못했습니다/);
+    await loadedMap();
+    expect(within(section).queryByText(/점은 의성군 안에서/)).toBeNull();
+    const before = insightCalls().length;
+    fireEvent.click(within(alert).getByRole("button", { name: "다시 시도" }));
+    await waitFor(() => expect(insightCalls().length).toBe(before + 1));
+    expect(insightCalls().at(-1)?.cache).toBe("reload");
+  });
+
+  it("의성 2022-03(판정 실패): 자기 값 실패 안내, 이웃이 빠졌다는 줄, 설명에 '주변 지역' 없음", async () => {
+    renderRoute(`/insight/KOR/${UISEONG}?month=2022-03`);
+    const section = await mapSection();
+    expect((await within(section).findByRole("alert")).textContent).toMatch(/이 지역의 값을 불러오지 못했습니다/);
+    expect(within(section).getByText("일부 이웃이 빠졌을 수 있습니다.")).toBeTruthy();
+    const map = await loadedMap();
+    await waitFor(() => expect(regionIds(map)).toEqual([UISEONG]));
+    expect(within(section).getByText("의성군 · 2022년 3월")).toBeTruthy();
+  });
+
+  it("2012-02 전 달: 판정이 실패해도(reason 없음) 달로 판단해 MODIS 안내 줄", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const res = await serve(input);
+      if (!String(input).includes("/insight/")) return res;
+      const body = (await res.json()) as Insight;
+      return json({ ...body, head: { ...body.head, reason: null }, unavailable: ["judge"] });
+    });
+    renderRoute(`/insight/KOR/${UISEONG}?month=2010-03`);
+    const section = await mapSection();
+    expect(await within(section).findByText("2012년 2월 이전은 시·군·구 값이 없어 감지 지점(MODIS)만 표시합니다.")).toBeTruthy();
+  });
+
+  it("이웃 일부만 실패(안 ⓐ): 빠진 이웃 도형은 그리지 않고 안내 줄, 남은 이웃은 그린다", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const res = await serve(input);
+      if (!String(input).includes("/insight/")) return res;
+      const body = (await res.json()) as Insight;
+      return json({ ...body, neighbors: body.neighbors.filter((n) => n.id !== ANDONG), unavailable: ["neighbors"] });
+    });
+    renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
+    const section = await mapSection();
+    expect(await within(section).findByText("일부 이웃이 빠졌을 수 있습니다.")).toBeTruthy();
+    const map = await loadedMap();
+    await waitFor(() => expect(regionIds(map).length).toBeGreaterThan(1));
+    expect(regionIds(map)).toContain(UISEONG);
+    expect(regionIds(map)).not.toContain(ANDONG);
+    expect(within(section).queryByRole("alert")).toBeNull();
+  });
+
+  it("판정과 점이 함께 실패하면 안내 한 줄로 합친다", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const res = await serve(input);
+      if (!String(input).includes("/insight/")) return res;
+      const body = (await res.json()) as Insight;
+      return json({ ...body, map: null, unavailable: ["judge", "spatial", "neighbors"] });
+    });
+    renderRoute(`/insight/KOR/${UISEONG}?month=2022-03`);
+    const section = await mapSection();
+    const alerts = await within(section).findAllByRole("alert");
+    expect(alerts.map((a) => a.textContent)).toEqual([expect.stringMatching(/^일부 지도 정보를 불러오지 못했습니다/)]);
+  });
+
+  it("점이 0개면 점 기준 안내만(점 설명 줄은 빼고)", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const res = await serve(input);
+      if (!String(input).includes("/insight/")) return res;
+      const body = (await res.json()) as Insight;
+      return json({ ...body, map: body.map === null ? null : { ...body.map, points: [] } });
+    });
+    renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
+    const section = await mapSection();
+    expect(await within(section).findByText("이번 달 의성군 안에 표시할 감지 지점이 없습니다.")).toBeTruthy();
+    expect(within(section).queryByText(/점은 의성군 안에서/)).toBeNull();
   });
 });

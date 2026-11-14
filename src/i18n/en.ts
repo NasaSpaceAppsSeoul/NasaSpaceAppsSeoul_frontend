@@ -512,7 +512,14 @@ export const en: Messages = {
     map: {
       eyebrow: "FIRE CELLS & DETECTION LOCATIONS",
       title: "Where was fire detected this month?",
-      pending: "The map is coming soon.",
+      lead: (name: string, _particle: "와" | "과" | null, month: string) => `${name} and nearby areas · ${month}`,
+      leadAlone: (name: string, month: string) => `${name} · ${month}`,
+      canvasLabel: (title: string, regions: number, cells: number) => `${title} ${regions} areas, ${cells} detected cells.`,
+      pointsOnly: (name: string) => `Dots show only cells detected inside ${name}.`,
+      noPoints: (name: string) => `No detection points to show inside ${name} this month.`,
+      pointsFailed: "Couldn't load detection points.",
+      valueFailed: "Couldn't load this area's value.",
+      partFailed: "Couldn't load part of the map.",
     },
     neighbors: {
       eyebrow: "NEIGHBORING REGIONS",

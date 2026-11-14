@@ -8,6 +8,7 @@ import {
   dayDate,
   earliestDay,
   fillStates,
+  fillsFromValues,
   filterPoints,
   firstDayCells,
   mapLegend,
@@ -175,5 +176,27 @@ describe("mapLegend, dayDate", () => {
   });
   it("YYYY-MM-DD", () => {
     expect(dayDate("2025-03", 6)).toBe("2025-03-06");
+  });
+});
+
+describe("fillsFromValues", () => {
+  const bins = [3, 10, 30] as const;
+  it("값을 binOf 경계로 칠하고, null·없는 ID는 none", () => {
+    const values = new Map<string, number | null>([
+      ["zero", 0],
+      ["low", 2.5],
+      ["a", 3],
+      ["c", 30],
+      ["null", null],
+    ]);
+    const fills = fillsFromValues(["zero", "low", "a", "c", "null", "missing"], values, bins);
+    expect([...fills.entries()]).toEqual([
+      ["zero", 0],
+      ["low", 1],
+      ["a", 2],
+      ["c", 4],
+      ["null", "none"],
+      ["missing", "none"],
+    ]);
   });
 });
