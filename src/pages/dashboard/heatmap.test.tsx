@@ -204,6 +204,18 @@ describe("히트맵 (3장)", () => {
     expect(screen.getByText("목 모드에서는 내려받을 수 없습니다")).toBeTruthy();
   });
 
+  it("내려받기(9장): 목 모드 CSV는 눌러도 대화상자가 열리지 않고, 달력 PNG는 확인 대화상자를 연다", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    await grid();
+    fireEvent.click(screen.getByRole("button", { name: "월별 CSV" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "달력 PNG" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "달력 이미지" }));
+    expect(dialog.getByText("PNG · 범례·출처·기준 기간 포함")).toBeTruthy();
+    expect(dialog.getByRole("button", { name: "내려받기" })).toBeTruthy();
+    expect(dialog.queryByText(/프로토타입/)).toBeNull();
+  });
+
   it("영어 화면", async () => {
     renderRoute("/en/dashboard/KOR?month=2025-03");
     const g = await grid();

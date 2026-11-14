@@ -402,6 +402,22 @@ export const ko = {
     csv: "월별 CSV",
     png: "달력 PNG",
     csvMock: "목 모드에서는 내려받을 수 없습니다",
+    // 내려받기 확인 대화상자(overlays/kr/export-csv·export-png). "프로토타입 미리보기" 줄은 빼고 버튼은 "내려받기"(4-8)
+    exports: {
+      description: "내려받을 파일의 내용을 확인하세요.",
+      download: "내려받기",
+      downloading: "내려받는 중…",
+      csv: { title: "월별 화재 활동 CSV", detail: "월별 감지일 · 평년 · 보통 해 범위 · 순위, 값이 있는 달만, 전체 기간" },
+      png: { title: "달력 이미지", detail: "PNG · 범례·출처·기준 기간 포함" },
+      pngFailed: "이미지를 만들지 못했습니다. 다시 시도해 주세요.",
+      // 그림 안 글자
+      image: {
+        title: (name: string, from: number, to: number) => `${name} · 연도별·월별 화재 달력 ${from}–${to}`,
+        sub: "화재 감지일 · NOAA-20 기준 보정값 · 한 달에 점 하나",
+        source: (dataEnd: string) => `출처: NASA FIRMS · 자료 기준일 ${dataEnd} · Burnline`,
+        period: (from: number, to: number) => `색 구간: 이 지역 0이 아닌 월값의 50·75·90 퍼센타일 · 평소 비교 기간 ${from}–${to}`,
+      },
+    },
     monthCorner: "달",
     monthHead: (m: number) => `${m}월`,
     empty: "이 지역의 월별 자료가 없습니다.",
