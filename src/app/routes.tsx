@@ -19,6 +19,11 @@ function DefaultCountryRedirect() {
  */
 const pages: RouteObject[] = [
   { index: true, element: <AboutPage /> },
+  // 기법 페이지는 한·영 본문이 커서 들어갈 때 받는다. 받다 실패하면 공용 `RouteErrorPage`(`plans/method-page.md` 8-4)
+  {
+    path: "method",
+    lazy: async () => ({ Component: (await import("../pages/method/MethodPage")).MethodPage }),
+  },
   { path: "dashboard", element: <DefaultCountryRedirect /> },
   { path: "dashboard/:country", element: <DashboardPage /> },
   { path: "dashboard/:country/:regionId", element: <DashboardPage /> },

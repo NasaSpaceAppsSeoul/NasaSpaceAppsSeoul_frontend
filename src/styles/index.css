@@ -146,6 +146,11 @@
   --color-bar-harmonized-to: #e26224;
   --color-bar-pre2012: #d5d2cc;
 
+  /* 색: 기법 페이지 위성 기간 그림(`components/method/SatelliteTimeline`, 시안 `method_page.html` `drawSats` 값). NOAA-20은 `fire` */
+  --color-sat-modis: #8a7a70;
+  --color-sat-snpp: #c98a5d;
+  --color-sat-backup: rgba(90, 74, 66, 0.6);
+
   /*
    * 색: 둥근 색조 배지 5가지 (바탕, 글자). 시안 v9 `.db-status--usual·above·below`(반투명 바탕 + 밝은 글자)를
    * 초록·주황·파랑으로 쓰고, 빨강·노랑은 같은 방식으로 만들었다(시안에 없음)
@@ -451,6 +456,22 @@
     ::view-transition-old(root),
     ::view-transition-new(root) {
       animation: none !important;
+    }
+  }
+}
+
+/*
+ * 기법 페이지에서만 목차·해시 이동을 부드럽게 (`plans/method-page.md` 1절, 시안 `html{scroll-behavior:smooth}`).
+ * 라우터 스크롤 복원이 해시 절로 `scrollIntoView()`를 부르므로 문서 스크롤 방식만 바꾼다. 페이지가 사라지면 함께 꺼진다.
+ * 움직임 줄이기면 바로 이동한다.
+ */
+@layer base {
+  html:has([data-smooth-scroll]) {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:has([data-smooth-scroll]) {
+      scroll-behavior: auto;
     }
   }
 }
