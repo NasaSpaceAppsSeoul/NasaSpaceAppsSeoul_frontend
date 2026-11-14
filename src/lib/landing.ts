@@ -52,6 +52,80 @@ export function niceMax(values: readonly number[]): number {
   return Number((step * power).toPrecision(12));
 }
 
+/** 02 월별 막대에 쓰는 `/series` 달 하나(필요한 필드만) */
+export type YtdMonthInput = { month: string; value: number | null; status: string };
+
+export type YtdBar = {
+  /** 1~12 */
+  month: number;
+  /** "YYYY-MM" */
+  key: string;
+  /** `null`이면 값 없음(막대 없음) */
+  value: number | null;
+  /**
+   * 확정 전 상태: 집계 중(`partial`, 그 달이 아직 진행 중) / 준실시간(`nrt`, 확정 자료가 끝난 뒤의 달). 점선 테두리.
+   * 값이 없는 달은 `null`("값 없음"만)
+   */
+  pending: "partial" | "nrt" | null;
+};
+
+export type Ytd = {
+  year: number;
+  bars: YtdBar[];
+  total: number;
+  /** 합계에 확정 전 달이 들어갔는지. 집계 중이 하나라도 있으면 `partial`, 아니면 준실시간이 있으면 `nrt` */
+  totalPending: "partial" | "nrt" | null;
+};
+
+/**
+ * 02 월별 막대 (`plans/about-revise.md` 9-5): `/series`의 마지막 달이 속한 해의 1월~그 달.
+ * 9-5는 `monthlyChartData`를 다시 쓰라고 했지만 그 함수는 `partial`만 집계 중으로 보고 `nrt`(준실시간)를 놓쳐 따로 둔다.
+ * `data_end`가 아니라 시계열 마지막 달로 정한다(둘이 다를 수 있다). 마지막 달이 1월이면 1월 하나만 보인다.
+ * 합계는 값이 있는 달만 더해 소수 한 자리(스킬 7). 확정 전 달이 들어가면 `totalPending`(집계 중이 있으면 `partial`, 아니면 `nrt`).
+ * 그 해에 값이 하나도 없으면 `null`.
+ */
+export function ytdBars(months: readonly YtdMonthInput[]): Ytd | null {
+  const last = months.reduce<YtdMonthInput | undefined>((a, m) => (a === undefined || m.month > a.month ? m : a), undefined);
+  if (last === undefined) return null;
+  const year = Number(last.month.slice(0, 4));
+  const lastMonth = Number(last.month.slice(5, 7));
+  const byKey = new Map(months.map((m) => [m.month, m]));
+  const bars = Array.from({ length: lastMonth }, (_, i): YtdBar => {
+    const key = `${year}-${String(i + 1).padStart(2, "0")}`;
+    const row = byKey.get(key);
+    const value = row?.value ?? null;
+    const status = row?.status;
+    return {
+      month: i + 1,
+      key,
+      value,
+      // 값이 없는 달은 확정 전 표시를 붙이지 않는다("값 없음"만)
+      pending: value === null ? null : status === "partial" ? "partial" : status === "nrt" ? "nrt" : null,
+    };
+  });
+  const shown = bars.filter((b) => b.value !== null);
+  if (shown.length === 0) return null;
+  const total = Math.round(shown.reduce((sum, b) => sum + (b.value ?? 0), 0) * 10) / 10;
+  const totalPending = shown.some((b) => b.pending === "partial") ? "partial" : shown.some((b) => b.pending === "nrt") ? "nrt" : null;
+  return { year, bars, total, totalPending };
+}
+
+/**
+ * 세로축 눈금: 0부터 깔끔한 간격(1·2·2.5·5 × 10ⁿ)으로 5칸 안팎, 맨 위는 최댓값 이상.
+ * 시안처럼 0·10·…·50 같은 눈금이 나온다. 모두 0이거나 비면 [0, 1].
+ * 눈금 글자는 소수 한 자리까지라(스킬 7) 간격이 1보다 작으면 2.5배(0.25 같은 둘째 자리)를 쓰지 않는다.
+ */
+export function axisTicks(values: readonly number[]): number[] {
+  const max = Math.max(0, ...values);
+  if (max <= 0) return [0, 1];
+  const rough = max / 5;
+  const power = 10 ** Math.floor(Math.log10(rough));
+  const steps = power >= 1 ? [1, 2, 2.5, 5, 10] : [1, 2, 5, 10];
+  const step = (steps.find((s) => s * power >= rough - power * 1e-9) ?? 10) * power;
+  const count = Math.ceil(max / step - 1e-9);
+  return Array.from({ length: count + 1 }, (_, i) => Number((i * step).toPrecision(12)));
+}
+
 export type DetectInput = { bin: string; detected: number | null; chance: number | null };
 
 /**

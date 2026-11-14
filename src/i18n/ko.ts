@@ -66,6 +66,34 @@ export const ko = {
       noValue: "값 없음",
       note: (year: number) => `${year}년은 MODIS로만 관측한 마지막 해입니다. 보정값은 NOAA-20 VIIRS 기준으로 환산한 값입니다.`,
     },
+    // 02 지역 맥락 (새 시안 v9 "02 / LOCAL CONTEXT" 번역). 값은 `/series/KOR` 그 해 1월~마지막 달(about-revise 9-5)
+    context: {
+      index: "02 / 지역 맥락",
+      title: "한 달만 보지 말고\n흐름을 보세요.",
+      lead: "달마다의 흐름을 살펴보고, 대시보드에서 같은 달을 해마다 비교해 보세요.",
+      chartKey: "보정 화재 감지일",
+      chartTitle: (country: string, range: string) => `${country} · ${range}`,
+      /** "2026년 1–10월", 한 달이면 "2026년 1월". `lastName`은 `formatMonthName`("10월"/"October") */
+      range: (year: number, lastName: string, single: boolean) => (single ? `${year}년 ${lastName}` : `${year}년 1–${lastName}`),
+      axisUnit: "화재 감지일",
+      chartLabel: (title: string) => `${title} 월별 막대 그래프`,
+      bar: (month: string, value: string) => `${month}, ${value} 화재 감지일, 보정값 기준`,
+      barNoValue: (month: string) => `${month}, 값 없음`,
+      inProgress: "집계 중",
+      nrt: "준실시간",
+      noValue: "값 없음",
+      basis: "보정값 기준",
+      unit: "화재 감지일",
+      selected: "선택한 달",
+      total: (range: string) => `${range} 합계`,
+      empty: "그 해의 월별 값이 없습니다.",
+      // 범례: 점선 달이 있을 때만(C-judgement: partial = 집계 중인 달, nrt = 확정 자료가 끝난 뒤의 준실시간 달)
+      legendFinal: "확정",
+      legendInProgress: "집계 중·준실시간(바뀔 수 있음)",
+      legendHelpLabel: "점선과 실선의 뜻",
+      legendHelp:
+        "점선 막대는 값이 아직 확정되지 않은 달입니다. 그 달이 아직 끝나지 않았거나(집계 중), 확정 자료가 나오기 전의 빠른 처리 자료(준실시간)라서 나중에 값이 달라질 수 있습니다. 실선 막대는 확정된 값입니다.",
+    },
     // 히어로 3D 지구 (Make 원문 번역). 위성은 개념도라 출처 줄에 "개념도"를 남긴다(about-revise 10절 ③)
     earth: {
       label: "서로 다른 궤도로 3차원 지구를 천천히 도는 개념상의 관측 위성 두 대",

@@ -105,6 +105,39 @@ describe("소개 화면 (목)", () => {
     expect(section.getByText(/2011년은 MODIS로만 관측한 마지막 해입니다/)).toBeTruthy();
   });
 
+  it("02 지역 맥락: 시계열 마지막 달의 해 1월~그 달 막대, 처음은 마지막 달 선택, 누르면 요약이 바뀐다", async () => {
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "한 달만 보지 말고\n흐름을 보세요." }));
+    const chart = within(await section.findByRole("group", { name: /월별 막대 그래프$/ }));
+    const bars = chart.getAllByRole("button");
+    expect(bars.length).toBeGreaterThanOrEqual(1);
+    const last = bars[bars.length - 1] as HTMLElement;
+    expect(last.getAttribute("aria-pressed")).toBe("true");
+    // 첫 막대(1월)를 고르면 선택한 달 요약이 1월로 바뀐다
+    fireEvent.click(bars[0] as HTMLElement);
+    expect((bars[0] as HTMLElement).getAttribute("aria-pressed")).toBe("true");
+    expect(section.getByText(/^20\d\d년 1월 · /)).toBeTruthy();
+    expect(section.getByText(/합계$/)).toBeTruthy();
+    // 목의 마지막 달(2026-11)은 집계 중 → 합계 옆에 "집계 중"
+    expect(section.getByText(/^[\d,.]+ 화재 감지일 · 집계 중$/)).toBeTruthy();
+    // 점선 달이 있으니 범례와 ⓘ 도움말(설명이 버튼에 이어진다)
+    expect(section.getByText("집계 중·준실시간(바뀔 수 있음)")).toBeTruthy();
+    // 준실시간 달(목: 2026-09)은 "집계 중"이 아니라 "준실시간"
+    const september = chart.getByRole("button", { name: /^2026년 9월, .*준실시간$/ });
+    fireEvent.click(september);
+    expect(section.getByText(/^2026년 9월 · [\d,.]+ 화재 감지일 · 준실시간$/)).toBeTruthy();
+    const help = section.getByRole("button", { name: "점선과 실선의 뜻" });
+    expect(help.getAttribute("aria-describedby")).toBeTruthy();
+    // Esc를 누르면 설명 판이 닫힌다(보이기 클래스가 빠진다). 마우스가 떠나면 다시 열 수 있다
+    const panel = () => section.getByRole("tooltip").parentElement as HTMLElement;
+    expect(panel().className).toContain("group-hover/info:visible");
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(panel().className).not.toContain("group-hover/info:visible");
+    fireEvent.mouseLeave(help.parentElement as HTMLElement);
+    expect(panel().className).toContain("group-hover/info:visible");
+    expect(section.getByRole("tooltip").textContent).toMatch(/^점선 막대는 값이 아직 확정되지 않은 달입니다/);
+  });
+
   it("'스크롤해서 읽기'는 주소를 바꾸지 않고 01로 초점을 옮긴다(언어 전환이 01로 끌고 가지 않게)", async () => {
     const { router } = renderRoute("/");
     const cue = screen.getByRole("link", { name: "스크롤해서 읽기" });
@@ -278,6 +311,16 @@ describe("소개 화면 (서버 에러)", () => {
     renderRoute("/");
     expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(true);
+  });
+
+  it("02: /series/KOR가 실패하면 그 구역에만 다시 시도, 01은 그대로", async () => {
+    live();
+    serve((path) => (path.startsWith("/KOR/series/KOR") ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "한 달만 보지 말고\n흐름을 보세요." }));
+    expect(await section.findByRole("button", { name: "다시 시도" })).toBeTruthy();
+    const connected = within(screen.getByRole("region", { name: "센서는 달라도\n기록은 하나로." }));
+    expect(await connected.findAllByRole("definition")).toHaveLength(2);
   });
 
   it("01: 2011년 값이 0(자료 없음)이면 숫자 대신 '값 없음', 설명 줄은 숨긴다", async () => {

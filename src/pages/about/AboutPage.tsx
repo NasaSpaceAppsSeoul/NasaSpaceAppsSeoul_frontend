@@ -1,4 +1,5 @@
 import { ConnectedSection } from "./sections/ConnectedSection";
+import { ContextSection } from "./sections/ContextSection";
 import { CorrectionSection } from "./sections/CorrectionSection";
 import { DetectionSection } from "./sections/DetectionSection";
 import { HeroSection } from "./sections/HeroSection";
@@ -13,6 +14,7 @@ export function AboutPage() {
     <main className="flex flex-col gap-8 pt-2 pb-4">
       <HeroSection />
       <ConnectedSection />
+      <ContextSection />
       <CorrectionSection />
       <HowItWorksSection />
       <DetectionSection />
