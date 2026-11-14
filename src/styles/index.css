@@ -24,8 +24,13 @@
   --text-title-lg--line-height: 2.25rem;
   --text-display: 3rem;
   --text-display--line-height: 3.75rem;
-  --text-number: 6rem;
-  --text-number--line-height: 6rem;
+  /* 숫자 카드 큰 숫자. 오른쪽 좁은 칸에서 칩·단위와 한 줄에 들어가게 글자 수로 세 단계(`lib/judgementView` `numberSize`) */
+  --text-number: 4.5rem;
+  --text-number--line-height: 1;
+  --text-number-md: 3.25rem;
+  --text-number-md--line-height: 1;
+  --text-number-sm: 2.5rem;
+  --text-number-sm--line-height: 1;
   /* 시안 v9 Mono 대문자 머리말(`.db-overline` 10/16)과 칸 이름표(`.db-filter-label` 9/16). 자간은 아래 `mono-overline`·`mono-tag` 유틸리티 */
   --text-overline: 0.625rem;
   --text-overline--line-height: 1rem;

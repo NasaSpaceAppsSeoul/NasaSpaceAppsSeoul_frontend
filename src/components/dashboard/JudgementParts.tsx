@@ -1,12 +1,14 @@
 import { useLocale, useMessages } from "../../i18n";
 import { formatFireDays, formatMonthName, formatRatio } from "../../lib/format";
-import type { JudgementView, RankLine } from "../../lib/judgementView";
+import { numberSize, type JudgementView, type NumberSize, type RankLine } from "../../lib/judgementView";
 import { monthNumber } from "../../lib/month";
 import { Badge, Chip, ToneBadge } from "../Chip";
 
 /*
  * 숫자 카드의 조각들. 모두 `lib/judgementView`의 결과만 보고 그린다. 값이 없는 문장은 그리지 않는다.
  */
+
+const NUMBER_CLASS: Record<NumberSize, string> = { lg: "text-number", md: "text-number-md", sm: "text-number-sm" };
 
 function useRankText() {
   const t = useMessages().dashboard.card;
@@ -18,10 +20,12 @@ function useRankText() {
 export function JudgementHead({ view }: { view: JudgementView }) {
   const t = useMessages().dashboard;
   const locale = useLocale();
+  const text = view.value === null ? "—" : formatFireDays(view.value, locale);
   return (
-    <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
-      <p className="text-number font-light text-ink">{view.value === null ? "—" : formatFireDays(view.value, locale)}</p>
-      <div className="flex flex-col items-start gap-2 pb-2">
+    // 숫자와 칩·단위는 늘 한 줄(줄바꿈 없음). 숫자 크기를 글자 수로 줄여 좁은 칸에 맞춘다
+    <div className="flex items-end gap-4">
+      <p className={`shrink-0 font-light text-ink ${NUMBER_CLASS[numberSize(text)]}`}>{text}</p>
+      <div className="flex min-w-0 flex-col items-start gap-2 pb-1">
         {view.chip !== null && <Chip value={view.chip} />}
         {view.kind === "sparse" && <ToneBadge tone="yellow">{t.card.sparse}</ToneBadge>}
         {view.kind === "noRecord" && <Badge tone="neutral">{t.card.noRecord}</Badge>}

@@ -126,3 +126,14 @@ export function judgementView(j: JudgementLike, source: string | null): Judgemen
     ytd: j.ytd_sum !== null ? { sum: j.ytd_sum, usual } : null,
   };
 }
+
+/**
+ * 숫자 카드 큰 숫자의 크기 단계. 오른쪽 좁은 칸(배치 B, 304px)에서 숫자 옆 칩·단위가 아래로 밀리지 않게
+ * 표시 글자 수(쉼표 포함)로 줄인다: 3자 이하 큰 것, 4~5자("1,093") 중간, 6자 이상 작은 것(2026-11-15 사용자).
+ */
+export type NumberSize = "lg" | "md" | "sm";
+
+export function numberSize(text: string): NumberSize {
+  if (text.length <= 3) return "lg";
+  return text.length <= 5 ? "md" : "sm";
+}
