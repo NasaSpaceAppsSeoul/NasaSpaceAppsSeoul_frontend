@@ -1,4 +1,5 @@
 import { CorrectionSection } from "./sections/CorrectionSection";
+import { DetectionSection } from "./sections/DetectionSection";
 import { HeroSection } from "./sections/HeroSection";
 import { HowItWorksSection } from "./sections/HowItWorksSection";
 
@@ -12,6 +13,7 @@ export function AboutPage() {
       <HeroSection />
       <CorrectionSection />
       <HowItWorksSection />
+      <DetectionSection />
     </main>
   );
 }
