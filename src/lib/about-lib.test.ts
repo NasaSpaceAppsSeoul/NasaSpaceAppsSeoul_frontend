@@ -2,7 +2,24 @@ import { describe, expect, it } from "vitest";
 import { ko } from "../i18n/ko";
 import { en } from "../i18n/en";
 import { formatPercent } from "./format";
-import { annualBars, binLabel, clampRatio, detectRows, hasAnnualData, niceMax } from "./landing";
+import { annualBars, binLabel, clampRatio, detectRows, hasAnnualData, niceMax, readoutYear } from "./landing";
+
+describe("readoutYear (01 비교 카드)", () => {
+  it("2011년(MODIS 마지막 해)의 보정 전·후를 꺼낸다", () => {
+    expect(readoutYear({ years: [2010, 2011, 2012], before: [1, 302, 9], after: [3, 734.5, 5] })).toEqual({
+      year: 2011,
+      before: 302,
+      after: 734.5,
+    });
+  });
+
+  it("그 해가 없거나 어느 한쪽이라도 0이면 값 없음(null)", () => {
+    expect(readoutYear({ years: [2012, 2013], before: [1, 2], after: [3, 4] })).toBeNull();
+    expect(readoutYear({ years: [2011], before: [0], after: [0] })).toBeNull();
+    expect(readoutYear({ years: [2011], before: [0], after: [2] })).toBeNull();
+    expect(readoutYear({ years: [2011], before: [302], after: [0] })).toBeNull();
+  });
+});
 
 describe("annualBars", () => {
   it("2012년부터 post, 그 전은 pre", () => {

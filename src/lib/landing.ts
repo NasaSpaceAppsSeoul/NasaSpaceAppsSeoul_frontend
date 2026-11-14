@@ -19,6 +19,23 @@ export function annualBars({ years, before, after }: AnnualInput): AnnualBar[] {
   return bars;
 }
 
+/** MODIS로만 관측한 마지막 해. 첫 화면 01 비교 카드가 이 해의 연간 값을 쓴다(`plans/about-revise.md` 10절 ①). */
+export const READOUT_YEAR = BREAK_YEAR - 1;
+
+export type Readout = { year: number; before: number; after: number };
+
+/**
+ * 01 비교 카드 값: `READOUT_YEAR`의 연간 보정 전 → 후. 그 해가 없거나 어느 한쪽이라도 0이면 `null` = "값 없음".
+ * 0은 자료 없는 해다(9-5). 보정 전과 후는 출처가 달라(전: 위성 원값, 후: 나라 시계열 합) 한쪽만 0일 수 있는데,
+ * 그대로 보이면 "302 → 0"처럼 보정이 값을 지운 것으로 읽힌다.
+ * 9장에서 `/series` `raw_before`의 최근 달 값으로 바꾼다(roadmap 9장).
+ */
+export function readoutYear(annual: AnnualInput): Readout | null {
+  const bar = annualBars(annual).find((b) => b.year === READOUT_YEAR);
+  if (bar === undefined || bar.before === 0 || bar.after === 0) return null;
+  return { year: bar.year, before: bar.before, after: bar.after };
+}
+
 /** 모든 값이 0이면(자료 없음과 구분되지 않는다, H-3) 그래프 대신 안내를 보인다. */
 export function hasAnnualData(bars: readonly AnnualBar[]): boolean {
   return bars.some((bar) => bar.before > 0 || bar.after > 0);

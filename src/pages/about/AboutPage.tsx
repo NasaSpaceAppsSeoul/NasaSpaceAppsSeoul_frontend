@@ -1,3 +1,4 @@
+import { ConnectedSection } from "./sections/ConnectedSection";
 import { CorrectionSection } from "./sections/CorrectionSection";
 import { DetectionSection } from "./sections/DetectionSection";
 import { HeroSection } from "./sections/HeroSection";
@@ -11,10 +12,8 @@ export function AboutPage() {
   return (
     <main className="flex flex-col gap-8 pt-2 pb-4">
       <HeroSection />
-      {/* 히어로 "스크롤해서 읽기"가 가는 곳. 조각 3에서 새 01 구역(Connected records)으로 옮긴다 */}
-      <div id="connected">
-        <CorrectionSection />
-      </div>
+      <ConnectedSection />
+      <CorrectionSection />
       <HowItWorksSection />
       <DetectionSection />
     </main>

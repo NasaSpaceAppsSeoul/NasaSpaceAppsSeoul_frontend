@@ -89,6 +89,35 @@ describe("소개 화면 (목)", () => {
     expect(nav.getByRole("link", { name: "캘리포니아 →" }).getAttribute("href")).toBe("/dashboard/CAL");
   });
 
+  it("01 이어진 기록: 2011년 연간 원시값 → 보정값(목 값)과 설명 줄", async () => {
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "센서는 달라도\n기록은 하나로." }));
+    expect(section.getByRole("heading", { name: "대한민국 · 2011년" })).toBeTruthy();
+    const values = await section.findAllByRole("definition");
+    expect(values).toHaveLength(2);
+    // 각 칸은 숫자 + 단위 + 설명. 맨 앞 숫자만 읽는다(천 단위 쉼표 제거). 두 값은 단위가 달라 크기를 비교하지 않는다
+    const [raw, harmonized] = values.map((v) => Number(((v.textContent ?? "").match(/^[\d,.]+/)?.[0] ?? "0").replace(/,/g, "")));
+    expect(raw).toBeGreaterThan(0);
+    expect(harmonized).toBeGreaterThan(0);
+    // 칸마다 자기 단위(H-landing H-3)
+    expect(section.getByText("화재 감지일(MODIS 감지 그대로, 연간)")).toBeTruthy();
+    expect(section.getByText("화재 감지일(연간)")).toBeTruthy();
+    expect(section.getByText(/2011년은 MODIS로만 관측한 마지막 해입니다/)).toBeTruthy();
+  });
+
+  it("'스크롤해서 읽기'는 주소를 바꾸지 않고 01로 초점을 옮긴다(언어 전환이 01로 끌고 가지 않게)", async () => {
+    const { router } = renderRoute("/");
+    const cue = screen.getByRole("link", { name: "스크롤해서 읽기" });
+    // 수정키 클릭(새 탭)은 막지 않는다 → 기본 동작이 남는다(true)
+    expect(fireEvent.click(cue, { metaKey: true })).toBe(true);
+    // 보통 클릭은 기본 동작(해시 이동)을 막는다(false)
+    expect(fireEvent.click(cue)).toBe(false);
+    expect(router.state.location.hash).toBe("");
+    expect(document.activeElement?.id).toBe("connected");
+    // 머리글 EN 링크도 해시 없이 간다
+    expect(screen.getByRole("link", { name: "EN" }).getAttribute("href")).toBe("/en");
+  });
+
   it("'작동 방식 보기'는 언어에 맞는 기법 페이지로 가고, 지구 자리를 그린다", async () => {
     renderRoute("/");
     // 화살표는 장식이라 읽는 이름에 들어가지 않는다
@@ -181,7 +210,11 @@ describe("소개 화면 (서버 에러)", () => {
     let down = true;
     serve((path) => (down && path === "/KOR/landing" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
     renderRoute("/");
-    await waitFor(() => expect(screen.getAllByRole("button", { name: "다시 시도" })).toHaveLength(2));
+    // 01 비교 카드 + 옛 구역 둘(조각 5에서 뺀다)
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "다시 시도" })).toHaveLength(3));
+    // 01은 글·그림이 남고 숫자 칸에만 에러, 설명 줄은 값이 없으니 숨긴다
+    expect(screen.getByRole("img", { name: /MODIS와 VIIRS 관측 기록/ })).toBeTruthy();
+    expect(screen.queryByText(/MODIS로만 관측한 마지막 해/)).toBeNull();
     expect(screen.getByRole("heading", { name: "위성의 변화가 화재 증가로 보이지 않도록." })).toBeTruthy();
     expect(screen.getByText("화재 감지일 집계")).toBeTruthy();
     expect(screen.getByText("위성이 모든 불을 볼 수는 없습니다.")).toBeTruthy();
@@ -245,6 +278,23 @@ describe("소개 화면 (서버 에러)", () => {
     renderRoute("/");
     expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(true);
+  });
+
+  it("01: 2011년 값이 0(자료 없음)이면 숫자 대신 '값 없음', 설명 줄은 숨긴다", async () => {
+    live();
+    const base = (await mockGet("/KOR/landing")) as { annual: { years: number[]; before: number[]; after: number[] } };
+    const i = base.annual.years.indexOf(2011);
+    const zeroed = (values: number[]) => values.map((v, k) => (k === i ? 0 : v));
+    serve((path) =>
+      path === "/KOR/landing"
+        ? json({ ...base, annual: { ...base.annual, after: zeroed(base.annual.after) } })
+        : null,
+    );
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "센서는 달라도\n기록은 하나로." }));
+    expect(await section.findByText("값 없음")).toBeTruthy();
+    expect(section.queryAllByRole("definition")).toHaveLength(0);
+    expect(section.queryByText(/MODIS로만 관측한 마지막 해/)).toBeNull();
   });
 
   it("감지율·우연 기준이 없는 줄은 —, 세로선 없음", async () => {

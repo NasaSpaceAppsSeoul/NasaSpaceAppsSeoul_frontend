@@ -39,6 +39,33 @@ export const ko = {
       countryRowSub: "나라 대시보드",
       dataEnd: (date: string) => `${date}까지 자료`,
     },
+    // 01 이어진 기록 (Make "01 / CONNECTED RECORDS" 번역, about-revise 8절 3). 값은 2011년 연간(10절 ①)
+    connected: {
+      index: "01 / 이어진 기록",
+      title: "센서는 달라도\n기록은 하나로.",
+      lead: "새 센서는 더 작은 불까지 잡아냅니다. 기록을 같은 기준에 맞춰야 센서가 바뀐 효과와 기록된 화재 활동의 변화를 나눠 볼 수 있습니다.",
+      diagramLabel: "MODIS와 VIIRS 관측 기록을 공통 비교 기준에 맞춰 하나의 화재 달력으로 잇는 그림",
+      modis: "MODIS",
+      modisSub: "이전 관측",
+      viirs: "VIIRS",
+      viirsSub: "새 관측",
+      alignKey: "기록 맞추기",
+      alignTitle: "공통 기준",
+      calendarKey: "이어진 기록",
+      calendarTitle: "화재 달력",
+      readoutTitle: (country: string, year: number) => `${country} · ${year}년`,
+      // 새 시안 "Same month · different observation bases". 우리 값은 같은 해(연간)라 "같은 해"
+      readoutSub: "같은 해 · 서로 다른 관측 기준",
+      raw: "원시값",
+      rawDescription: "위성이 남긴 원래 기록",
+      harmonized: "보정값",
+      harmonizedDescription: "공통 비교 기준",
+      // 두 값은 기준이 다르다(H-landing H-3): 칸(0.01°)·하루는 같고, 보정 전은 MODIS 감지 그대로, 보정 후는 NOAA-20 기준 환산
+      rawUnit: "화재 감지일(MODIS 감지 그대로, 연간)",
+      harmonizedUnit: "화재 감지일(연간)",
+      noValue: "값 없음",
+      note: (year: number) => `${year}년은 MODIS로만 관측한 마지막 해입니다. 보정값은 NOAA-20 VIIRS 기준으로 환산한 값입니다.`,
+    },
     // 히어로 3D 지구 (Make 원문 번역). 위성은 개념도라 출처 줄에 "개념도"를 남긴다(about-revise 10절 ③)
     earth: {
       label: "서로 다른 궤도로 3차원 지구를 천천히 도는 개념상의 관측 위성 두 대",
