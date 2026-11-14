@@ -44,3 +44,27 @@ export function formatMonth(month: string, locale: Locale): string {
 export function formatMonthName(monthOfYear: number, locale: Locale): string {
   return locale === "ko" ? `${monthOfYear}월` : (EN_MONTHS[monthOfYear - 1] ?? String(monthOfYear));
 }
+
+/** 날짜("YYYY-MM-DD")를 달·일로: "3월 26일" / "Mar 26" */
+export function formatDayDate(date: string, locale: Locale): string {
+  const m = Number(date.slice(5, 7));
+  const d = Number(date.slice(8, 10));
+  return locale === "ko" ? `${m}월 ${d}일` : `${formatMonthShort(m, locale)} ${d}`;
+}
+
+/** 그래프 눈금용 짧은 달 이름: "3월" / "Mar" */
+export function formatMonthShort(monthOfYear: number, locale: Locale): string {
+  return locale === "ko" ? `${monthOfYear}월` : formatMonthName(monthOfYear, locale).slice(0, 3);
+}
+
+/** 달 여러 개: "3월·4월" / "March, April" */
+export function formatMonthList(months: readonly number[], locale: Locale): string {
+  return months.map((m) => formatMonthName(m, locale)).join(locale === "ko" ? "·" : ", ");
+}
+
+/** 기간: 같은 달이면 "3월 22–29일" / "Mar 22–29", 달이 다르면 "3월 30일–4월 2일" / "Mar 30–Apr 2" */
+export function formatDayRange(start: string, end: string, locale: Locale): string {
+  if (start.slice(0, 7) !== end.slice(0, 7)) return `${formatDayDate(start, locale)}–${formatDayDate(end, locale)}`;
+  const last = Number(end.slice(8, 10));
+  return locale === "ko" ? `${formatDayDate(start, locale).replace(/일$/, "")}–${last}일` : `${formatDayDate(start, locale)}–${last}`;
+}

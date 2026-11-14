@@ -18,4 +18,6 @@ export const keys = {
   judgement: (country: Country | undefined, id: string | undefined, month: string | undefined) =>
     [country, "judgement", id, { month }] as const,
   baseline: (country: Country | undefined, id: string | undefined) => [country, "baseline", id] as const,
+  insight: (country: Country | undefined, id: string | undefined, month: string | undefined) =>
+    [country, "insight", id, { month }] as const,
 };
