@@ -52,8 +52,12 @@ describe("서버를 흉내 낸 앱 틀 (live)", () => {
   it("/meta가 5xx로 두 번 실패하면 요청은 정확히 2번이고, 푸터의 출처 줄만 빠진 채 화면은 그대로다", async () => {
     fetchMock.mockImplementation(async () => new Response("error code: 1033", { status: 530 }));
     renderRoute("/");
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("소개");
+    // 소개 화면은 다른 요청(나라별 /meta, /regions, /landing)도 하므로 한국 /meta만 센다
+    const korMetaCalls = () => fetchMock.mock.calls.filter(([input]) => String(input).endsWith("/KOR/meta")).length;
+    await waitFor(() => expect(korMetaCalls()).toBe(2));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(korMetaCalls()).toBe(2);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("우리 지역의 화재 활동,\n평소와 얼마나 다를까요?");
     expect(screen.getByText("Burnline · NASA Space Apps Challenge 2026")).toBeTruthy();
     expect(screen.queryByText(/^출처:/)).toBeNull();
     expect(screen.queryByRole("note")).toBeNull();

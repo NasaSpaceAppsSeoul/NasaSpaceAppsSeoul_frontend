@@ -8,6 +8,7 @@ import type { Country, GeoParams } from "./types";
 export const keys = {
   meta: (country: Country | undefined) => [country, "meta"] as const,
   regions: (country: Country | undefined) => [country, "regions"] as const,
+  landing: (country: Country | undefined) => [country, "landing"] as const,
   /** `level`의 기본값(`dist`)을 채워 `{}`와 `{ level: "dist" }`가 같은 응답을 두 번 받지 않게 한다. */
   geo: (country: Country | undefined, { level = "dist", parent }: GeoParams = {}) =>
     [country, "geo", { level, parent: parent || null }] as const,
