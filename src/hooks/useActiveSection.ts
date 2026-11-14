@@ -31,7 +31,11 @@ export function resetEntryHashForTest(): void {
   entryHashTaken = false;
 }
 
-export function useActiveSection(ids: readonly string[]) {
+/**
+ * `smooth`: 붙인 동안 문서 스크롤을 부드럽게 할지(기법 페이지 기본). 월간 인사이트는 이웃 지역 링크로 옮길 때도 같은 화면이
+ * 남아 있어 맨 위로 되돌리는 이동까지 천천히 굴러가므로 끈다(목차 이동은 바로 옮긴다).
+ */
+export function useActiveSection(ids: readonly string[], { smooth = true }: { smooth?: boolean } = {}) {
   const [active, setActive] = useState<string | null>(null);
   const setAnchor = useSetPageAnchor();
   // 문서에 처음 들어온 기록(라우터가 이름을 "default"로 붙인다: 새 탭·공유 링크·주소창 입력·새로고침)일 때 한 번만 해시 절로 옮긴다.
@@ -84,7 +88,7 @@ export function useActiveSection(ids: readonly string[]) {
       const target = sections.find((section) => `#${section.id}` === entryHash);
       const frame = requestAnimationFrame(() => {
         target?.scrollIntoView();
-        root.dataset.smoothScroll = "";
+        if (smooth) root.dataset.smoothScroll = "";
       });
 
       return () => {
@@ -96,7 +100,7 @@ export function useActiveSection(ids: readonly string[]) {
         setAnchor(undefined);
       };
     },
-    [ids, setAnchor, entryHash],
+    [ids, setAnchor, entryHash, smooth],
   );
 
   return { track, active };

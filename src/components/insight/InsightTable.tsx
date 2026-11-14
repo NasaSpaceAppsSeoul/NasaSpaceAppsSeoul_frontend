@@ -17,12 +17,14 @@ type InsightTableProps = {
   fixed?: boolean;
   /** 오른쪽 정렬할 열 번호(요약 줄의 2~4열) */
   alignRight?: readonly number[];
+  /** 둥근 테두리 틀로 감싼다(기법 페이지 표와 같은 `rounded-xl border`). 인사이트는 카드가 없어 표가 맨바닥에 놓이므로 켠다 */
+  framed?: boolean;
 };
 
-export function InsightTable({ caption, head, rows, variant = "data", fixed = false, alignRight = [] }: InsightTableProps) {
+export function InsightTable({ caption, head, rows, variant = "data", fixed = false, alignRight = [], framed = false }: InsightTableProps) {
   const align = (i: number) => (alignRight.includes(i) ? "text-right" : "text-left");
   return (
-    <div className="overflow-x-auto">
+    <div data-reveal={framed ? "" : undefined} className={framed ? "overflow-x-auto overflow-y-hidden rounded-xl border border-line" : "overflow-x-auto"}>
       <table className={`w-full border-collapse text-sm ${fixed ? "table-fixed" : ""}`.trim()}>
         <caption className="sr-only">{caption}</caption>
         <thead className="bg-wash text-muted">

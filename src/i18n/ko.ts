@@ -549,6 +549,8 @@ export const ko = {
   },
   // 월간 인사이트(7장). 디자인의 "데모·합성·예시·가상" 문구는 빼고, 사실관계는 백엔드 기준으로 고쳤다(`plans/insight.md` 4절)
   insight: {
+    // 왼쪽 목차(기법 페이지와 같은 `MethodToc`, 2026-11-15 사용자)
+    tocLabel: "목차",
     back: "같은 지역·월로 돌아가기 →",
     toDashboard: "대시보드로",
     eyebrow: "월간 인사이트",
@@ -566,6 +568,7 @@ export const ko = {
     partialFailure: "일부 정보를 불러오지 못했습니다.",
     refetchFailed: "다시 불러오지 못했습니다. 받아 둔 정보로 보여 줍니다.",
     tiles: {
+      label: "요약 숫자",
       total: "이번 달 합계 · 화재 감지일",
       years: (monthName: string) => `${monthName}에 감지가 있던 해`,
       yearsValue: (detected: number, total: number) => `${detected} / ${total}년`,

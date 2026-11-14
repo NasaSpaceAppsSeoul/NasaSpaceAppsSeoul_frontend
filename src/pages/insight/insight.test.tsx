@@ -39,9 +39,10 @@ function insightCalls(): RequestInit[] {
 }
 
 async function headCard() {
+  // 머리는 카드 없는 <header>(2026-11-15 절 구성 변경)
   const title = await screen.findByRole("heading", { name: /화재 인사이트$/ });
-  const card = title.closest("section");
-  if (card === null) throw new Error("머리 카드가 없다");
+  const card = title.closest("header");
+  if (card === null) throw new Error("머리가 없다");
   return within(card);
 }
 
@@ -71,19 +72,13 @@ describe("월간 인사이트", () => {
     expect(card.getByText("평소 불이 드문 지역")).toBeTruthy();
     expect(await card.findByText("경북 기준 매우 이례적")).toBeTruthy();
     expect(card.queryByText(/개 해 중/)).toBeNull();
-    // 구역 순서: 달력 → 연도별 → 공식 기록 → 계절 → 지도 자리 → 주변 지역 → 읽는 법
+    // 절 순서: 달력 → 연도별 → 공식 기록 → 계절 → 지도 → 주변 지역 → 읽는 법
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("의성군 · 2025년 3월 화재 인사이트");
     const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-    expect(titles).toEqual([
-      "3월 중 언제 화재 활동이 집중됐을까요?",
-      "이번 3월을 다른 해와 비교하면?",
-      "불이 감지된 해부터 살펴보세요.",
-      "같은 달의 공식 산불 기록입니다.",
-      "이번 달은 화재 집중 시기의 어디쯤일까요?",
-      "이번 달 어디서 불이 감지됐을까요?",
-      "같은 달의 우리 지역과 이웃을 살펴보세요.",
-      "수치마다 비교 기준을 확인하세요.",
-    ]);
+    // 선으로 나눈 번호 절 01~07(2026-11-15). 절 제목은 예전 구역의 작은 이름이고, 질문은 요지 문단이다
+    expect(titles).toEqual(["일별 화재 활동", "다른 해의 같은 달", "공식 기록 대조", "계절적 맥락", "화재 칸과 감지 위치", "주변 지역", "해석 안내"]);
+    expect(screen.getByText("3월 중 언제 화재 활동이 집중됐을까요?")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 3, name: "불이 감지된 해부터 살펴보세요." })).toBeTruthy();
     expect(await screen.findByText("점은 의성군 안에서 감지된 칸만 표시합니다.")).toBeTruthy();
     expect(screen.getByText("경북의 계절 패턴 참고")).toBeTruthy();
     expect(screen.getByText(/공식 기록 41건 중 17건을 위성이 2일 안에 감지했습니다\(41%\)/)).toBeTruthy();
@@ -99,7 +94,7 @@ describe("월간 인사이트", () => {
   it("의성 2024-03(spatial 실패): 안내 띠, 달력 구역 안내, 다른 구역은 그린다. 다시 시도는 reload", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2024-03`);
     expect(await screen.findByText("일부 정보를 불러오지 못했습니다.")).toBeTruthy();
-    const calendar = screen.getByRole("heading", { name: "3월 중 언제 화재 활동이 집중됐을까요?" }).closest("section");
+    const calendar = screen.getByRole("region", { name: "일별 화재 활동" }).closest("section");
     expect(calendar).not.toBeNull();
     expect(within(calendar as HTMLElement).getByText("자료를 불러오지 못했습니다.")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "불이 감지된 해부터 살펴보세요." })).toBeTruthy();
@@ -129,10 +124,29 @@ describe("월간 인사이트", () => {
 
   it("2026년 달: /series 한 달을 받아 막대와 표에 2026을 붙인다", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2026-03`);
-    const table = (await screen.findByRole("heading", { name: "불이 감지된 해부터 살펴보세요." })).closest("section") as HTMLElement;
+    // 표만 본다(같은 절의 막대 그림에도 "2026" 글자가 있다)
+    const table = await screen.findByRole("table", { name: "불이 감지된 해" });
     await waitFor(() => expect(within(table).getByText("선택 연도")).toBeTruthy());
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes(`/series/${UISEONG}?from=2026-03&to=2026-03`))).toBe(true);
     expect(within(table).getByText("2026")).toBeTruthy();
+  });
+
+  it("왼쪽 목차(2026-11-15): 절 7개, 누르면 해시만 바뀌고 달은 그대로", async () => {
+    const { router } = renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
+    const nav = within(await screen.findByRole("navigation", { name: "목차" }));
+    expect(nav.getAllByRole("link").map((a) => a.textContent)).toEqual([
+      "01일별 화재 활동",
+      "02다른 해의 같은 달",
+      "03공식 기록 대조",
+      "04계절적 맥락",
+      "05화재 칸과 감지 위치",
+      "06주변 지역",
+      "07해석 안내",
+    ]);
+    fireEvent.click(nav.getByRole("link", { name: /주변 지역/ }));
+    await waitFor(() => expect(router.state.location.hash).toBe("#neighbors"));
+    expect(router.state.location.search).toBe("?month=2025-03");
+    expect(router.state.location.pathname).toBe(`/insight/KOR/${UISEONG}`);
   });
 
   it("시·도 ID면 그 시·도의 대시보드로 간다", async () => {
@@ -169,7 +183,7 @@ describe("월간 인사이트", () => {
 
   it("주변 지역: 드문 이웃과 선택 지역 줄에는 순위가 없다(3-1)", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
-    const section = (await screen.findByRole("heading", { name: "같은 달의 우리 지역과 이웃을 살펴보세요." })).closest("section") as HTMLElement;
+    const section = (await screen.findByRole("region", { name: "주변 지역" })).closest("section") as HTMLElement;
     const rows = within(section).getAllByRole("row").slice(1);
     const sparseRows = rows.filter((row) => row.textContent?.includes("평소 불이 드문 지역"));
     expect(sparseRows.length).toBeGreaterThan(0);
@@ -181,16 +195,16 @@ describe("월간 인사이트", () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2026-11`);
     const card = await headCard();
     expect(card.getByText("집계 중")).toBeTruthy();
-    const section = screen.getByRole("heading", { name: "같은 달의 우리 지역과 이웃을 살펴보세요." }).closest("section") as HTMLElement;
+    const section = screen.getByRole("region", { name: "주변 지역" }).closest("section") as HTMLElement;
     expect(within(section).queryByText(/개 해 중/)).toBeNull();
   });
 
-  it("의성 2023-03(series 실패): 연도별 두 카드는 안내, 달력은 그린다", async () => {
+  it("의성 2023-03(series 실패): 연도별 절은 안내, 달력은 그린다", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2023-03`);
     expect(await screen.findByText("일부 정보를 불러오지 못했습니다.")).toBeTruthy();
-    const years = screen.getByRole("heading", { name: "이번 3월을 다른 해와 비교하면?" }).closest("section") as HTMLElement;
+    const years = screen.getByRole("region", { name: "다른 해의 같은 달" }).closest("section") as HTMLElement;
     expect(within(years).getByText("자료를 불러오지 못했습니다.")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "3월 중 언제 화재 활동이 집중됐을까요?" }).closest("section")?.querySelector("[role=img]")).not.toBeNull();
+    expect(screen.getByRole("region", { name: "일별 화재 활동" }).closest("section")?.querySelector("[role=img]")).not.toBeNull();
   });
 
   it("/insight가 처음부터 범위 밖(400)이면 에러 한 장과 대시보드 링크", async () => {
@@ -211,9 +225,9 @@ describe("월간 인사이트", () => {
 const ANDONG = "91817680B16014600177045";
 
 async function mapSection(): Promise<HTMLElement> {
-  const heading = await screen.findByRole("heading", { name: "이번 달 어디서 불이 감지됐을까요?" });
+  const heading = await screen.findByRole("region", { name: "화재 칸과 감지 위치" });
   const section = heading.closest("section");
-  if (section === null) throw new Error("지도 카드가 없다");
+  if (section === null) throw new Error("지도 절이 없다");
   return section;
 }
 

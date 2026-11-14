@@ -466,7 +466,7 @@
 }
 
 /*
- * 기법 페이지에서만 목차·해시 이동을 부드럽게 (`plans/method-page.md` 1절, 시안 `html{scroll-behavior:smooth}`).
+ * 기법 페이지에서만 목차·해시 이동을 부드럽게(월간 인사이트 목차는 `useActiveSection(…, { smooth: false })`로 끈다) (`plans/method-page.md` 1절, 시안 `html{scroll-behavior:smooth}`).
  * 라우터 스크롤 복원이 해시 절로 `scrollIntoView()`를 부르므로 문서 스크롤 방식만 바꾼다. 페이지가 사라지면 함께 꺼진다.
  * 움직임 줄이기면 바로 이동한다.
  */

@@ -522,6 +522,8 @@ export const en: Messages = {
     },
   },
   insight: {
+    // 왼쪽 목차(기법 페이지와 같은 `MethodToc`, 2026-11-15 사용자)
+    tocLabel: "Contents",
     back: "Back to this region and month →",
     toDashboard: "Open dashboard",
     eyebrow: "MONTHLY INSIGHT",
@@ -539,6 +541,7 @@ export const en: Messages = {
     partialFailure: "Some information could not be loaded.",
     refetchFailed: "Could not reload. Showing the information already loaded.",
     tiles: {
+      label: "Key figures",
       total: "This month's total · fire grid-days",
       years: (monthName: string) => `Years with ${monthName} detections`,
       yearsValue: (detected: number, total: number) => `${detected} / ${total} years`,

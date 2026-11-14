@@ -1,7 +1,7 @@
+import type { ReactNode } from "react";
 import type { Insight } from "../../../api/types";
-import { SectionHeading } from "../../../components/about/SectionHeading";
 import { Button } from "../../../components/Button";
-import { Card } from "../../../components/Card";
+import { InsightPanel, InsightSection } from "../../../components/insight/InsightSection";
 import { BarChart, type Bar } from "../../../components/insight/BarChart";
 import { InsightTable } from "../../../components/insight/InsightTable";
 import { SectionError } from "../../../components/SectionError";
@@ -22,7 +22,7 @@ import { monthYear } from "../../../lib/month";
 import type { InsightScope } from "../scope";
 
 /*
- * 같은 달 연도별 막대(왼쪽)와 감지된 해 표(오른쪽).
+ * 02 절 "다른 해의 같은 달": 같은 달 연도별 막대(왼쪽 그림 판)와 감지된 해 표(오른쪽, 판 없음).
  * 2026년 달은 `strip`에 올해가 없어 `/series?from=달&to=달`로 보충한다(스킬 `burnline-api` 12번, 8-5).
  * 개수("감지가 있던 해")는 보충 전 `strip`으로 센다(결정 ③). 순위는 쓰지 않는다(3-1).
  */
@@ -37,23 +37,15 @@ export function YearsSection({ scope, insight }: { scope: InsightScope; insight:
   const row = current.data?.months.find((m) => m.month === scope.month) ?? null;
   const bars = withCurrentYear(strip, year, row === null ? null : { value: row.value, status: row.status });
 
-  if (bars === null) {
-    return (
-      <div className="grid grid-cols-2 items-start gap-x-4 gap-y-8">
-        <Card className="flex flex-col gap-6">
-          <SectionHeading eyebrow={t.years.eyebrow} title={t.years.title(scope.monthName)} />
-          <SectionError kind="other" onRetry={scope.retry} />
-        </Card>
-        <Card className="flex flex-col gap-6">
-          <SectionHeading eyebrow={t.detected.eyebrow} title={t.detected.title} />
-          <SectionError kind="other" onRetry={scope.retry} />
-        </Card>
-      </div>
-    );
-  }
+  const section = (children: ReactNode) => (
+    <InsightSection id="years" index="02" title={t.years.eyebrow} lead={t.years.title(scope.monthName)}>
+      {children}
+    </InsightSection>
+  );
+  if (bars === null) return section(<SectionError kind="other" onRetry={scope.retry} />);
 
-  return (
-    <div className="grid grid-cols-2 items-start gap-x-4 gap-y-8">
+  return section(
+    <div className="grid grid-cols-2 items-start gap-x-8 gap-y-6">
       <YearBars scope={scope} bars={bars} year={year} />
       <DetectedTable scope={scope} insight={insight} bars={bars} year={year} />
       {needs && current.isError && (
@@ -64,7 +56,7 @@ export function YearsSection({ scope, insight }: { scope: InsightScope; insight:
           </Button>
         </p>
       )}
-    </div>
+    </div>,
   );
 }
 
@@ -86,12 +78,8 @@ function YearBars({ scope, bars, year }: { scope: InsightScope; bars: YearBar[];
   const to = summary?.to ?? year;
 
   return (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading
-        eyebrow={t.years.eyebrow}
-        title={t.years.title(scope.monthName)}
-        lead={t.years.lead(from, to, scope.monthName, formatFireDays(max, locale))}
-      />
+    <InsightPanel>
+      <p className="text-sm text-muted">{t.years.lead(from, to, scope.monthName, formatFireDays(max, locale))}</p>
       <BarChart label={t.years.chartLabel(scope.monthName)} bars={chartBars} max={max} formatTick={(v) => formatFireDays(v, locale)} />
       {summary !== null && (
         <div className="text-sm text-muted">
@@ -103,8 +91,8 @@ function YearBars({ scope, bars, year }: { scope: InsightScope; bars: YearBar[];
           <p>{t.years.zeroNote}</p>
         </div>
       )}
-      <p className="rounded-card bg-wash px-6 py-4 text-sm text-muted">{t.years.note(from, to, scope.monthName)}</p>
-    </Card>
+      <p className="text-sm text-muted">{t.years.note(from, to, scope.monthName)}</p>
+    </InsightPanel>
   );
 }
 
@@ -115,16 +103,17 @@ function DetectedTable({ scope, insight, bars, year }: { scope: InsightScope; in
   const rows = detectedYears(bars, year);
 
   return (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading
-        eyebrow={t.detected.eyebrow}
-        title={t.detected.title}
-        lead={count === null ? undefined : t.detected.lead(count.total, count.detected)}
-      />
+    <div className="flex flex-col gap-4">
+      {/* 절 안의 작은 머리(판 없음): 이름 + 한 줄 */}
+      <div className="flex flex-col gap-1.5">
+        <h3 className="text-lg font-medium text-ink">{t.detected.title}</h3>
+        {count !== null && <p className="text-sm text-muted">{t.detected.lead(count.total, count.detected)}</p>}
+      </div>
       {rows.length === 0 ? (
         <p className="text-sm text-muted">{t.detected.empty}</p>
       ) : (
         <InsightTable
+          framed
           caption={t.detected.eyebrow}
           head={[t.detected.year, t.detected.value(scope.monthName), t.detected.note]}
           rows={rows.map((r) => ({
@@ -135,6 +124,6 @@ function DetectedTable({ scope, insight, bars, year }: { scope: InsightScope; in
         />
       )}
       {showSparseNote(insight.head.region_type) && <p className="text-sm text-muted">{t.detected.sparseNote}</p>}
-    </Card>
+    </div>
   );
 }

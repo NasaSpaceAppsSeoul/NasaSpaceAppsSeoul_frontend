@@ -1,6 +1,5 @@
 import type { Insight } from "../../../api/types";
 import { Button } from "../../../components/Button";
-import { Card } from "../../../components/Card";
 import { Badge, Chip } from "../../../components/Chip";
 import { StatTile } from "../../../components/insight/StatTile";
 import { useJudgement } from "../../../hooks/useJudgement";
@@ -12,7 +11,8 @@ import { regionNameById } from "../../../lib/region";
 import type { InsightScope } from "../scope";
 
 /*
- * 머리 카드: 배지 줄, 제목, 단위 안내, 숫자 칸 4개.
+ * 머리(카드 없음, 2026-11-15 디자이너 요청 "카드가 너무 많다"): 배지 줄, 제목, 단위 안내 한 줄, 숫자 칸 4개.
+ * 숫자 칸은 유리 판 하나를 세로선으로 나눈다(기법 페이지 머리 `MethodHero` 숫자와 같은 방식).
  * 칩·준실시간·추정값은 `/insight`의 `head`에 없어 `/judgement`로 만든다(G-7 2). 판정만 실패하면 배지 자리에 다시 시도.
  * 집계 중 표시는 판정이 없어도 보이도록 `head.reason`으로 정한다. `head.rank`는 쓰지 않는다(3-1).
  */
@@ -28,7 +28,7 @@ export function HeadSection({ scope, insight }: { scope: InsightScope; insight: 
   const regionType = insight.head.region_type;
 
   return (
-    <Card className="flex flex-col gap-6">
+    <header className="flex flex-col gap-6 pt-4 pb-2 break-keep">
       <div className="flex flex-wrap items-center gap-3">
         <Badge tone={regionType === "sparse" ? "yellow" : "sand"}>{it.badges[regionType]}</Badge>
         <Badge tone="sand">{it.badges.viirs}</Badge>
@@ -48,14 +48,18 @@ export function HeadSection({ scope, insight }: { scope: InsightScope; insight: 
           </span>
         )}
       </div>
-      {/* 화면 제목이라 h1. 모양은 다른 카드 머리(`SectionHeading`)와 같다 */}
-      <header className="flex flex-col gap-3">
-        <p className="text-xs font-semibold text-action">{it.eyebrow}</p>
-        <h1 className="text-title-lg text-ink">{it.title(scope.name, scope.monthLabel)}</h1>
-        <p className="text-base text-muted">{it.lead(scope.monthName)}</p>
-      </header>
-      <p className="rounded-card bg-wash px-6 py-4 text-sm text-muted">{it.unitNote}</p>
-      <div className="grid grid-cols-4 gap-4">
+      {/* 화면 제목이라 h1. 기법 페이지 머리처럼 주황 점이 붙은 Mono 작은 제목 + 큰 제목 + 요지 */}
+      <div className="flex flex-col gap-4">
+        <p className="flex items-center gap-2.5 font-mono text-[0.8125rem] text-muted uppercase [&:lang(en)]:tracking-[0.14em]">
+          <span aria-hidden="true" className="size-1.75 rounded-full bg-fire" />
+          {it.eyebrow}
+        </p>
+        <h1 className="text-[2.75rem] leading-tight font-medium tracking-tight text-ink">{it.title(scope.name, scope.monthLabel)}</h1>
+        <p className="max-w-[40em] text-xl leading-relaxed text-subtle">{it.lead(scope.monthName)}</p>
+        {/* 단위 안내: 상자 없이 흐린 글자 한 줄 */}
+        <p className="text-sm text-muted">{it.unitNote}</p>
+      </div>
+      <ul aria-label={it.tiles.label} className="glass mt-2 grid grid-cols-4 divide-x divide-line overflow-hidden rounded-card border border-line">
         <StatTile
           label={it.tiles.total}
           {...tileText(tiles.total, (v) => formatFireDays(v, locale), () => `${scope.name} · ${scope.monthLabel}`, noneText)}
@@ -85,8 +89,8 @@ export function HeadSection({ scope, insight }: { scope: InsightScope; insight: 
             noneText,
           )}
         />
-      </div>
-    </Card>
+      </ul>
+    </header>
   );
 }
 
