@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
+import { anchorHash, PageAnchorContext, type PageAnchor } from "../hooks/usePageAnchor";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { useMeta } from "../hooks/useMeta";
@@ -14,9 +16,12 @@ function Shell({ locale }: { locale: Locale }) {
   const { section, country } = routeInfo(pathname);
   // 푸터의 출처·처리일: 주소의 나라, 나라가 없는 화면(소개 등)은 한국 (2026-11-14 사용자 결정)
   const meta = useMeta(country ?? DEFAULT_COUNTRY);
+  // 화면이 알려 준 지금 보는 절(기법 페이지 목차, `hooks/usePageAnchor`). 없으면 주소의 해시
+  const [anchor, setAnchor] = useState<PageAnchor>(undefined);
 
   // 언어를 바꿔도 고른 달(`?month=`)과 위치(해시)를 들고 간다 (`decisions.md` 1-7)
-  const localeHref = (target: Locale) => `${switchLocalePath(pathname, target)}${search}${hash}`;
+  const position = anchorHash(anchor, hash);
+  const localeHref = (target: Locale) => `${switchLocalePath(pathname, target)}${search}${position}`;
 
   return (
     // 폭: 모든 화면이 같은 틀이라 머리글·푸터 위치가 화면마다 같다(2026-11-15 사용자).
@@ -32,7 +37,9 @@ function Shell({ locale }: { locale: Locale }) {
       />
       {/* 첫 화면 ↔ 대시보드 슬라이드는 이 칸만 움직인다(머리글·푸터·우주 배경은 고정, `app/routeTransition.ts`) */}
       <div className="route-page flex-1">
-        <Outlet />
+        <PageAnchorContext.Provider value={setAnchor}>
+          <Outlet />
+        </PageAnchorContext.Provider>
       </div>
       <Footer sources={meta.data?.sources} processedOn={meta.data?.generated_at?.slice(0, 10)} />
       {/*
