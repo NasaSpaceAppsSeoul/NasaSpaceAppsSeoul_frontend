@@ -24,7 +24,7 @@ import { mockLanding } from "./landing";
 import { mockMap } from "./map-route";
 import { mockRegionDetail } from "./detail-route";
 import { mockTop } from "./top-route";
-import { mockJudgement, mockSeries } from "./series-route";
+import { mockBulkJudgement, mockJudgement, mockSeries } from "./series-route";
 import type { CountryMock } from "./types";
 
 export type MockTable = Partial<Record<Country, CountryMock>>;
@@ -104,6 +104,7 @@ function route(table: MockTable, path: string): unknown {
   if (resource === "geo" && id === undefined) return geo(mock, url.searchParams, path);
   if (resource === "series" && id !== undefined) return mockSeries(country, mock, id, url.searchParams);
   if (resource === "judgement" && id !== undefined) return mockJudgement(country, mock, id, url.searchParams);
+  if (resource === "judgement" && id === undefined) return mockBulkJudgement(country, mock, url.searchParams);
   if (resource === "baseline" && id !== undefined) return mockBaseline(country, mock, id);
   if (resource === "map" && id === undefined) return mockMap(country, mock, url.searchParams);
   if (resource === "top" && id === undefined) return mockTop(country, mock, url.searchParams);

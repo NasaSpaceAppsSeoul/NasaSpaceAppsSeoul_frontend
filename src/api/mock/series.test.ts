@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Judgement, SeriesMonth, SeriesResponse } from "../types";
+import type { BulkJudgement, Judgement, SeriesMonth, SeriesResponse } from "../types";
 import { mockGet } from "./index";
 import { GOSEONG_GANGWON, GUNPO, UISEONG } from "./series-overrides";
 
@@ -335,5 +335,28 @@ describe("에러 (지역 먼저, 달 나중)", () => {
     const tail = (await series("KOR", "KOR", "?from=2026-10")).months.map((m) => m.month);
     expect(tail).toEqual(["2026-10", "2026-11"]);
     expect((await series("KOR", "KOR", "?to=2001-02")).months.map((m) => m.month)).toEqual(["2001-01", "2001-02"]);
+  });
+});
+
+describe("/judgement?month= (지도 일괄 판정)", () => {
+  it("시·군·구마다 상세 판정과 같은 칩·배수·빌려 쓴 판정", async () => {
+    const bulk = (await mockGet("/KOR/judgement?month=2025-03")) as BulkJudgement;
+    expect(bulk.month).toBe("2025-03");
+    expect(bulk.regions.length).toBeGreaterThan(0);
+    for (const r of bulk.regions.slice(0, 20)) {
+      const j = await judge("KOR", r.id, "2025-03");
+      expect(r).toEqual({
+        id: j.id, chip: j.chip, ratio_to_median: j.ratio_to_median,
+        judge_unit: j.judge_unit, ref_id: j.ref_id, ref_chip: j.ref_chip,
+      });
+    }
+    const uiseong = bulk.regions.find((r) => r.id === UISEONG);
+    expect(uiseong?.chip).toBeNull();
+    expect(uiseong?.ref_chip).not.toBeNull();
+  });
+
+  it("달이 없거나 범위 밖이면 400", async () => {
+    await expect(mockGet("/KOR/judgement")).rejects.toMatchObject({ status: 400, code: "INVALID_PARAM" });
+    await expect(mockGet("/KOR/judgement?month=2030-01")).rejects.toMatchObject({ status: 400, code: "MONTH_OUT_OF_RANGE" });
   });
 });

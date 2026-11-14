@@ -109,8 +109,12 @@ export interface Judgement {
 
 // ---- /judgement?month=   (지도용 일괄 판정, 시·군·구만)
 // 그 달 series 줄이 있는 시·군·구만 온다(전체 목록이 아닐 수 있음).
-// 자체 판정이 아니거나 값이 null·0 이하이면 chip·ratio_to_median이 null
-export interface BulkJudgementRegion { id: string; chip: Chip | null; ratio_to_median: number | null }
+// chip: 자체 판정이고 값이 있을 때만(값 0이어도, 집계 중인 달에도 온다). ratio_to_median: 그중 값·평년이 0보다 클 때만.
+// 드문 구역은 chip이 null이고 빌려 쓴 지역의 판정을 ref_id·ref_chip으로 준다(JudgeService.bulkMap)
+export interface BulkJudgementRegion {
+  id: string; chip: Chip | null; ratio_to_median: number | null;
+  judge_unit: JudgeUnit; ref_id: string | null; ref_chip: Chip | null;
+}
 export interface BulkJudgement { month: string; regions: BulkJudgementRegion[] }
 
 // ---- /series/{id}?from=&to= , /baseline/{id}

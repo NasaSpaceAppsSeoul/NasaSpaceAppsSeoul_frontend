@@ -1,5 +1,5 @@
 import { get, withQuery, type GetOptions } from "./client";
-import type { BaselineResponse, Country, Judgement, SeriesResponse } from "./types";
+import type { BaselineResponse, BulkJudgement, Country, Judgement, SeriesResponse } from "./types";
 
 /** 시계열 범위. 둘 다 없으면 전체 기간(2001-01부터 마지막 달까지)이 온다. 값이 없으면 키를 뺀다. */
 export type SeriesRange = { from?: string; to?: string };
@@ -25,4 +25,9 @@ export function getBaseline(country: Country, id: string, options?: GetOptions):
 /** `/judgement/{id}?month=`: 숫자 카드의 판정. 관측 위성(`source`)은 없으므로 나라 시계열에서 찾는다. */
 export function getJudgement(country: Country, id: string, month: string, options?: GetOptions): Promise<Judgement> {
   return get<Judgement>(withQuery(`/${country}/judgement/${encodeURIComponent(id)}`, { month }), options);
+}
+
+/** `/judgement?month=`: 지도 "평소 대비"용 일괄 판정(나라 전체 시·군·구, 한 번에). */
+export function getBulkJudgement(country: Country, month: string, options?: GetOptions): Promise<BulkJudgement> {
+  return get<BulkJudgement>(withQuery(`/${country}/judgement`, { month }), options);
 }
