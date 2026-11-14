@@ -39,127 +39,28 @@
     }
   }
 
-  /* 유리 표면 바탕(`glass` 유틸리티가 흐림과 함께 쓴다). 어두운 화면 위에서만 쓴다(시안 v9 카드) */
+  /* 유리 표면 바탕(`glass` 유틸리티가 흐림과 함께 쓴다). 시안 v9 카드 */
   --color-glass: rgba(18, 21, 27, 0.4);
-
-  /* 둥근 모서리 */
-  --radius-cell: 4px;
-  --radius-control-sm: 8px;
-  --radius-control: 12px;
-  --radius-card: 24px;
-
-  /* 색: 역할 */
-  --color-page: #f5f5f7;
-  --color-surface: #ffffff;
-  --color-inverse: #1d1d1f;
-  --color-inverse-hover: #2c2c2e;
-  --color-ink: #202022;
-  --color-muted: #66666e;
-  --color-border: #dfdfe5;
-  --color-selection: #005aae;
-  --color-fire: #f68c3e;
-  --color-action: #0066cc;
-  --color-row-hover: #f5f5f7;
-  --color-row-selected: #e8f1fc;
+  /* 대화상자 유리 판과 뒤 막(시안 v9 `.db-modal`) */
+  --color-dialog: rgba(25, 35, 48, 0.94);
+  --color-dialog-line: rgba(220, 234, 255, 0.14);
+  --color-scrim: rgba(2, 6, 11, 0.7);
 
   /*
-   * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`).
-   * 밝은 화면 값은 예전 모양 그대로(알약 = inverse, 언어 = surface·border·muted·inverse).
-   * 어두운 화면은 시안 v9 값(반투명 흰색 바탕 위에 순백 선택칸)이라 surface/inverse 짝으로는 안 나와 따로 둔다.
-   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음). 밝은 화면은 투명
+   * 둥근 모서리 (시안 v9: 카드 16, 대화상자 18, 지도 위 판 12, 버튼 묶음·검색 칸 6, 칩 4).
+   * 대화상자는 카드와 2px 차이라 카드 값을 같이 쓴다
    */
-  --color-nav: #1d1d1f;
-  --color-nav-hover: #2c2c2e;
-  --color-nav-ink: #ffffff;
-  --color-nav-line: transparent;
-  --color-nav-active: #ffffff;
-  --color-nav-active-ink: #1d1d1f;
-  --color-segment: #ffffff;
-  --color-segment-line: #dfdfe5;
-  --color-segment-ink: #66666e;
-  --color-segment-active: #1d1d1f;
-  --color-segment-active-ink: #ffffff;
-  /* 머리글 아래 구분선. 밝은 화면은 border와 같다 */
-  --color-header-line: #dfdfe5;
-  /* 히어로 작은 제목·설명처럼 muted보다 한 단계 밝은 보조 글자(시안 #a7a8ac). 밝은 화면은 muted와 같다 */
-  --color-subtle: #66666e;
+  --radius-cell: 4px;
+  --radius-control-sm: 4px;
+  --radius-control: 6px;
+  --radius-panel: 12px;
+  --radius-card: 16px;
 
-  /* 색: 히트맵 8단계 (낮은 값 → 높은 값) */
-  --color-heat-0: #faf7f0;
-  --color-heat-1: #fff5d6;
-  --color-heat-2: #fde3a7;
-  --color-heat-3: #fbc46e;
-  --color-heat-4: #f59e42;
-  --color-heat-5: #e8702a;
-  --color-heat-6: #c8471e;
-  --color-heat-7: #8e2a14;
-
-  /* 색: 지도 면 5단계 */
-  --color-map-0: #edeeeb;
-  --color-map-1: #ffd7a7;
-  --color-map-2: #ff993a;
-  --color-map-3: #c84810;
-  --color-map-4: #7f2d12;
-
-  /* 색: 지도 점 (첫 감지일, +1일, +2일, +3일~) */
-  --color-dot-0: #ffffff;
-  --color-dot-1: #ffe58c;
-  --color-dot-2: #ff8e3c;
-  --color-dot-3: #f46b72;
-
-  /* 색: 막대 그라데이션 (위 → 아래) */
-  --color-bar-raw-from: #54a0f8;
-  --color-bar-raw-to: #0c6fd2;
-  --color-bar-harmonized-from: #f4873b;
-  --color-bar-harmonized-to: #e26224;
-  --color-bar-pre2012: #d5d2cc;
-
-  /* 색: 평가 칩 */
-  --color-chip-record: #c8471e;
-  --color-chip-above: #f59e42;
-  --color-chip-normal: #edeae4;
-  --color-chip-below: #e9f2ec;
-  --color-chip-below-ink: #2f6e50;
-
-  /* 색: 둥근 색조 배지 5가지 (바탕, 글자). components/sheet/05-charts-badges.png 맨 아래에서 뽑음 */
-  --color-tone-orange: #fff0e2;
-  --color-tone-orange-ink: #9a3412;
-  --color-tone-green: #ddf6e9;
-  --color-tone-green-ink: #166534;
-  --color-tone-blue: #e4f0ff;
-  --color-tone-blue-ink: #0758a5;
-  --color-tone-red: #fee7e2;
-  --color-tone-red-ink: #9f2d1a;
-  --color-tone-yellow: #fff3d6;
-  --color-tone-yellow-ink: #785016;
-
-  /* 색: 히트맵 칸 무늬 (components/sheet/04-calendar-legend.png에서 뽑음) */
-  --color-heat-dot: #7f6643; /* 센서 환산값 점무늬 */
-  --color-heat-hatch: #7d7d81; /* 관측 자료 없음 빗금 선, 바탕은 border */
-  --color-heat-partial: #9a5400; /* 집계 중 갈색 점선 */
-  --color-heat-future: #94949e; /* 아직 집계 전 회색 점선 */
-}
-
-@layer base {
-  body {
-    /*
-     * 글자 다듬기(`antialiased`)는 쓰지 않는다: 시안 v9는 브라우저 기본 렌더링이라 macOS에서 글자가 더 또렷하고 굵다.
-     * 없는 굵기·기울임을 브라우저가 만들어 내지 않게 한다(시안 `font-synthesis: none`)
-     */
-    @apply bg-page font-sans text-base text-ink;
-    font-synthesis: none;
-  }
-}
-
-/*
- * 어두운 테마 (`plans/about-revise.md` 9-1, 표는 `.claude/design/tokens.md` "색: 어두운 테마").
- * 첫 화면·기법 페이지만 `<html data-theme="dark">`가 붙는다(`app/documentTheme.ts`).
- * 값은 Figma Make 내보내기(`design/extra/landing/src/index.css`)에서 옮겼다. 반투명 선·바탕은 #050506 위에 섞은 불투명 값으로 바꿨다
- * (`border/40`처럼 투명도를 다시 거는 곳이 있어서).
- * `surface`↔`inverse`는 뒤집힌 짝이다(머리글 알약, 검정·파랑 버튼 글자). 데이터 색(히트맵·지도·칩)은 이 화면들에 없어 그대로 둔다.
- */
-:root[data-theme="dark"] {
-  color-scheme: dark;
+  /*
+   * 색: 역할. 모든 화면이 우주 배경 위 어두운 테마다(`plans/cosmic-redesign.md` 8절, 표는 `.claude/design/tokens.md`).
+   * 반투명 선·바탕은 #050506 위에 섞은 불투명 값이다(`border/40`처럼 투명도를 다시 거는 곳이 있어서).
+   * `surface`↔`inverse`는 뒤집힌 짝이다(밝은 판 위 어두운 글자: 툴팁, 흰 버튼 글자).
+   */
   --color-page: #050506;
   --color-surface: #111113;
   --color-inverse: #f4f4f1;
@@ -167,11 +68,16 @@
   --color-ink: #f4f4f1;
   --color-muted: #929398;
   --color-border: #2a2a2d;
+  --color-selection: #7ab6ff;
+  --color-fire: #f47a32;
+  --color-action: #4c9eff;
   --color-row-hover: #1a1a1d;
   --color-row-selected: #0f1e30;
+
   /*
-   * 시안 v9 `.primary-nav`·`.language-switch` 값 그대로. 우주 배경이 비치도록 반투명으로 둔다
-   * (투명도를 다시 거는 사용처가 없는 머리글 전용 토큰이라 괜찮다)
+   * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`). 시안 v9 `.primary-nav`·`.language-switch` 값.
+   * 우주 배경이 비치도록 반투명으로 둔다(투명도를 다시 거는 사용처가 없는 머리글 전용 토큰이라 괜찮다).
+   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음)
    */
   --color-nav: rgba(255, 255, 255, 0.08);
   --color-nav-hover: rgba(255, 255, 255, 0.12);
@@ -185,46 +91,91 @@
   --color-segment-ink: #929398;
   --color-segment-active: #ffffff;
   --color-segment-active-ink: #050506;
-  /* 시안 `.site-header` border-bottom */
+  /* 머리글 아래 구분선(시안 `.site-header` border-bottom) */
   --color-header-line: rgba(255, 255, 255, 0.1);
-  /* 시안 `.hero-body` #a7a8ac(작은 제목 #b0b1b5와 거의 같아 하나로) */
+  /* muted보다 한 단계 밝은 보조 글자(시안 `.hero-body` #a7a8ac) */
   --color-subtle: #a7a8ac;
-  --color-action: #4c9eff;
-  --color-selection: #7ab6ff;
-  --color-fire: #f47a32;
+
+  /* 색: 히트맵 8단계 (낮은 값 → 높은 값). 시안 v9 `calendarTheme.ts` harmonized */
+  --color-heat-0: #dfe2e5;
+  --color-heat-1: #ebd7bd;
+  --color-heat-2: #e5c59f;
+  --color-heat-3: #ddb17e;
+  --color-heat-4: #d39a5e;
+  --color-heat-5: #ca8547;
+  --color-heat-6: #be7037;
+  --color-heat-7: #ae5b2b;
+
+  /* 색: 지도 면 5단계 (시안 v9 `mapData.ts` cellColors) */
+  --color-map-0: #465260;
+  --color-map-1: #ad7852;
+  --color-map-2: #e3a264;
+  --color-map-3: #ed813b;
+  --color-map-4: #c95226;
+  /* 지도 경계선·점 테두리(시안 v9 지도 선 #101b25). 글자색(밝음)을 쓰면 면 위에 흰 선이 된다 */
+  --color-map-line: #101b25;
+
+  /* 색: 지도 점 (첫 감지일, +1일, +2일, +3일~). 시안 v9 `mapData.ts` */
+  --color-dot-0: #f4f4f1;
+  --color-dot-1: #f5d677;
+  --color-dot-2: #f99b4a;
+  --color-dot-3: #ed777d;
+
+  /* 색: 막대 그라데이션 (위 → 아래) */
+  --color-bar-raw-from: #54a0f8;
+  --color-bar-raw-to: #0c6fd2;
+  --color-bar-harmonized-from: #f4873b;
+  --color-bar-harmonized-to: #e26224;
+  --color-bar-pre2012: #d5d2cc;
+
+  /*
+   * 색: 둥근 색조 배지 5가지 (바탕, 글자). 시안 v9 `.db-status--usual·above·below`(반투명 바탕 + 밝은 글자)를
+   * 초록·주황·파랑으로 쓰고, 빨강·노랑은 같은 방식으로 만들었다(시안에 없음)
+   */
+  --color-tone-orange: rgba(105, 68, 42, 0.4);
+  --color-tone-orange-ink: #eebc96;
+  --color-tone-green: rgba(40, 74, 60, 0.4);
+  --color-tone-green-ink: #acd5bd;
+  --color-tone-blue: rgba(36, 68, 101, 0.4);
+  --color-tone-blue-ink: #a6c9f0;
+  --color-tone-red: rgba(120, 44, 30, 0.45);
+  --color-tone-red-ink: #f2a99a;
+  --color-tone-yellow: rgba(110, 90, 40, 0.4);
+  --color-tone-yellow-ink: #ecd08f;
+
+  /*
+   * 색: 평가 칩. 시안 v9 상태 칩(평소 = 초록, 평소보다 많음 = 주황, 평소보다 적음 = 파랑)과 "매우 이례적" #be5128.
+   * 뜻(값)은 백엔드 칩 그대로다
+   */
+  --color-chip-record: #be5128;
+  --color-chip-record-ink: #ffffff;
+  --color-chip-above: rgba(105, 68, 42, 0.4);
+  --color-chip-above-ink: #eebc96;
+  --color-chip-normal: rgba(40, 74, 60, 0.4);
+  --color-chip-normal-ink: #acd5bd;
+  --color-chip-below: rgba(36, 68, 101, 0.4);
+  --color-chip-below-ink: #a6c9f0;
+
+  /* 색: 히트맵 칸 무늬 */
+  --color-heat-dot: rgba(8, 9, 11, 0.27); /* 센서 환산값 점무늬(시안 `.converted`) */
+  --color-heat-hatch: #7d7d81; /* 관측 자료 없음 빗금 선, 바탕은 border */
+  /* 집계 중 진한 갈색 점선. 시안에 없는 칸이라, 밝은 달력 칸 8단계 모두에서 3:1 이상 보이게 진하게 정했다 */
+  --color-heat-partial: #3d1f0a;
+  --color-heat-future: #737d89; /* 아직 집계 전 점선(시안 `.future`) */
 }
 
-/*
- * 어두운 화면 안에서 밝게 되돌릴 곳(첫 화면 대화상자, `plans/about-revise.md` 10절 ⑤). 값은 위 `@theme`의 밝은 값과 같아야 한다.
- * `:root[data-theme="dark"]`보다 가까운 조상이라 이 값이 이긴다.
- */
-[data-theme="light"] {
-  color-scheme: light;
-  --color-page: #f5f5f7;
-  --color-surface: #ffffff;
-  --color-inverse: #1d1d1f;
-  --color-inverse-hover: #2c2c2e;
-  --color-ink: #202022;
-  --color-muted: #66666e;
-  --color-border: #dfdfe5;
-  --color-row-hover: #f5f5f7;
-  --color-row-selected: #e8f1fc;
-  --color-action: #0066cc;
-  --color-selection: #005aae;
-  --color-fire: #f68c3e;
-  --color-nav: #1d1d1f;
-  --color-nav-hover: #2c2c2e;
-  --color-nav-ink: #ffffff;
-  --color-nav-line: transparent;
-  --color-nav-active: #ffffff;
-  --color-nav-active-ink: #1d1d1f;
-  --color-segment: #ffffff;
-  --color-segment-line: #dfdfe5;
-  --color-segment-ink: #66666e;
-  --color-segment-active: #1d1d1f;
-  --color-segment-active-ink: #ffffff;
-  --color-header-line: #dfdfe5;
-  --color-subtle: #66666e;
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  body {
+    /*
+     * 글자 다듬기(`antialiased`)는 쓰지 않는다: 시안 v9는 브라우저 기본 렌더링이라 macOS에서 글자가 더 또렷하고 굵다.
+     * 없는 굵기·기울임을 브라우저가 만들어 내지 않게 한다(시안 `font-synthesis: none`)
+     */
+    @apply bg-page font-sans text-base text-ink;
+    font-synthesis: none;
+  }
 }
 
 /* 히트맵 칸 무늬. 크기 숫자는 디자인 조각에 맞춘 것이다 */

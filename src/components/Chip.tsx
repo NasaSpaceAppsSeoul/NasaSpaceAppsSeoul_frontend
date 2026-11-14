@@ -8,9 +8,9 @@ import { useMessages } from "../i18n";
  */
 
 const CHIP_CLASS: Record<ChipValue, string> = {
-  record: "bg-chip-record text-surface",
-  above: "bg-chip-above text-ink",
-  normal: "bg-chip-normal text-ink",
+  record: "bg-chip-record text-chip-record-ink",
+  above: "bg-chip-above text-chip-above-ink",
+  normal: "bg-chip-normal text-chip-normal-ink",
   below: "bg-chip-below text-chip-below-ink",
 };
 
@@ -29,13 +29,13 @@ export type BadgeTone = "neutral" | "sand" | "dark" | "yellow" | "red" | "green"
 
 const BADGE_CLASS: Record<BadgeTone, string> = {
   neutral: "bg-page text-muted",
-  sand: "bg-chip-normal text-ink",
+  sand: "bg-row-hover text-ink",
   dark: "bg-inverse-hover text-surface",
-  yellow: "bg-heat-2 text-ink",
-  red: "bg-chip-record text-surface",
-  green: "bg-chip-below text-chip-below-ink",
+  yellow: "bg-tone-yellow text-tone-yellow-ink",
+  red: "bg-chip-record text-chip-record-ink",
+  green: "bg-tone-green text-tone-green-ink",
   blue: "bg-row-selected text-action",
-  orange: "bg-heat-3 text-ink",
+  orange: "bg-tone-orange text-tone-orange-ink",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: BadgeTone; children: ReactNode }) {
