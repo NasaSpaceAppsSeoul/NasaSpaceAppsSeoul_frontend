@@ -92,6 +92,14 @@ describe("/insight 목: 일부 실패 (10-5)", () => {
     expect([r.years.strip, r.rank.top_years, r.season.own_mt, r.head.rank, r.head.n]).toEqual([null, null, null, null, null]);
     expect(r.calendar).not.toBeNull();
   });
+
+  it("의성 2022-03: judge 실패(이웃 판정도 모두 빠짐)", async () => {
+    const r = await insight(`/KOR/insight/${UISEONG}?month=2022-03`);
+    expect(r.unavailable).toEqual(["judge", "neighbors"]);
+    expect([r.head.value, r.head.chip, r.head.reason, r.ref, r.prov, r.years.median]).toEqual([null, null, null, null, null, null]);
+    expect(r.neighbors).toEqual([]);
+    expect(r.map).not.toBeNull();
+  });
 });
 
 describe("/insight 목: 에러 순서 (백엔드: 달 형식 → 지역 → 시·군·구 → 달 범위)", () => {
