@@ -154,10 +154,31 @@ describe("routeDirection", () => {
     expect(routeDirection("/", "/en")).toBe("fade");
     expect(routeDirection("/en/insight/KOR/a", "/insight/KOR/a")).toBe("fade");
   });
-  it("같은 페이지·같은 언어 안(달·지역 바꾸기)은 전환하지 않는다", () => {
-    expect(routeDirection("/dashboard/KOR", "/dashboard/KOR/abc")).toBeNull();
-
-    expect(routeDirection("/insight/KOR/a", "/insight/KOR/b")).toBeNull();
-
+  it("같은 페이지 안 지역 바꾸기(2026-11-15): 넓은 단계로 뒤, 그 밖(좁은 단계·같은 단계·다른 나라·모르는 단계)은 앞으로", () => {
+    const levels: Record<string, "prov" | "dist"> = { 경북: "prov", 강원: "prov", d1: "dist", d2: "dist" };
+    const levelOf = (_country: string, id: string) => levels[id];
+    expect(routeDirection("/dashboard/KOR", "/dashboard/KOR/경북", levelOf)).toBe("forward");
+    expect(routeDirection("/dashboard/KOR/경북", "/dashboard/KOR/d1", levelOf)).toBe("forward");
+    expect(routeDirection("/dashboard/KOR/d1", "/dashboard/KOR", levelOf)).toBe("back");
+    expect(routeDirection("/dashboard/KOR/d1", "/dashboard/KOR/경북?month=2025-03", levelOf)).toBe("back");
+    expect(routeDirection("/dashboard/KOR/경북", "/dashboard/KOR/강원", levelOf)).toBe("forward");
+    expect(routeDirection("/dashboard/KOR/d1", "/dashboard/KOR/d2", levelOf)).toBe("forward");
+    expect(routeDirection("/dashboard/KOR", "/dashboard/CAL", levelOf)).toBe("forward");
+    expect(routeDirection("/dashboard/KOR", "/dashboard/KOR/unknown", levelOf)).toBe("forward");
+    expect(routeDirection("/dashboard/KOR", "/dashboard/KOR/경북")).toBe("forward");
+    expect(routeDirection("/insight/KOR/a?month=2025-03", "/insight/KOR/b?month=2025-03")).toBe("forward");
+  });
+  it("같은 지역에서 달만 바꾸기: 앞의 달로 뒤, 그 밖은 앞으로, 해시만은 전환 없음", () => {
+    expect(routeDirection("/dashboard/KOR?month=2025-03", "/dashboard/KOR?month=2025-04")).toBe("forward");
+    expect(routeDirection("/dashboard/KOR?month=2025-03", "/dashboard/KOR?month=2024-11")).toBe("back");
+    // 달 없이 들어온 뒤 최신 달을 붙이는 자동 이동은 전환하지 않는다(들어오는 전환에 이어 두 번 미끄러지지 않게)
+    expect(routeDirection("/dashboard/KOR", "/dashboard/KOR?month=2025-03")).toBeNull();
+    expect(routeDirection("/dashboard/KOR?month=2025-03", "/dashboard/KOR")).toBe("forward");
+    expect(routeDirection("/insight/KOR/a", "/insight/KOR/a?month=2025-03")).toBeNull();
+    // 나라 화면 정리 이동(`/dashboard/KOR/KOR` → `/dashboard/KOR`)도 전환 없음
+    expect(routeDirection("/dashboard/KOR/KOR", "/dashboard/KOR", () => "nat")).toBeNull();
+    expect(routeDirection("/insight/KOR/a?month=2025-03", "/insight/KOR/a?month=2025-02")).toBe("back");
+    expect(routeDirection("/insight/KOR/a?month=2025-03", "/insight/KOR/a?month=2025-03")).toBeNull();
+    expect(routeDirection("/method", "/method")).toBeNull();
   });
 });
