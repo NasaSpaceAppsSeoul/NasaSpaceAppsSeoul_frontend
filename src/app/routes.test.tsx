@@ -104,6 +104,18 @@ describe("주소 값 검사 (decisions 1-5)", () => {
   });
 });
 
+describe("우주 배경", () => {
+  it("어두운 화면(지금은 첫 화면)에만 그리고, 대시보드에는 아직 없다", async () => {
+    renderAt("/");
+    await heading();
+    expect(document.querySelector(".cosmic-backdrop")?.getAttribute("aria-hidden")).toBe("true");
+    cleanup();
+    renderAt("/dashboard/KOR");
+    await heading();
+    expect(document.querySelector(".cosmic-backdrop")).toBeNull();
+  });
+});
+
 describe("머리글", () => {
   it("언어 전환 링크는 같은 화면의 다른 언어 주소이고 달과 해시를 들고 간다", async () => {
     renderAt("/dashboard/KOR?month=2025-03#calendar");
@@ -138,11 +150,11 @@ describe("머리글", () => {
   });
 });
 
-describe("목 모드 표시 줄과 푸터", () => {
-  it("목 모드에서 표시 줄을 띄우고, 푸터에 /meta의 출처와 처리일을 넣는다", async () => {
+describe("푸터", () => {
+  it("푸터에 /meta의 출처와 처리일을 넣고, 목 모드 표시 줄은 없다(2026-11-14 사용자가 뺌)", async () => {
     renderAt("/dashboard/CAL");
     await heading();
-    expect(screen.getByRole("note").textContent).toBe("목 데이터로 표시 중");
+    expect(screen.queryByRole("note")).toBeNull();
     expect(await screen.findByText("출처: NASA FIRMS · geoBoundaries USA (미국 인구조사국, 퍼블릭 도메인) · CAL FIRE")).toBeTruthy();
     expect(screen.getByText("데이터 처리일 2026-11-11")).toBeTruthy();
   });

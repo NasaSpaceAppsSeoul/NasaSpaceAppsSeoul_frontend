@@ -3,6 +3,7 @@ import { cacheMode } from "./cacheMode";
 import { parseCountry } from "./country";
 import { errorKind } from "./errorKind";
 import { parseMonthParam } from "./month";
+import { starField } from "./cosmic";
 import { routeInfo, routeTheme } from "./route";
 
 describe("parseCountry", () => {
@@ -79,6 +80,18 @@ describe("routeInfo", () => {
     expect(routeInfo("/dashboard")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/dashboard/kor")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/nope")).toEqual({ section: null, country: undefined });
+  });
+});
+
+describe("starField (우주 배경 별)", () => {
+  it("108개, 고정된 식이라 매번 같고 viewBox 안에 있다", () => {
+    const stars = starField();
+    expect(stars).toHaveLength(108);
+    expect(starField()).toEqual(stars);
+    expect(stars.every((s) => s.x >= 0 && s.x < 1600 && s.y >= 0 && s.y < 1000)).toBe(true);
+    // 19번째마다 큰 별, 9번째마다 따뜻한 색
+    expect(stars[0]).toMatchObject({ r: 1.15, warm: true });
+    expect(stars.filter((s) => s.warm)).toHaveLength(12);
   });
 });
 

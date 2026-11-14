@@ -3,10 +3,10 @@ import { Link, type LinkProps } from "react-router-dom";
 
 /*
  * 버튼 (components/sheet/02-controls-a·b).
- * 밝은 것·어두운 것·파란 것 × 큰 것(48)·작은 것(40). 기본·호버·눌림·포커스(파란 테두리)·비활성은 CSS 상태로 그린다.
+ * 밝은 것·어두운 것·파란 것·유리(어두운 화면 전용) × 큰 것(48)·작은 것(40). 기본·호버·눌림·포커스(파란 테두리)·비활성은 CSS 상태로 그린다.
  */
 
-export type ButtonVariant = "light" | "dark" | "blue";
+export type ButtonVariant = "light" | "dark" | "blue" | "glass";
 export type ButtonSize = "lg" | "sm";
 
 const BASE =
@@ -24,6 +24,11 @@ const VARIANT: Record<ButtonVariant, string> = {
   blue:
     "border-action bg-action text-surface hover:bg-selection active:bg-selection " +
     "disabled:border-page disabled:bg-page disabled:text-muted aria-disabled:border-page aria-disabled:bg-page aria-disabled:text-muted",
+  // 우주 배경 위 반투명 유리 버튼(시안 v9 표면 + 머리글 세그먼트 테두리). 어두운 화면에서만 쓴다
+  glass:
+    "glass border-segment-line text-ink hover:border-muted active:bg-nav-hover " +
+    // 막힌 버튼은 마우스를 올려도 반응하지 않는다(누를 수 있어 보이지 않게)
+    "disabled:border-segment-line disabled:text-muted aria-disabled:border-segment-line aria-disabled:text-muted",
 };
 
 const SIZE: Record<ButtonSize, string> = {

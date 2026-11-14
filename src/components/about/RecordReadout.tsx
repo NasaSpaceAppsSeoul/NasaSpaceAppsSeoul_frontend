@@ -16,7 +16,8 @@ type RecordReadoutProps = {
 export function RecordReadout({ title, body, note }: RecordReadoutProps) {
   const c = useMessages().about.connected;
   return (
-    <div className="flex min-w-0 flex-col bg-surface p-8">
+    // 유리 표면(시안 v9 `.record-readout`: 40% 반투명 + 흐림 22)
+    <div className="glass flex min-w-0 flex-col p-8">
       <div className="flex flex-col gap-2 border-b border-border pb-6">
         <h3 className="text-xl font-medium">{title}</h3>
         <p className="text-sm text-muted">{c.readoutSub}</p>

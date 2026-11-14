@@ -1,15 +1,14 @@
 import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
-import { apiMode } from "../api/client";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
-import { MockBanner } from "../components/MockBanner";
 import { useMeta } from "../hooks/useMeta";
 import { LocaleProvider } from "../i18n";
 import { DEFAULT_COUNTRY } from "../lib/country";
 import { localizePath, switchLocalePath, type Locale } from "../lib/locale";
-import { routeInfo } from "../lib/route";
+import { routeInfo, routeTheme } from "../lib/route";
+import { CosmicBackdrop } from "../components/CosmicBackdrop";
 
-/** 머리글·목 표시 줄·화면·푸터. 머리글과 푸터에 넘길 값은 여기서 주소로 만든다(컴포넌트는 주소를 읽지 않는다). */
+/** 머리글·화면·푸터(목 모드 표시 줄은 2026-11-14 사용자가 뺌, `decisions.md` 10-9). 머리글과 푸터에 넘길 값은 여기서 주소로 만든다(컴포넌트는 주소를 읽지 않는다). */
 function Shell({ locale }: { locale: Locale }) {
   const { pathname, search, hash } = useLocation();
   const { section, country } = routeInfo(pathname);
@@ -20,7 +19,13 @@ function Shell({ locale }: { locale: Locale }) {
   const localeHref = (target: Locale) => `${switchLocalePath(pathname, target)}${search}${hash}`;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-360 flex-col px-6 lg:px-16">
+    // 폭: 소개 구역(첫 화면)은 시안 v9처럼 내용 최대 1200px + 좌우 48px(= 1296px).
+    // 대시보드·인사이트는 8-3에서 시안 폭(1280px)으로 맞출 때까지 지금 폭
+    <div
+      className={
+        "mx-auto flex min-h-screen flex-col " + (section === "about" ? "max-w-324 px-12" : "max-w-360 px-6 lg:px-16")
+      }
+    >
       <Header
         homeHref={localizePath("/", locale)}
         hrefs={{ about: localizePath("/", locale), dashboard: localizePath("/dashboard", locale) }}
@@ -28,7 +33,6 @@ function Shell({ locale }: { locale: Locale }) {
         locale={locale}
         localeHrefs={{ ko: localeHref("ko"), en: localeHref("en") }}
       />
-      {apiMode() === "mock" && <MockBanner />}
       <div className="flex-1">
         <Outlet />
       </div>
@@ -44,9 +48,16 @@ function Shell({ locale }: { locale: Locale }) {
 
 /** 언어별 라우트 묶음의 뿌리. 주소가 정한 언어를 아래로 내려 준다. */
 export function RootLayout({ locale }: { locale: Locale }) {
+  const { pathname } = useLocation();
   return (
     <LocaleProvider locale={locale}>
-      <div lang={locale} className="min-h-screen">
+      {/* `isolate`: 고정 우주 배경(z -1)이 화면 내용 뒤, 바탕색 위에 놓이게 */}
+      <div lang={locale} className="isolate min-h-screen">
+        {/*
+         * 우주 배경은 어두운 테마 화면에만(지금은 첫 화면). 8-3에서 모든 화면이 어두워지면 조건을 뺀다
+         * (`plans/cosmic-redesign.md` 7-4)
+         */}
+        {routeTheme(pathname) === "dark" && <CosmicBackdrop />}
         <Shell locale={locale} />
       </div>
     </LocaleProvider>

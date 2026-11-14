@@ -39,6 +39,9 @@
     }
   }
 
+  /* 유리 표면 바탕(`glass` 유틸리티가 흐림과 함께 쓴다). 어두운 화면 위에서만 쓴다(시안 v9 카드) */
+  --color-glass: rgba(18, 21, 27, 0.4);
+
   /* 둥근 모서리 */
   --radius-cell: 4px;
   --radius-control-sm: 8px;
@@ -60,15 +63,26 @@
   --color-row-selected: #e8f1fc;
 
   /*
-   * 색: 머리글 알약 메뉴. 선택칸은 `nav-ink` 바탕 + `nav` 글자로 뒤집는다.
-   * 밝은 화면은 inverse 값을 그대로 쓴다(선택칸 글자만 ink #202022 → #1d1d1f로 눈에 안 띄게 바뀜).
-   * 어두운 화면은 Make처럼 어두운 알약에 흰 선택칸이라 surface/inverse 짝으로는 안 나와 따로 둔다.
-   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음). 밝은 화면은 투명이라 예전 모양 그대로다
+   * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`).
+   * 밝은 화면 값은 예전 모양 그대로(알약 = inverse, 언어 = surface·border·muted·inverse).
+   * 어두운 화면은 시안 v9 값(반투명 흰색 바탕 위에 순백 선택칸)이라 surface/inverse 짝으로는 안 나와 따로 둔다.
+   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음). 밝은 화면은 투명
    */
   --color-nav: #1d1d1f;
   --color-nav-hover: #2c2c2e;
   --color-nav-ink: #ffffff;
   --color-nav-line: transparent;
+  --color-nav-active: #ffffff;
+  --color-nav-active-ink: #1d1d1f;
+  --color-segment: #ffffff;
+  --color-segment-line: #dfdfe5;
+  --color-segment-ink: #66666e;
+  --color-segment-active: #1d1d1f;
+  --color-segment-active-ink: #ffffff;
+  /* 머리글 아래 구분선. 밝은 화면은 border와 같다 */
+  --color-header-line: #dfdfe5;
+  /* 히어로 작은 제목·설명처럼 muted보다 한 단계 밝은 보조 글자(시안 #a7a8ac). 밝은 화면은 muted와 같다 */
+  --color-subtle: #66666e;
 
   /* 색: 히트맵 8단계 (낮은 값 → 높은 값) */
   --color-heat-0: #faf7f0;
@@ -128,7 +142,12 @@
 
 @layer base {
   body {
-    @apply bg-page font-sans text-base text-ink antialiased;
+    /*
+     * 글자 다듬기(`antialiased`)는 쓰지 않는다: 시안 v9는 브라우저 기본 렌더링이라 macOS에서 글자가 더 또렷하고 굵다.
+     * 없는 굵기·기울임을 브라우저가 만들어 내지 않게 한다(시안 `font-synthesis: none`)
+     */
+    @apply bg-page font-sans text-base text-ink;
+    font-synthesis: none;
   }
 }
 
@@ -150,12 +169,26 @@
   --color-border: #2a2a2d;
   --color-row-hover: #1a1a1d;
   --color-row-selected: #0f1e30;
-  /* Make `.primary-nav`: 흰색 8% 알약과 흰색 8% 테두리(알약 위에 섞음, #050506 기준).
-     선택칸 바탕은 안 고른 칸 글자와 같은 nav-ink(#f4f4f1, Make는 순백), hover는 Make의 흰 바탕 대신 밝은 화면처럼 약한 nav-hover */
-  --color-nav: #19191a;
-  --color-nav-hover: #2a2a2d;
+  /*
+   * 시안 v9 `.primary-nav`·`.language-switch` 값 그대로. 우주 배경이 비치도록 반투명으로 둔다
+   * (투명도를 다시 거는 사용처가 없는 머리글 전용 토큰이라 괜찮다)
+   */
+  --color-nav: rgba(255, 255, 255, 0.08);
+  --color-nav-hover: rgba(255, 255, 255, 0.12);
   --color-nav-ink: #f4f4f1;
-  --color-nav-line: #2b2b2c;
+  --color-nav-line: rgba(255, 255, 255, 0.08);
+  --color-nav-active: #ffffff;
+  --color-nav-active-ink: #080809;
+  --color-segment: rgba(255, 255, 255, 0.06);
+  --color-segment-line: rgba(255, 255, 255, 0.11);
+  /* 시안은 #68696e지만 바탕 대비 3.4:1이라 읽기 기준(4.5:1)에 못 미쳐 muted(약 6:1)로 둔다(2026-11-14 사용자) */
+  --color-segment-ink: #929398;
+  --color-segment-active: #ffffff;
+  --color-segment-active-ink: #050506;
+  /* 시안 `.site-header` border-bottom */
+  --color-header-line: rgba(255, 255, 255, 0.1);
+  /* 시안 `.hero-body` #a7a8ac(작은 제목 #b0b1b5와 거의 같아 하나로) */
+  --color-subtle: #a7a8ac;
   --color-action: #4c9eff;
   --color-selection: #7ab6ff;
   --color-fire: #f47a32;
@@ -183,6 +216,15 @@
   --color-nav-hover: #2c2c2e;
   --color-nav-ink: #ffffff;
   --color-nav-line: transparent;
+  --color-nav-active: #ffffff;
+  --color-nav-active-ink: #1d1d1f;
+  --color-segment: #ffffff;
+  --color-segment-line: #dfdfe5;
+  --color-segment-ink: #66666e;
+  --color-segment-active: #1d1d1f;
+  --color-segment-active-ink: #ffffff;
+  --color-header-line: #dfdfe5;
+  --color-subtle: #66666e;
 }
 
 /* 히트맵 칸 무늬. 크기 숫자는 디자인 조각에 맞춘 것이다 */
@@ -194,4 +236,86 @@
 @utility heat-hatch {
   background-color: var(--color-border);
   background-image: repeating-linear-gradient(135deg, var(--color-heat-hatch) 0 1px, transparent 1px 5px);
+}
+
+/*
+ * 유리 표면 (디자인 시안 v9 카드: `rgba(18,21,27,.4)` + blur 22 + saturate 110%, `plans/cosmic-redesign.md` 7-3 ②).
+ * `surface`는 불투명으로 두고 이것을 따로 둔다(반투명 위에 투명도를 다시 거는 곳이 있어서).
+ * 흐림을 못 쓰는 브라우저는 시안의 대체 색 #18222f.
+ */
+@utility glass {
+  background-color: var(--color-glass);
+  backdrop-filter: blur(22px) saturate(110%);
+  @supports not (backdrop-filter: blur(1px)) {
+    background-color: #18222f;
+  }
+}
+
+/*
+ * 우주 배경 층 (`components/CosmicBackdrop.tsx`, 시안 `cosmic-backdrop.css` 값 그대로).
+ * 사용자가 승인한 배경이라 값을 바꾸지 않는다. 장면 상수 예외라 토큰이 아니다.
+ * 고정 배경을 화면 뒤에 두려고 감싸는 칸에 `isolate`를 둔다(`app/RootLayout.tsx`).
+ */
+@layer components {
+  .cosmic-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    background: #050506;
+    contain: strict;
+  }
+  .cosmic-reference {
+    position: absolute;
+    left: -12%;
+    top: -28%;
+    width: 135%;
+    height: 160%;
+    max-width: none;
+    object-fit: cover;
+    filter: blur(38px) saturate(0.16) brightness(0.6);
+    opacity: 0.22;
+    transform: rotate(-18deg) scale(1.08);
+    mix-blend-mode: screen;
+  }
+  .cosmic-clouds {
+    position: absolute;
+    inset: -8%;
+    width: 116%;
+    height: 116%;
+    opacity: 0.85;
+  }
+  .cosmic-stars {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.7;
+  }
+  .cosmic-vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, #050506a8, transparent 52%, #05050626),
+      radial-gradient(ellipse at 62% 38%, transparent 10%, #05050624 62%, #05050699 100%);
+  }
+  .cosmic-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.042;
+    mix-blend-mode: screen;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .cosmic-reference {
+      opacity: 0.1;
+    }
+    .cosmic-clouds {
+      opacity: 0.4;
+    }
+    .cosmic-grain {
+      display: none;
+    }
+  }
 }

@@ -45,7 +45,8 @@ export function HeroSearchBar({ placeholder, actionLabel, disabled, onOpen }: He
       disabled={disabled}
       onClick={onOpen}
       className={
-        "group flex h-14 w-full items-center gap-2 rounded-control border border-border bg-surface p-1 pl-4 text-left " +
+        // 유리 표면 + 머리글 세그먼트와 같은 테두리(우주 배경이 은은하게 비치게, 2026-11-14 사용자)
+        "glass group flex h-14 w-full items-center gap-2 rounded-control border border-segment-line p-1 pl-4 text-left " +
         "transition-colors hover:border-muted disabled:cursor-not-allowed " +
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-selection"
       }
