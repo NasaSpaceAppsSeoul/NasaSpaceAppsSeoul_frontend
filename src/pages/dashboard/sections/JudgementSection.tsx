@@ -62,7 +62,7 @@ export function JudgementSection({ scope, navigate, openDialog }: JudgementSecti
   if (query.data === undefined) return withInsight(<Skeleton className="h-80" />);
 
   const source = scope.countrySeries.months.find((m) => m.month === query.data.month)?.source ?? null;
-  const view = judgementView(query.data, source);
+  const view = judgementView(query.data, source, scope.meta.labels.season_start);
   const refName = view.ref !== null ? regionNameById(view.ref.id, view.ref.label, index, locale) : null;
   const national = region.level === "nat";
 
@@ -80,6 +80,7 @@ export function JudgementSection({ scope, navigate, openDialog }: JudgementSecti
       {national && view.ytd !== null && (
         <CumulativeCard
           month={view.month}
+          from={view.ytd.from}
           sum={view.ytd.sum}
           usual={view.ytd.usual}
           partial={view.kind === "partial"}

@@ -10,6 +10,7 @@ import {
   NONE_BIN,
   POINTS_FROM,
   SOURCE,
+  USUAL_BIN,
   addLayers,
   applyPointZoom,
   applyStaticPoints,
@@ -40,6 +41,12 @@ export type MapCanvasHandle = { zoomIn: () => void; zoomOut: () => void; reset: 
 type Padding = { top: number; right: number; bottom: number; left: number };
 /** 고정 여백이나, 지도 칸 크기(px)를 받아 여백을 돌려주는 함수(카드 폭에 따라 판 자리를 다르게 비울 때) */
 export type FitPadding = number | Padding | ((width: number, height: number) => Padding);
+
+/** 칠할 상태 → feature-state `bin` 번호(단계 0~4, 평소 대비 평가 10~13, 빗금 -1) */
+function binValue(state: FillState): number {
+  if (state === "none") return NONE_BIN;
+  return typeof state === "number" ? state : USUAL_BIN[state];
+}
 
 type MapCanvasProps = {
   features: readonly GeoFeature[];
@@ -257,7 +264,7 @@ export function MapCanvas(props: MapCanvasProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || map === null) return;
-    for (const [id, state] of fills) map.setFeatureState({ source: SOURCE.regions, id }, { bin: state === "none" ? NONE_BIN : state });
+    for (const [id, state] of fills) map.setFeatureState({ source: SOURCE.regions, id }, { bin: binValue(state) });
     // 달이 바뀌어 단계가 바뀌면 그라데이션도 다시(도형을 새로 넣을 때는 맞춤 뒤 `moveend`가 다시 그린다)
     paintGlow(map);
   }, [ready, featureKey, fills]);

@@ -34,6 +34,7 @@ export const bc: CountryMock = {
       official: "BC Wildfire Service",
       boundary: "BC Data Catalogue regional district (OGL–BC)",
       bins: [2, 8, 47],
+      season_start: 1,
     },
     sources: ["NASA FIRMS", "BC Data Catalogue regional district (OGL–BC)", "BC Wildfire Service"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },

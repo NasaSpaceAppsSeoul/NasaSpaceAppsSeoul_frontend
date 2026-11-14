@@ -66,6 +66,7 @@ export const korMeta: Meta = {
     official: "산림청",
     boundary: "geoBoundaries (CC BY 3.0) + 영광군 보강",
     bins: [3, 10, 30],
+    season_start: 1,
   },
   sources: ["NASA FIRMS", "geoBoundaries (CC BY 3.0)", "산림청"],
   time_basis: { code: "UTC+9", label_ko: "한국 표준시 (UTC+9)" },

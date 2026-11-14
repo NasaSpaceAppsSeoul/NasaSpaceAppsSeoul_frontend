@@ -35,6 +35,7 @@ export const cal: CountryMock = {
       official: "CAL FIRE",
       boundary: "geoBoundaries USA (미국 인구조사국, 퍼블릭 도메인)",
       bins: [3, 8, 18],
+      season_start: 1,
     },
     sources: ["NASA FIRMS", "geoBoundaries USA (미국 인구조사국, 퍼블릭 도메인)", "CAL FIRE"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },

@@ -26,13 +26,19 @@ async function geo(path: string): Promise<GeoFeatureCollection> {
 }
 
 describe("/meta", () => {
-  it("세 나라의 labels는 백엔드 Country.java 값이다", async () => {
+  it("labels는 백엔드 Country.java 값이다(GRC·CHL의 single은 목 생성기가 한 단계라 true)", async () => {
     const korMeta = (await mockGet("/KOR/meta")) as Meta;
     expect(korMeta.labels).toMatchObject({ single: false, lv1: "시·도", lv2: "시·군·구", bins: [3, 10, 30] });
     const calMeta = (await mockGet("/CAL/meta")) as Meta;
     expect(calMeta.labels).toMatchObject({ single: true, lv2: "카운티", bins: [3, 8, 18] });
     const bcMeta = (await mockGet("/BC/meta")) as Meta;
     expect(bcMeta.labels).toMatchObject({ single: true, lv2: "지역구", bins: [2, 8, 47] });
+    const grcMeta = (await mockGet("/GRC/meta")) as Meta;
+    expect(grcMeta.labels).toMatchObject({ lv1: "광역", lv2: "시군", official: "그리스 소방청", bins: [1, 2, 3] });
+    const chlMeta = (await mockGet("/CHL/meta")) as Meta;
+    expect(chlMeta.labels).toMatchObject({ lv1: "주", lv2: "시군", official: "CONAF", bins: [1, 2, 5] });
+    const nswMeta = (await mockGet("/NSW/meta")) as Meta;
+    expect(nswMeta.labels).toMatchObject({ single: true, lv2: "지방정부", official: "NSW NPWS", bins: [3, 10, 31] });
   });
 
   it("받은 쪽이 고쳐도 목 원본은 그대로다", async () => {

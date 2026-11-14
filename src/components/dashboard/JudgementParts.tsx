@@ -92,14 +92,14 @@ export function JudgementSentences({ view, refName }: { view: JudgementView; ref
   );
 }
 
-/** "1–3월 누적 60 화재 감지일" (시·도·시·군·구 카드의 맨 아래) */
+/** "1–3월 누적 60 화재 감지일"(남반구는 "7–2월 …") (시·도·시·군·구 카드의 맨 아래) */
 export function JudgementYtd({ view }: { view: JudgementView }) {
   const t = useMessages().dashboard;
   const locale = useLocale();
   if (view.ytd === null) return null;
   return (
     <p className="text-sm font-medium text-muted">
-      {t.card.ytd(t.monthsSpan(monthNumber(view.month)), formatFireDays(view.ytd.sum, locale))}
+      {t.card.ytd(t.monthsSpan(monthNumber(view.ytd.from), monthNumber(view.month)), formatFireDays(view.ytd.sum, locale))}
     </p>
   );
 }

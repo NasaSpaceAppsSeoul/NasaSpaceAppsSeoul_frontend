@@ -5,8 +5,9 @@ import { DownloadIcon } from "../icons";
 /*
  * 히트맵 카드 머리와 버튼 줄 (시안 v11 `FireCalendar.tsx` `.db-calendar-title`·`.db-calendar-actions`, 2026-11-15 사용자).
  * 머리: 머리말 + 제목 + 부제 | 보정 전/후 전환. 버튼 줄: 표시 연도 분절 버튼 | 조용한 내려받기 버튼.
- * 자리만 잡는 것(1-9): 보정 전/후 전환, 달력 PNG. CSV는 9장에서 동작과 확인 대화상자를 붙인다(4-8).
- * 비활성 버튼은 `aria-disabled`로 두어 키보드로도 포커스와 "준비 중"을 볼 수 있게 한다. 목 모드면 그 이유를 화면 글자로 보인다.
+ * 자리만 잡는 것(1-9): 보정 전/후 전환(`raw_before`를 기다림). CSV·달력 PNG는 확인 대화상자를 연다(9장, 4-8).
+ * 비활성 버튼은 `aria-disabled`로 두어 키보드로도 포커스와 이유를 볼 수 있게 한다. 목 모드에는 서버 CSV가 없어 그 이유를 화면 글자로 보인다
+ * (PNG는 프론트가 그려서 목 모드에서도 된다).
  */
 type HeatmapHeaderProps = {
   sub: string;
@@ -14,6 +15,8 @@ type HeatmapHeaderProps = {
   yearMode: YearMode | null;
   onYearMode: (mode: YearMode) => void;
   mockMode: boolean;
+  onCsv: () => void;
+  onPng: () => void;
 };
 
 /** 시안 `.db-segment button`: 11px, 줄 높이 20, 7·12 여백, 모서리 4 */
@@ -22,7 +25,7 @@ const SEGMENT_BUTTON = "rounded-[4px] border border-transparent px-3 py-1.75 tex
 /** 시안 `.db-quiet-button`: 테두리·바탕 없이 12px 글자와 16px 아이콘 */
 const QUIET_BUTTON = "inline-flex items-center gap-2 py-2 text-xs text-[#b5b7be] aria-disabled:cursor-not-allowed";
 
-export function HeatmapHeader({ sub, yearMode, onYearMode, mockMode }: HeatmapHeaderProps) {
+export function HeatmapHeader({ sub, yearMode, onYearMode, mockMode, onCsv, onPng }: HeatmapHeaderProps) {
   const t = useMessages();
   const h = t.heatmap;
   const soon = t.common.comingSoon;
@@ -74,11 +77,19 @@ export function HeatmapHeader({ sub, yearMode, onYearMode, mockMode }: HeatmapHe
         )}
         <div className="flex items-center gap-6">
           {mockMode && <p className="text-xs text-muted">{h.csvMock}</p>}
-          <button type="button" aria-disabled="true" title={mockMode ? h.csvMock : soon} className={QUIET_BUTTON}>
+          <button
+            type="button"
+            aria-disabled={mockMode}
+            title={mockMode ? h.csvMock : undefined}
+            onClick={() => {
+              if (!mockMode) onCsv();
+            }}
+            className={`${QUIET_BUTTON} ${mockMode ? "" : "cursor-pointer hover:text-ink"}`}
+          >
             <DownloadIcon />
             {h.csv}
           </button>
-          <button type="button" aria-disabled="true" title={soon} className={QUIET_BUTTON}>
+          <button type="button" onClick={onPng} className={`${QUIET_BUTTON} cursor-pointer hover:text-ink`}>
             <DownloadIcon />
             {h.png}
           </button>

@@ -4,8 +4,13 @@
  */
 
 export type MapLevel = 0 | 1 | 2 | 3 | 4;
-/** 구역 하나의 칠할 상태. `none`은 "값 없음" 빗금(2012-02 전 달, 응답에 없는 구역, 5-4·5-5) */
-export type FillState = MapLevel | "none";
+/** "평소 대비" 지도의 평가 4가지(백엔드 일괄 판정 `chip`) */
+export type UsualChip = "record" | "above" | "normal" | "below";
+/**
+ * 구역 하나의 칠할 상태. 화재 칸 보기는 단계(0~4), 평소 대비 보기는 평가(`UsualChip`).
+ * `none`은 빗금: 화재 칸 보기는 "값 없음"(2012-02 전 달, 응답에 없는 구역, 5-4·5-5), 평소 대비는 "평가 없음"(기록 부족·값 없음)
+ */
+export type FillState = MapLevel | UsualChip | "none";
 export type AgeClass = 0 | 1 | 2 | 3;
 export type Bounds = [west: number, south: number, east: number, north: number];
 
@@ -303,4 +308,17 @@ export function fillsFromValues(
   bins: Bins,
 ): Map<string, FillState> {
   return new Map(ids.map((id): [string, FillState] => [id, binOf(values.get(id) ?? null, bins)]));
+}
+
+/**
+ * 9장 지도 "평소 대비": 보이는 구역마다 일괄 판정(`/judgement?month=`)의 자기 `chip`으로 칠한다.
+ * 드문 구역(`chip: null`, 빌려 쓴 판정만 있음)·응답에 없는 구역은 빗금. `judged`가 아니면(집계 중·2012-02 전 달) 모두 빗금.
+ */
+export function usualFills(
+  ids: readonly string[],
+  regions: readonly { id: string; chip: UsualChip | null }[] | undefined,
+  judged: boolean,
+): Map<string, FillState> {
+  const byId = new Map((regions ?? []).map((r) => [r.id, r.chip]));
+  return new Map(ids.map((id): [string, FillState] => [id, judged ? (byId.get(id) ?? "none") : "none"]));
 }

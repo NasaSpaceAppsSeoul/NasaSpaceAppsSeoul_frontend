@@ -1,4 +1,4 @@
-import { monthYear } from "./month";
+import { monthYear, seasonStartMonth } from "./month";
 
 /*
  * 숫자 카드 분기 (`decisions.md` 3절, `C-judgement.md` C-9).
@@ -22,7 +22,7 @@ export type JudgementLike = {
   band_high: number | null;
   ratio_to_median: number | null;
   ytd_sum: number | null;
-  ytd_ratio: number | null;
+  ytd_median: number | null;
   quality: QualityValue | null;
   status: "final" | "partial" | "nrt";
   reason: string | null;
@@ -65,8 +65,8 @@ export type JudgementView = {
   nrt: boolean;
   /** "센서 환산값" 배지: 그 달 관측 위성(`source`)에 "→"가 있을 때만(4-3a) */
   converted: boolean;
-  /** 1월~그달 누적. 값이 없으면 `null` */
-  ytd: { sum: number; usual: number | null } | null;
+  /** 시즌 시작 달(`from`, 북반구 1월·남반구 7월)~그달 누적. 값이 없으면 `null` */
+  ytd: { sum: number; usual: number | null; from: string } | null;
 };
 
 export function judgementKind(j: JudgementLike): JudgementKind {
@@ -89,8 +89,11 @@ function rankLine(rank: number | null, n: number | null, period: [number, number
   return { rank, n, period: usablePeriod };
 }
 
-/** `source`는 나라 시계열의 그 달 값(모든 지역이 나라 값을 쓴다, D-1). 모르면 `null` */
-export function judgementView(j: JudgementLike, source: string | null): JudgementView {
+/**
+ * `source`는 나라 시계열의 그 달 값(모든 지역이 나라 값을 쓴다, D-1). 모르면 `null`.
+ * `seasonStart`는 `meta.labels.season_start`(누적 시작 달).
+ */
+export function judgementView(j: JudgementLike, source: string | null, seasonStart: number): JudgementView {
   const kind = judgementKind(j);
   const showRef = kind === "noValue" || kind === "sparse";
   const ref: RefLine | null =
@@ -106,7 +109,8 @@ export function judgementView(j: JudgementLike, source: string | null): Judgemen
       ? // 하한은 계산상 음수일 수 있지만 감지일은 0보다 작을 수 없어 화면에는 0으로 쓴다(3-6)
         { low: Math.max(0, j.band_low), high: j.band_high }
       : null;
-  const usual = j.ytd_sum !== null && j.ytd_ratio !== null && j.ytd_ratio > 0 ? j.ytd_sum / j.ytd_ratio : null;
+  // 누적 평년: 백엔드 `ytd_median`(PR #17, 해마다 같은 기간 누적 합의 중앙값). 없거나 0 이하면 "평소" 줄을 뺀다
+  const usual = j.ytd_median !== null && j.ytd_median > 0 ? j.ytd_median : null;
 
   return {
     kind,
@@ -123,7 +127,7 @@ export function judgementView(j: JudgementLike, source: string | null): Judgemen
     nrt: j.status === "nrt",
     // 값이 없는 달은 백엔드도 `source`를 `null`로 준다(TimeseriesLoader). 없는 값에 환산 표시를 붙이지 않는다
     converted: j.value !== null && source !== null && source.includes("→"),
-    ytd: j.ytd_sum !== null ? { sum: j.ytd_sum, usual } : null,
+    ytd: j.ytd_sum !== null ? { sum: j.ytd_sum, usual, from: seasonStartMonth(j.month, seasonStart) } : null,
   };
 }
 

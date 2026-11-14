@@ -4,12 +4,12 @@
  *
  * 출처
  * - 달 경계 2012-02(S-NPP)·2018-04(NOAA-20), 시·군·구의 2012-02 전 `null`: 백엔드 `Rules.java`, 분석 C-6·D-1.
- * - `nrt` 시작 달: 백엔드 `spec_test.py`의 `status_nrt`(KOR 2026-09, CAL 2026-08). BC는 KOR과 같게 둔다.
+ * - `nrt` 시작 달: 백엔드 `spec_test.py`의 `status_nrt`(KOR 2026-09, CAL 2026-08). BC·GRC·CHL·NSW는 KOR과 같게 둔다.
  *
  * 지어낸 값
  * - 모든 월값. 지역 ID를 씨앗으로 한 고정 의사난수(같은 입력이면 항상 같은 값)에 계절 가중치와
  *   지역 성격(`region_type`)별 크기를 곱해 만든다. 나라·시·도·시·군·구 값의 합은 서로 맞추지 않는다.
- * - 달 범위 2001-01~2026-11(세 나라 같음), 마지막 달은 집계 중이라 값을 줄여 둔다.
+ * - 달 범위 2001-01~2026-11(모든 지역 같음), 마지막 달은 집계 중이라 값을 줄여 둔다.
  * - 2018-04 전 값은 보정값처럼 소수 한 자리, 그 뒤는 정수.
  * - 백엔드 기대값이 있는 지역·달은 `series-overrides.ts`의 값으로 덮는다.
  */
@@ -20,27 +20,52 @@ export const FIRST_MONTH = "2001-01";
 export const VIIRS_START = "2012-02";
 export const NOAA20_START = "2018-04";
 
-type CountryTimeline = { last: string; nrtFrom: string; season: readonly number[]; nationScale: number };
+/** `seasonStart`: 누적(ytd) 시즌 시작 달, 목 `meta.labels.season_start`와 같은 값(백엔드 `Country.seasonStart`) */
+type CountryTimeline = { last: string; nrtFrom: string; season: readonly number[]; nationScale: number; seasonStart: number };
 
-/** 계절 가중치(1~12월). 한국은 3~4월, 캘리포니아는 7~10월, BC는 7~8월이 높다. */
+/** 계절 가중치(1~12월). 한국은 3~4월, 캘리포니아는 7~10월, BC는 7~8월, 그리스는 7~8월, 칠레는 1~2월, NSW는 10~1월이 높다. */
 const TIMELINES: Record<Country, CountryTimeline> = {
   KOR: {
     last: "2026-11",
     nrtFrom: "2026-09",
     season: [0.6, 0.9, 2.6, 2.2, 1.0, 0.3, 0.15, 0.15, 0.2, 0.5, 0.8, 0.5],
     nationScale: 70,
+    seasonStart: 1,
   },
   CAL: {
     last: "2026-11",
     nrtFrom: "2026-08",
     season: [0.2, 0.2, 0.3, 0.4, 0.6, 1.2, 2.0, 2.4, 2.0, 1.6, 0.8, 0.3],
     nationScale: 250,
+    seasonStart: 1,
   },
   BC: {
     last: "2026-11",
     nrtFrom: "2026-09",
     season: [0.1, 0.1, 0.2, 0.5, 0.9, 1.4, 2.8, 3.0, 1.6, 0.6, 0.2, 0.1],
     nationScale: 200,
+    seasonStart: 1,
+  },
+  GRC: {
+    last: "2026-11",
+    nrtFrom: "2026-09",
+    season: [0.3, 0.4, 0.6, 0.5, 0.5, 0.9, 2.4, 2.8, 1.4, 0.7, 0.4, 0.3],
+    nationScale: 40,
+    seasonStart: 1,
+  },
+  CHL: {
+    last: "2026-11",
+    nrtFrom: "2026-09",
+    season: [2.6, 2.4, 1.6, 0.8, 0.4, 0.2, 0.1, 0.2, 0.3, 0.6, 1.2, 2.0],
+    nationScale: 120,
+    seasonStart: 7,
+  },
+  NSW: {
+    last: "2026-11",
+    nrtFrom: "2026-09",
+    season: [1.8, 0.9, 0.7, 0.6, 0.5, 0.5, 0.6, 0.9, 1.2, 1.8, 2.4, 2.6],
+    nationScale: 300,
+    seasonStart: 7,
   },
 };
 

@@ -124,3 +124,35 @@ export async function get<T>(
   if (body === null) throw new ApiError(res.status, "BAD_BODY", "응답이 JSON이 아닙니다");
   return body as T;
 }
+
+/**
+ * 파일을 내려받는 GET(9장, 히트맵 CSV). 본문을 글자로 풀지 않고 `Blob`으로 받아 UTF-8 BOM을 그대로 둔다
+ * (`res.text()`는 BOM을 떼어 Excel에서 한글이 깨진다, `plans/dashboard-heatmap.md` 9절).
+ * 목 모드에는 서버 파일이 없으므로 부르지 않는다(부르는 쪽이 버튼을 막는다, `decisions.md` 4-8).
+ * 실패는 `get`과 같은 `ApiError`로 바꾼다. 에러 본문은 JSON이면 `code`를 읽는다.
+ */
+export async function getBlob(
+  path: string,
+  { signal, timeoutMs = DEFAULT_TIMEOUT_MS, accept }: GetOptions & { accept?: string } = {},
+): Promise<Blob> {
+  if (apiMode() === "mock") throw new ApiError(404, "NOT_FOUND", `mock: no file download: ${path}`);
+  const timeout = AbortSignal.timeout(timeoutMs);
+  let res: Response;
+  let blob: Blob;
+  try {
+    res = await fetch(apiBase() + path, { cache: "no-cache", signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
+    blob = await res.blob();
+  } catch (e) {
+    if (signal?.aborted) throw e;
+    throw new ApiError(0, timeout.aborted ? "TIMEOUT" : "NETWORK", String(e));
+  }
+  if (!res.ok) {
+    const { code, message } = readErrorBody(parseJson(await blob.text()));
+    throw new ApiError(res.status, code ?? "UNKNOWN", message ?? res.statusText);
+  }
+  // 성공인데 기대한 형식이 아니면(배포 주소가 API 대신 index.html을 돌려준 경우 등) 그 내용을 저장하지 않는다
+  if (accept !== undefined && !(res.headers.get("Content-Type") ?? "").startsWith(accept)) {
+    throw new ApiError(res.status, "BAD_BODY", `expected ${accept}`);
+  }
+  return blob;
+}

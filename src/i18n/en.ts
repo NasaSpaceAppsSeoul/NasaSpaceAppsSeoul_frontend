@@ -151,7 +151,7 @@ export const en: Messages = {
   },
   notFound: {
     title: "Page not found",
-    body: "Check the address. The country is one of KOR, CAL or BC, and the month is written like 2025-03.",
+    body: "Check the address. The country is one of KOR, CAL, BC, GRC, CHL or NSW, and the month is written like 2025-03.",
     home: "Back to start",
   },
   routeError: {
@@ -201,11 +201,19 @@ export const en: Messages = {
     KOR: "Republic of Korea",
     CAL: "California",
     BC: "British Columbia",
+    GRC: "Greece",
+    CHL: "Chile",
+    NSW: "New South Wales",
   },
+  // 백엔드에 영문 단계 이름이 없다. GRC·CHL 상위 단계는 선택 줄 첫 칸 제목 "Region"과 겹치지 않게
+  // "Admin region"으로 쓴다(9장, 2026-11-15)
   levelNames: {
     KOR: { lv1: "Province", lv2: "District" },
     CAL: { lv1: "State", lv2: "County" },
     BC: { lv1: "Province", lv2: "Regional district" },
+    GRC: { lv1: "Admin region", lv2: "Municipality" },
+    CHL: { lv1: "Admin region", lv2: "Municipality" },
+    NSW: { lv1: "State", lv2: "Local government area" },
   },
   dashboard: {
     unit: "fire grid-days",
@@ -293,7 +301,8 @@ export const en: Messages = {
         const lower = level.toLowerCase();
         return `All ${lower.endsWith("y") ? `${lower.slice(0, -1)}ies` : `${lower}s`}`;
       },
-      pickProvinceFirst: (lv1: string) => `Choose a ${lv1.toLowerCase()} first`,
+      // 단계 이름이 모음으로 시작하면 "an"(GRC·CHL "Admin region")
+      pickProvinceFirst: (lv1: string) => `Choose ${/^[aeiou]/i.test(lv1) ? "an" : "a"} ${lv1.toLowerCase()} first`,
       search: "Region",
       // 보이는 이름표 "Region"이 읽히는 이름에 그대로 들어가게(음성 조작)
       searchHint: "Region search, now:",
@@ -350,15 +359,20 @@ export const en: Messages = {
       detectionDays: "Days with detections",
     },
     cumulative: {
-      title: (year: number, monthOfYear: number, monthName: string) =>
-        monthOfYear === 1 ? `Total for January ${year}` : `Total from January to ${monthName} ${year}`,
+      title: (from: { year: number; name: string }, to: { year: number; name: string }, single: boolean) =>
+        single
+          ? `Total for ${to.name} ${to.year}`
+          : from.year === to.year
+            ? `Total from ${from.name} to ${to.name} ${to.year}`
+            : `Total from ${from.name} ${from.year} to ${to.name} ${to.year}`,
       usual: (months: string, usual: string) => `Usual ${months} about ${usual}`,
       convertedRange: "Adjusted range",
       unitNote: "A fire detected in one approximately 1 km cell on one day counts as 1. It is not a fire incident count or burned area.",
     },
-    monthsSpan: (to: number) => {
+    monthsSpan: (from: number, to: number) => {
       const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      return to === 1 ? "Jan" : `Jan–${names[to - 1] ?? to}`;
+      const name = (m: number) => names[m - 1] ?? String(m);
+      return from === to ? name(to) : `${name(from)}–${name(to)}`;
     },
     regionMissing: {
       title: "Region not found",
@@ -375,6 +389,20 @@ export const en: Messages = {
     years: { label: "Shown years", all: "All years", viirs: "2012 onwards" },
     csv: "Monthly CSV",
     png: "Calendar PNG",
+    exports: {
+      description: "Check what the file contains before downloading.",
+      download: "Download",
+      downloading: "Downloading…",
+      csv: { title: "Monthly fire activity CSV", detail: "Monthly fire grid-days · usual median · usual range · rank, months with values only, full period" },
+      png: { title: "Calendar image", detail: "PNG · includes legend, source and reference period" },
+      pngFailed: "Couldn't create the image. Please try again.",
+      image: {
+        title: (name: string, from: number, to: number) => `${name} · Fire calendar by year and month ${from}–${to}`,
+        sub: "Fire grid-days · harmonized to NOAA-20 · one dot per month",
+        source: (dataEnd: string) => `Source: NASA FIRMS · data through ${dataEnd} · Burnline`,
+        period: (from: number, to: number) => `Color bands: 50·75·90th percentiles of this area's non-zero months · usual period ${from}–${to}`,
+      },
+    },
     csvMock: "Downloads are not available with mock data",
     monthCorner: "Month",
     monthHead: (m: number) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1] ?? String(m),
@@ -419,11 +447,34 @@ export const en: Messages = {
     title: (month: string) => `${month} · Fire cells and detection locations`,
     sub: "Fill shows monthly fire cells. Dots show detected locations and first-detection dates.",
     modes: { cells: "Fire cells & points", usual: "Vs usual" },
-    soon: "Coming soon",
+    usual: {
+      title: (month: string) => `${month} · Compared with usual`,
+      sub: "Fill shows how the month compares with the same month in past years. Areas with few records are hatched.",
+      legendTitle: "Fill · Compared with the usual month",
+      none: "No assessment",
+      noneNote: "Hatching marks areas with too few records for their own assessment (hover to see the borrowed one) and areas without values.",
+      basisNote: "The usual range is the 15–85% band of past years for the same month, widened slightly for small counts.",
+      partial: "This month is still being counted. Assessments appear once it is complete.",
+      pre2012: "Before February 2012 there are no district values, so areas are not assessed.",
+      failed: "Couldn't load the assessments.",
+      tooltip: {
+        ratio: (chip: string, ratio: string) => `${chip} · ${ratio}× usual`,
+        borrowed: (name: string, chip: string) => `Few records · ${chip} for ${name}`,
+        none: "No assessment",
+      },
+      canvasLabel: (title: string, regions: number) => `${title}. ${regions} areas. You can also change the area with the selector above.`,
+    },
     zoom: { in: "Zoom in", out: "Zoom out", reset: "Reset view" },
     hint: "Zoom + / − · hover dots",
     attribution: {
-      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
+      boundary: {
+        KOR: "geoBoundaries",
+        CAL: "geoBoundaries USA",
+        BC: "BC Data Catalogue",
+        GRC: "geoBoundaries GRC",
+        CHL: "geoBoundaries CHL",
+        NSW: "geoBoundaries AUS",
+      },
       time: { "UTC+9": "local date (UTC+9)", solar: "local solar date" },
       line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
     },

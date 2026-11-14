@@ -17,19 +17,25 @@ const SWATCH: Record<HeatLevel, string> = {
   4: "bg-heat-7",
 };
 
+type LegendText = { below: (to: string) => string; above: (from: string) => string; between: (from: string, to: string) => string };
+
+/** 단계 견본 이름: 0 / a 미만 / a–b / c 이상. 화면 범례와 달력 PNG가 같이 쓴다 */
+export function legendLabel(item: LegendItem, l: LegendText, n: (v: number) => string): string {
+  return item.level === 0
+    ? "0"
+    : item.from === null && item.to !== null
+      ? l.below(n(item.to))
+      : item.to === null && item.from !== null
+        ? l.above(n(item.from))
+        : l.between(n(item.from ?? 0), n(item.to ?? 0));
+}
+
 export function HeatLegend({ items }: { items: LegendItem[] }) {
   const t = useMessages();
   const l = t.heatmap.legend;
   const locale = useLocale();
   const n = (v: number) => formatFireDays(v, locale);
-  const label = (item: LegendItem) =>
-    item.level === 0
-      ? "0"
-      : item.from === null && item.to !== null
-        ? l.below(n(item.to))
-        : item.to === null && item.from !== null
-          ? l.above(n(item.from))
-          : l.between(n(item.from ?? 0), n(item.to ?? 0));
+  const label = (item: LegendItem) => legendLabel(item, l, n);
   return (
     // 시안 `.db-calendar-legend`: Mono 10, 사이 20, 왼쪽 이름은 남은 자리를 밀어 견본을 오른쪽 끝으로
     <div className="flex flex-wrap items-center gap-5 font-mono text-[10px] text-[#969fac]">

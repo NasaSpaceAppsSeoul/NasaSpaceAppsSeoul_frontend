@@ -23,7 +23,7 @@ export function HeadSection({ scope, insight }: { scope: InsightScope; insight: 
   const judgement = useJudgement(scope.country, scope.region.id, scope.month);
   const tiles = headTiles({ month: scope.month, head: insight.head, calendar: insight.calendar, strip: insight.years.strip });
   const noneText = (reason: NoneReason) => it.tiles.none[reason];
-  const view = judgement.data === undefined ? null : judgementView(judgement.data, null);
+  const view = judgement.data === undefined ? null : judgementView(judgement.data, null, scope.meta.labels.season_start);
   const refName = view?.ref != null ? regionNameById(view.ref.id, view.ref.label, scope.index, locale) : null;
   const regionType = insight.head.region_type;
 

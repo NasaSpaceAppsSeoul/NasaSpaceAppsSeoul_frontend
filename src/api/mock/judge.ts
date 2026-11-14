@@ -249,35 +249,62 @@ function ytdRatio(ytd: number | null, baselineYtd: number | null): number | null
   return round(ytd / baselineYtd, 2);
 }
 
-/** 평소 누적 범위 끝값: 합 ≤ 0이면 null (JudgeService `ytd_lo`·`ytd_hi`) */
-const positiveOrNull = (v: number): number | null => (v > 0 ? v : null);
+/** 평소 누적 범위 끝값: 없거나 ≤ 0이면 null (JudgeService `ytd_lo`·`ytd_hi`) */
+const positiveOrNull = (v: number | null): number | null => (v !== null && v > 0 ? v : null);
 
 /**
- * 그해 1월~그달 합(반올림 안 함), 같은 기간 평년 합, 범위 합.
- * 범위 합은 SQL `coalesce(sum(band_low), 0)`처럼 `null` 달을 건너뛴다(TimeseriesRepository.baselineYtdRange).
+ * 누적(ytd): 그 달이 속한 시즌의 시작 달(`seasonStart`, 남반구 7월)부터 그 달까지의 합(반올림 안 함, 값 없는 달은 건너뜀).
+ * 누적 평년·범위는 백엔드 `TimeseriesRepository.ytdBand`와 같다(PR #17): 비교 기간 해마다 같은 시즌 달들의 누적 합을 구하고
+ * (한 달이라도 값이 없거나 기간 밖이면 그해는 뺀다) 3개 이상이면 중앙값, 범위 = min(15퍼센타일, 중앙값 − 2√max(중앙값,1)) ~
+ * max(85퍼센타일, 중앙값 + 2√max(중앙값,1)). 3개 미만이면 범위는 없고 평년은 달별 평년 합(`baselineYtd`)으로 대신한다.
  */
 function ytd(
   country: Country,
   profile: Profile,
   index: number,
-): { sum: number; baseline: number | null; lo: number; hi: number } {
+): { sum: number; baseline: number | null; lo: number | null; hi: number | null } {
   const { values } = regionValues(country, profile.region);
   const stats = monthStats(country, profile);
-  const first = index - (index % 12);
+  const s = timeline(country).seasonStart;
+  const m = (index % 12) + 1;
+  const span = (m - s + 12) % 12;   // 시즌 시작 달부터 그 달 앞까지의 달 수
   let sum = 0;
-  let baseline: number | null = 0;
-  let lo = 0;
-  let hi = 0;
-  for (let i = first; i <= index; i += 1) {
-    const v = values[i];
+  for (let i = index - span; i <= index; i += 1) {
+    const v = i >= 0 ? values[i] : null;
     if (v !== null && v !== undefined) sum += v;
-    const s = stats[i % 12];
-    const med = s?.median ?? null;
-    baseline = baseline === null || med === null ? null : baseline + med;
-    lo += s?.bandLow ?? 0;
-    hi += s?.bandHigh ?? 0;
   }
-  return { sum, baseline, lo, hi };
+  const seasonMonths = Array.from({ length: span + 1 }, (_, k) => ((s - 1 + k) % 12) + 1);
+  const [from, to] = profile.period;
+  const sums: number[] = [];
+  for (let sy = from - 1; sy <= to; sy += 1) {
+    let total = 0;
+    let ok = true;
+    for (const k of seasonMonths) {
+      const yy = k >= s ? sy : sy + 1;
+      const v = yy < from || yy > to ? null : values[(yy - 2001) * 12 + (k - 1)];
+      if (v === null || v === undefined) {
+        ok = false;
+        break;
+      }
+      total += v;
+    }
+    if (ok) sums.push(total);
+  }
+  if (sums.length >= 3) {
+    const sorted = [...sums].sort((x, y) => x - y);
+    const med = percentile(sorted, 0.5);
+    const slack = 2 * Math.sqrt(Math.max(med, 1));
+    return {
+      sum,
+      baseline: med,
+      lo: Math.min(percentile(sorted, 0.15), med - slack),
+      hi: Math.max(percentile(sorted, 0.85), med + slack),
+    };
+  }
+  // 백엔드 `baselineYtd`(SQL `sum(median)`): 평년이 없는 달은 건너뛰고, 모두 없으면 null
+  const meds = seasonMonths.map((k) => stats[k - 1]?.median ?? null).filter((v): v is number => v !== null);
+  const baseline = meds.length === 0 ? null : meds.reduce((a, v) => a + v, 0);
+  return { sum, baseline, lo: null, hi: null };
 }
 
 function refOf(country: Country, refRegion: RegionSummary, all: readonly RegionSummary[], index: number): JudgementRef {
@@ -325,6 +352,7 @@ export function judgement(
     band_high: j.bandHigh,
     ratio_to_median: j.ratio,
     ytd_sum: y?.sum ?? null,
+    ytd_median: profile.self && y !== null && y.baseline !== null ? round(y.baseline, 1) : null,
     ytd_ratio: profile.self && y !== null ? ytdRatio(y.sum, y.baseline) : null,
     ytd_lo: profile.self && y !== null ? positiveOrNull(y.lo) : null,
     ytd_hi: profile.self && y !== null ? positiveOrNull(y.hi) : null,

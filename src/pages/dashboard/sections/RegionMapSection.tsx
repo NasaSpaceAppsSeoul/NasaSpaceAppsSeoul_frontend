@@ -3,16 +3,20 @@ import type { GeoFeature } from "../../../api/types";
 import { SectionHeading } from "../../../components/about/SectionHeading";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
+import { MapToggles, type MapMode } from "../../../components/map/MapToggles";
+import { MapUsualError, MapUsualLegend } from "../../../components/map/MapUsualLegend";
 import { RegionMap, type RegionMapHover } from "../../../components/map/RegionMap";
 import { SectionError } from "../../../components/SectionError";
 import { Skeleton } from "../../../components/Skeleton";
+import { useBulkJudgement } from "../../../hooks/useBulkJudgement";
 import { useGeo } from "../../../hooks/useGeo";
 import { useMap } from "../../../hooks/useMap";
 import { useRegionDetail } from "../../../hooks/useRegionDetail";
 import { useLocale, useMessages } from "../../../i18n";
 import { errorKind } from "../../../lib/errorKind";
-import { andParticle, formatCount, formatFireDays } from "../../../lib/format";
-import { agedCells, dayDate, fillStates, filterPoints, pickFeatures, visibleRegionIds } from "../../../lib/map";
+import { andParticle, formatCount, formatFireDays, formatRatio } from "../../../lib/format";
+import { agedCells, dayDate, fillStates, filterPoints, pickFeatures, usualFills, visibleRegionIds, type AgedCell } from "../../../lib/map";
+import { usualHover, usualMonthState } from "../../../lib/mapUsual";
 import { ownName, regionNameById } from "../../../lib/region";
 import type { DashboardNavigate, DashboardScope } from "../scope";
 
@@ -23,12 +27,19 @@ import type { DashboardNavigate, DashboardScope } from "../scope";
  * 이웃을 받는 동안은 자리 표시(자기만 그렸다가 이웃이 오면 다시 맞추며 지도가 튀지 않게), 실패하면 자기만 그리고 안내.
  * 화면이 `key={region.id}`로 그린다.
  */
-type RegionMapSectionProps = { scope: DashboardScope; navigate: DashboardNavigate };
+type RegionMapSectionProps = {
+  scope: DashboardScope;
+  navigate: DashboardNavigate;
+  /** 보기 방식(화면이 들고 있다, 나라 지도와 같은 상태) */
+  mode: MapMode;
+  onModeChange: (mode: MapMode) => void;
+};
 
 const EMPTY: readonly GeoFeature[] = [];
 const NO_NEIGHBORS: readonly string[] = [];
+const NO_CELLS: readonly AgedCell[] = [];
 
-export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
+export function RegionMapSection({ scope, navigate, mode, onModeChange }: RegionMapSectionProps) {
   const t = useMessages();
   const locale = useLocale();
   const { country, region, index, month, meta } = scope;
@@ -36,6 +47,10 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
   const geo = useGeo(country, { level: "dist" });
   const map = useMap(country, month);
   const detail = useRegionDetail(country, district ? region.id : undefined);
+  const usual = mode === "usual";
+  // 평소 대비: 나라 전체 일괄 판정 하나를 걸러 쓴다(나라 지도와 같은 캐시). 집계 중·2012-02 전 달은 받지 않는다
+  const monthState = usualMonthState(month, scope.range, scope.countrySeries.months);
+  const bulk = useBulkJudgement(country, month, usual && monthState === "judged");
 
   const outOfRange = map.isError && errorKind(map.error) === "range";
   const features = geo.data?.features ?? EMPTY;
@@ -44,9 +59,16 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
     const ids = visibleRegionIds(features, region, neighborIds);
     return { list: ids, ...pickFeatures(features, ids) };
   }, [features, region, neighborIds]);
-  const fills = useMemo(() => fillStates(visible.list, map.data?.regions), [visible.list, map.data]);
-  // 경계 밖 점(`region_id: null`)은 그리지 않는다
-  const cells = useMemo(() => agedCells(filterPoints(map.data?.points.items ?? [], visible.ids, false)), [map.data, visible.ids]);
+  const fills = useMemo(
+    () =>
+      usual
+        ? usualFills(visible.list, bulk.data?.regions, monthState === "judged")
+        : fillStates(visible.list, map.data?.regions),
+    [usual, visible.list, bulk.data, monthState, map.data],
+  );
+  // 경계 밖 점(`region_id: null`)은 그리지 않는다. 평소 대비 보기는 점 없이 면만
+  const allCells = useMemo(() => agedCells(filterPoints(map.data?.points.items ?? [], visible.ids, false)), [map.data, visible.ids]);
+  const cells = usual ? NO_CELLS : allCells;
 
   const name = ownName(region, locale);
   const title = district
@@ -54,7 +76,8 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
     : t.map.regional.provinceTitle(name, scope.levelNames.lv2);
   const frame = (body: ReactNode) => (
     <Card className="flex flex-col gap-6">
-      <SectionHeading eyebrow={t.map.regional.eyebrow} title={title} lead={t.map.regional.sub} />
+      <SectionHeading eyebrow={t.map.regional.eyebrow} title={title} lead={usual ? t.map.usual.sub : t.map.regional.sub} />
+      <MapToggles mode={mode} onChange={onModeChange} />
       {body}
     </Card>
   );
@@ -83,6 +106,11 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
   }
   if (fresh && data.regions.some((r) => r.reason === "PRE_2012_DISTRICT")) notes.push(t.map.notes.pre2012(data.points.sensor));
 
+  const usualNotes: string[] = [];
+  if (monthState === "partial") usualNotes.push(t.map.usual.partial);
+  if (monthState === "pre2012") usualNotes.push(t.map.usual.pre2012);
+  if (monthState === "outOfRange") usualNotes.push(t.map.notes.outOfRange);
+  const bulkFailedKind = usual && bulk.isError && bulk.data === undefined ? errorKind(bulk.error) : null;
   const nameOf = (id: string) => regionNameById(id, id, index, locale);
   const describe = (hover: RegionMapHover) => {
     if (hover.kind === "point") {
@@ -92,6 +120,21 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
         label: t.map.tooltip.firstDetected,
         value: dayDate(data.month, hover.cell.firstDay),
       };
+    }
+    if (usual) {
+      const u = t.map.usual.tooltip;
+      // 평가를 아직 모르거나(받는 중·다른 달 값을 보이는 중) 받지 못했으면 "평가 없음"으로 읽히지 않게 툴팁을 띄우지 않는다
+      if (monthState === "judged" && (bulk.data === undefined || bulk.isPlaceholderData)) return null;
+      const v = usualHover(monthState === "judged" && !bulk.isPlaceholderData ? bulk.data?.regions.find((x) => x.id === hover.id) : undefined);
+      const text =
+        v.kind === "own"
+          ? v.ratio !== null
+            ? u.ratio(t.chip[v.chip], formatRatio(v.ratio, locale))
+            : t.chip[v.chip]
+          : v.kind === "borrowed"
+            ? u.borrowed(nameOf(v.refId), t.chip[v.chip])
+            : u.none;
+      return { title: nameOf(hover.id), label: null, value: text };
     }
     const value = data?.regions.find((r) => r.id === hover.id)?.value ?? null;
     return { title: nameOf(hover.id), label: null, value: value === null ? t.map.tooltip.noValue : t.map.tooltip.cells(formatFireDays(value, locale)) };
@@ -119,7 +162,8 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
         <div className="flex flex-col gap-1">
           <p className="mono-overline text-action">{t.map.regional.eyebrow}</p>
           <h2 className="text-base font-medium text-ink">{title}</h2>
-          <p className="text-xs text-muted">{t.map.regional.sub}</p>
+          <p className="text-xs text-muted">{usual ? t.map.usual.sub : t.map.regional.sub}</p>
+          <MapToggles mode={mode} onChange={onModeChange} />
         </div>
       }
       features={visible.features}
@@ -129,10 +173,33 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
       selectedId={district ? region.id : null}
       bins={meta.labels.bins}
       notes={notes}
-      notice={notice}
+      notice={
+        // 일괄 판정 실패는 머리 판 아래에(범례를 접어도 보인다)
+        bulkFailedKind !== null ? (
+          <>
+            {notice}
+            <MapUsualError kind={bulkFailedKind} onRetry={() => void bulk.refetch()} />
+          </>
+        ) : (
+          notice
+        )
+      }
+      legend={
+        usual ? (
+          <MapUsualLegend
+            notes={usualNotes}
+            orientation="vertical"
+            showSelected={district}
+          />
+        ) : undefined
+      }
       fallbackBounds={region.bbox}
-      label={t.map.canvasLabel(title, visible.list.length, cells.length)}
-      dimmed={map.isPlaceholderData}
+      label={
+        usual
+          ? t.map.usual.canvasLabel(`${title} · ${t.map.modes.usual}`, visible.list.length)
+          : t.map.canvasLabel(title, visible.list.length, cells.length)
+      }
+      dimmed={usual ? bulk.isPlaceholderData || bulk.isLoading : map.isPlaceholderData}
       describe={describe}
       onRegionClick={(id) => id !== region.id && navigate.toRegion(id)}
     />

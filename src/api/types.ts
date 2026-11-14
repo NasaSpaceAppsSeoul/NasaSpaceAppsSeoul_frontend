@@ -1,6 +1,6 @@
 // Burnline API 응답 타입. 이 파일이 원본이다(`.claude/reference/api-types.ts`에서 옮김, 2026-11-14).
-// 백엔드 커밋 7dff960의 코드를 읽고 작성했다(PR #13 필드 반영). 실제 응답으로 확인한 것이 아니다.
-// 서버가 켜지면 화면마다 실제 응답과 대조하고(roadmap 9장), 다르면 이 파일을 고친다.
+// 백엔드 코드(7dff960 → abfd9fe)를 읽고 작성했고, 2026-11-15 abfd9fe 서버의 실제 응답과 대조했다
+// (`.claude/reference/samples/`, roadmap 9장). 백엔드가 바뀌면 다시 대조한다.
 
 import type { Country } from "../lib/country";
 
@@ -39,6 +39,7 @@ export interface Meta {
   labels: {
     country: string; short: string; lv1: string; lv2: string;
     single: boolean; official: string; boundary: string; bins: [number, number, number];
+    season_start: number;               // 시즌(누적) 시작 달. 북반구 1, 남반구 CHL·NSW 7 (백엔드 Country.seasonStart)
   };
   sources: string[];
   time_basis: { code: "UTC+9" | "solar"; label_ko: string };
@@ -95,8 +96,10 @@ export interface Judgement {
   median: number | null; band_low: number | null; band_high: number | null;
   ratio_to_median: number | null;
   ytd_sum: number | null;               // 반올림 안 됨. 표시할 때 소수 한 자리로
-  ytd_ratio: number | null;
-  // 평소 누적 범위: 1월~그 달 band_low·band_high 합. 자체 판정이 아니거나 ytd_sum이 null이거나 합 ≤ 0이면 null
+  // 누적 평년: 시즌 시작 달~그 달의 해마다 누적 합의 중앙값(소수 한 자리, PR #17). 자체 판정이 아니면 null
+  ytd_median: number | null;
+  ytd_ratio: number | null;             // ytd_sum ÷ ytd_median
+  // 평소 누적 범위: 해마다 누적 합의 15·85 퍼센타일 ∓ 2√중앙값. 자체 판정이 아니거나 누적 합이 3개 미만이거나 ≤ 0이면 null
   ytd_lo: number | null; ytd_hi: number | null;
   quality: Quality | null; estimated: boolean; status: Status;
   reason: Reason | null;                // 하나만 온다. value·status·region_type·median 을 직접 본다
@@ -105,8 +108,12 @@ export interface Judgement {
 
 // ---- /judgement?month=   (지도용 일괄 판정, 시·군·구만)
 // 그 달 series 줄이 있는 시·군·구만 온다(전체 목록이 아닐 수 있음).
-// 자체 판정이 아니거나 값이 null·0 이하이면 chip·ratio_to_median이 null
-export interface BulkJudgementRegion { id: string; chip: Chip | null; ratio_to_median: number | null }
+// chip: 자체 판정이고 값이 있을 때만(값 0이어도, 집계 중인 달에도 온다). ratio_to_median: 그중 값·평년이 0보다 클 때만.
+// 드문 구역은 chip이 null이고 빌려 쓴 지역의 판정을 ref_id·ref_chip으로 준다(JudgeService.bulkMap)
+export interface BulkJudgementRegion {
+  id: string; chip: Chip | null; ratio_to_median: number | null;
+  judge_unit: JudgeUnit; ref_id: string | null; ref_chip: Chip | null;
+}
 export interface BulkJudgement { month: string; regions: BulkJudgementRegion[] }
 
 // ---- /series/{id}?from=&to= , /baseline/{id}
@@ -200,7 +207,7 @@ export interface Insight {
 export type LandingStat =
   | { key: "burned_area_record"; year: number | null; value: number | null; source: string; unit: "ha" }
   | { key: "case_month_ratio"; month: string; value: number | null; cells: number | null; rank: number | null; n: number | null }
-  | { key: "risk_share"; value: number | null; months: number[] };
+  | { key: "risk_share"; value: number | null; months: number[] | null };   // 위험 시기가 없으면(GRC) 둘 다 null
 export interface BreakRatio { ratio: number | null; ci95: [number, number] | null }
 export interface Landing {
   country: Country; data_version: string | null; labels: Meta["labels"];

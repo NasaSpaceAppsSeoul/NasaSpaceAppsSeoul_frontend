@@ -1,4 +1,12 @@
 /** 한글 문구. 이 객체의 모양이 모든 언어의 기준이다. 문구는 디자인 한글판에서 그대로 옮긴다. */
+
+/** 받침에 맞는 목적격 조사(서버 단계 이름 "광역"·"주"·"시·도" 뒤). 한글로 끝나지 않으면 "를" */
+function objectParticle(word: string): "을" | "를" {
+  const code = word.trim().codePointAt(word.trim().length - 1);
+  if (code === undefined || code < 0xac00 || code > 0xd7a3) return "를";
+  return (code - 0xac00) % 28 === 0 ? "를" : "을";
+}
+
 export const ko = {
   brand: "Burnline",
   nav: {
@@ -161,7 +169,7 @@ export const ko = {
   },
   notFound: {
     title: "페이지를 찾을 수 없습니다",
-    body: "주소가 맞는지 확인해 주세요. 나라는 KOR·CAL·BC 중 하나이고, 달은 2025-03처럼 씁니다.",
+    body: "주소가 맞는지 확인해 주세요. 나라는 KOR·CAL·BC·GRC·CHL·NSW 중 하나이고, 달은 2025-03처럼 씁니다.",
     home: "처음으로",
   },
   routeError: {
@@ -215,12 +223,18 @@ export const ko = {
     KOR: "대한민국",
     CAL: "캘리포니아",
     BC: "브리티시컬럼비아",
+    GRC: "그리스",
+    CHL: "칠레",
+    NSW: "뉴사우스웨일스",
   },
   // 영어 화면의 단위 이름. 한글 화면은 서버의 `meta.labels.lv1`·`lv2`를 쓴다
   levelNames: {
     KOR: { lv1: "시·도", lv2: "시·군·구" },
     CAL: { lv1: "주", lv2: "카운티" },
     BC: { lv1: "주", lv2: "지역구" },
+    GRC: { lv1: "광역", lv2: "시군" },
+    CHL: { lv1: "주", lv2: "시군" },
+    NSW: { lv1: "주", lv2: "지방정부" },
   },
   dashboard: {
     unit: "화재 감지일",
@@ -298,7 +312,7 @@ export const ko = {
     },
     controls: {
       all: (level: string) => `전체 ${level}`,
-      pickProvinceFirst: (lv1: string) => `${lv1}를 먼저 선택하세요`,
+      pickProvinceFirst: (lv1: string) => `${lv1}${objectParticle(lv1)} 먼저 선택하세요`,
       // 선택 줄 첫 칸: 지금 위치를 보이고 누르면 검색(2026-11-14 사용자 결정)
       search: "지역",
       searchHint: "지역 검색, 지금:",
@@ -314,7 +328,7 @@ export const ko = {
     breadcrumb: "현재 위치",
     dialogs: {
       pickTitle: (level: string) => `${level} 선택`,
-      pickDescription: (level: string) => `대시보드에서 볼 ${level}를 고르세요.`,
+      pickDescription: (level: string) => `대시보드에서 볼 ${level}${objectParticle(level)} 고르세요.`,
       wholeCountry: (country: string) => `${country} 전체`,
       searchTitle: "지역 검색",
       searchDescription: "나라, 시·도, 시·군·구 이름으로 찾습니다.",
@@ -357,13 +371,19 @@ export const ko = {
       detectionDays: "불이 감지된 날짜 수",
     },
     cumulative: {
-      title: (year: number, monthOfYear: number, monthName: string) =>
-        monthOfYear === 1 ? `${year}년 1월 누적` : `${year}년 1월부터 ${monthName}까지 누적`,
+      // 누적은 시즌 시작 달부터(북반구 1월, 칠레·NSW 7월). 해를 넘기면 앞 해를 함께 쓴다
+      title: (from: { year: number; name: string }, to: { year: number; name: string }, single: boolean) =>
+        single
+          ? `${to.year}년 ${to.name} 누적`
+          : from.year === to.year
+            ? `${to.year}년 ${from.name}부터 ${to.name}까지 누적`
+            : `${from.year}년 ${from.name}부터 ${to.year}년 ${to.name}까지 누적`,
       usual: (months: string, usual: string) => `평소 ${months} 약 ${usual}`,
       convertedRange: "환산 범위",
       unitNote: "약 1 km 칸에서 같은 날 감지된 불은 1로 셉니다. 화재 건수나 피해 면적이 아닙니다.",
     },
-    monthsSpan: (to: number) => (to === 1 ? "1월" : `1–${to}월`),
+    // 해를 넘기는 구간(남반구 7월~2월)은 "7–2월"이 거꾸로 읽혀 "7월–2월"로 쓴다
+    monthsSpan: (from: number, to: number) => (from === to ? `${to}월` : from < to ? `${from}–${to}월` : `${from}월–${to}월`),
     regionMissing: {
       title: "지역을 찾을 수 없습니다",
       body: "주소의 지역이 이 나라 목록에 없습니다. 지역을 다시 골라 주세요.",
@@ -382,6 +402,22 @@ export const ko = {
     csv: "월별 CSV",
     png: "달력 PNG",
     csvMock: "목 모드에서는 내려받을 수 없습니다",
+    // 내려받기 확인 대화상자(overlays/kr/export-csv·export-png). "프로토타입 미리보기" 줄은 빼고 버튼은 "내려받기"(4-8)
+    exports: {
+      description: "내려받을 파일의 내용을 확인하세요.",
+      download: "내려받기",
+      downloading: "내려받는 중…",
+      csv: { title: "월별 화재 활동 CSV", detail: "월별 감지일 · 평년 · 보통 해 범위 · 순위, 값이 있는 달만, 전체 기간" },
+      png: { title: "달력 이미지", detail: "PNG · 범례·출처·기준 기간 포함" },
+      pngFailed: "이미지를 만들지 못했습니다. 다시 시도해 주세요.",
+      // 그림 안 글자
+      image: {
+        title: (name: string, from: number, to: number) => `${name} · 연도별·월별 화재 달력 ${from}–${to}`,
+        sub: "화재 감지일 · NOAA-20 기준 보정값 · 한 달에 점 하나",
+        source: (dataEnd: string) => `출처: NASA FIRMS · 자료 기준일 ${dataEnd} · Burnline`,
+        period: (from: number, to: number) => `색 구간: 이 지역 0이 아닌 월값의 50·75·90 퍼센타일 · 평소 비교 기간 ${from}–${to}`,
+      },
+    },
     monthCorner: "달",
     monthHead: (m: number) => `${m}월`,
     empty: "이 지역의 월별 자료가 없습니다.",
@@ -432,13 +468,37 @@ export const ko = {
     title: (month: string) => `${month} · 화재 칸과 감지 위치`,
     sub: "지역색은 월간 화재 칸 수, 점은 감지 위치와 첫 감지일을 나타냅니다.",
     modes: { cells: "화재 칸·위치", usual: "평소 대비" },
-    soon: "준비 중",
+    // "평소 대비" 보기(9장). 평가는 백엔드 일괄 판정(`/judgement?month=`)의 자기 판정이고, 드문 구역은 빌려 쓴 판정을 올려서만 보인다
+    usual: {
+      title: (month: string) => `${month} · 평소 대비`,
+      sub: "지역색은 같은 달 지난 해들과 비교한 평가입니다. 기록이 적은 구역은 빗금입니다.",
+      legendTitle: "색 · 같은 달 평소와 비교",
+      none: "평가 없음",
+      noneNote: "빗금은 기록이 적어 자체 평가를 하지 않는 구역(빌려 쓴 평가는 올려서 확인)과 값이 없는 구역입니다.",
+      basisNote: "평소 범위는 같은 달 지난 해들의 15–85% 구간에 작은 수 보정을 더한 것입니다.",
+      partial: "이 달은 아직 집계 중입니다. 평가는 집계가 끝난 뒤 보여 줍니다.",
+      pre2012: "2012년 2월 이전은 시·군·구 값이 없어 평가하지 않습니다.",
+      failed: "평가를 불러오지 못했습니다.",
+      tooltip: {
+        ratio: (chip: string, ratio: string) => `${chip} · 평소의 ${ratio}배`,
+        borrowed: (name: string, chip: string) => `기록 부족 · ${name} 기준 ${chip}`,
+        none: "평가 없음",
+      },
+      canvasLabel: (title: string, regions: number) => `${title}. 지역 ${regions}곳. 지역 이동은 위의 선택 줄로도 할 수 있습니다.`,
+    },
     zoom: { in: "확대", out: "축소", reset: "처음 크기로" },
     hint: "+ / − 확대·축소 · 점에 올려 확인",
     // 지도 왼쪽 아래 출처 줄(시안 v11 `.db-map-attribution`). 경계 출처 이름은 백엔드 `labels.boundary`에서 옮긴 나라별 고정 문구다
     // (그 값은 한글 설명·라이선스가 섞여 영문 화면에 그대로 못 쓴다. 9장에서 실제 값과 대조), 날짜 기준은 `time_basis.code`로 고른다
     attribution: {
-      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
+      boundary: {
+        KOR: "geoBoundaries",
+        CAL: "geoBoundaries USA",
+        BC: "BC Data Catalogue",
+        GRC: "geoBoundaries GRC",
+        CHL: "geoBoundaries CHL",
+        NSW: "geoBoundaries AUS",
+      },
       time: { "UTC+9": "한국 표준시(UTC+9) 날짜 기준", solar: "경도 기준 태양시 날짜" },
       line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
     },

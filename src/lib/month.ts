@@ -47,6 +47,15 @@ export function makeMonth(year: number, monthOfYear: number): string {
   return `${String(year).padStart(4, "0")}-${String(monthOfYear).padStart(2, "0")}`;
 }
 
+/**
+ * 그 달이 속한 시즌의 첫 달. 백엔드 `TimeseriesRepository.seasonStartMonth`와 같다
+ * (`seasonStart` = `meta.labels.season_start`, 북반구 1이면 그해 1월, 남반구 7이면 CHL 2026-02 → 2025-07).
+ */
+export function seasonStartMonth(month: string, seasonStart: number): string {
+  const year = monthYear(month);
+  return makeMonth(monthNumber(month) >= seasonStart ? year : year - 1, seasonStart);
+}
+
 /** 달을 `n`개월 앞(+)이나 뒤(-)로 옮긴다. */
 export function shiftMonth(month: string, n: number): string {
   const index = monthYear(month) * 12 + (monthNumber(month) - 1) + n;

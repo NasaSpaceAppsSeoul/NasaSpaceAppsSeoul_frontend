@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import type { MapMode } from "../../components/map/MapToggles";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 import { apiMode } from "../../api/client";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "./scope";
@@ -36,6 +37,8 @@ type DashboardLayoutProps = {
 export function DashboardLayout({ scope, navigate, openDialog, dialogs }: DashboardLayoutProps) {
   const { region } = scope;
   const national = region.level === "nat";
+  // 지도 보기 방식(화재 칸·위치 / 평소 대비). 지역별로 다시 그리는 지도 구역 밖에 두어 달·지역을 바꿔도 유지한다(주소에는 넣지 않음)
+  const [mapMode, setMapMode] = useState<MapMode>("cells");
   const controls = <ControlsSection scope={scope} navigate={navigate} openDialog={openDialog} />;
   const head = <HeadSection scope={scope} />;
   // 카드는 화면에 들어올 때 떠오른다(시안 v9, 첫 화면과 같은 `useScrollReveal`). 오른쪽 칸 카드는 90ms 늦게
@@ -54,9 +57,9 @@ export function DashboardLayout({ scope, navigate, openDialog, dialogs }: Dashbo
         {/* 지도 카드는 줄 높이만큼 늘어나야 해서 감싸는 칸도 늘린다 */}
         <div data-reveal className="grid self-stretch">
           {national ? (
-            <MapSection key={`map-${region.id}`} scope={scope} navigate={navigate} />
+            <MapSection key={`map-${region.id}`} scope={scope} navigate={navigate} mode={mapMode} onModeChange={setMapMode} />
           ) : (
-            <RegionMapSection key={`map-${region.id}`} scope={scope} navigate={navigate} />
+            <RegionMapSection key={`map-${region.id}`} scope={scope} navigate={navigate} mode={mapMode} onModeChange={setMapMode} />
           )}
         </div>
         <div data-reveal data-reveal-delay="1">

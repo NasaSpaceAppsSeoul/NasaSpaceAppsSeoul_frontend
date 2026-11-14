@@ -1,12 +1,12 @@
 /*
- * 목 `/series/{id}?from=&to=`와 `/judgement/{id}?month=`의 파라미터 검사와 응답.
+ * 목 `/series/{id}?from=&to=`, `/judgement/{id}?month=`, 일괄 판정 `/judgement?month=`의 파라미터 검사와 응답.
  * 검사 순서는 백엔드와 같다(`SeriesService.series`, `JudgeService.judge`, `Months.check`, `Params.monthRange`):
  * 지역(404 `REGION_NOT_FOUND`) → 달 형식·`from > to`(400 `INVALID_PARAM`) → 달 범위(400 `MONTH_OUT_OF_RANGE`).
  * 달 범위는 나라마다 2001-01~2026-11(지어낸 값, `series-gen.ts`).
  */
 import type { Country } from "../../lib/country";
 import { ApiError } from "../client";
-import type { Judgement, RegionSummary, SeriesMonth, SeriesResponse } from "../types";
+import type { BulkJudgement, Judgement, RegionSummary, SeriesMonth, SeriesResponse } from "../types";
 import { judgement, profileOf, seriesMonth } from "./judge";
 import { FIRST_MONTH, monthIndex, timeline } from "./series-gen";
 import type { CountryMock } from "./types";
@@ -70,4 +70,29 @@ export function mockJudgement(
   checkFormat(month, "month");
   checkRange(country, month);
   return judgement(country, region, mock?.regions ?? [], monthIndex(month));
+}
+
+/**
+ * 지도용 일괄 판정(`JudgeService.bulkMap`): 시·군·구마다 상세 판정과 같은 규칙의 칩·배수·빌려 쓴 판정.
+ * 백엔드는 그 달 시계열 줄이 있는 시·군·구만 주지만, 목은 모든 시·군·구에 줄이 있어 전부 준다.
+ */
+export function mockBulkJudgement(country: Country, mock: CountryMock | undefined, query: URLSearchParams): BulkJudgement {
+  const month = query.get("month");
+  if (month === null || month === "") throw new ApiError(400, "INVALID_PARAM", "month is required");
+  checkFormat(month, "month");
+  checkRange(country, month);
+  const all = mock?.regions ?? [];
+  const index = monthIndex(month);
+  return {
+    month,
+    regions: all
+      .filter((r) => r.level === "dist")
+      .map((r) => {
+        const j = judgement(country, r, all, index);
+        return {
+          id: j.id, chip: j.chip, ratio_to_median: j.ratio_to_median,
+          judge_unit: j.judge_unit, ref_id: j.ref_id, ref_chip: j.ref_chip,
+        };
+      }),
+  };
 }

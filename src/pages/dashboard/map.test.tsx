@@ -34,8 +34,9 @@ describe("나라 지도 (4장)", () => {
   it("제목·전환 버튼·범례, 면 단계와 값 없음(2025-03 울릉군)", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     expect(await screen.findByRole("heading", { name: "2025년 3월 · 화재 칸과 감지 위치" })).toBeTruthy();
-    // "평소 대비"는 자리만(누를 수 없음), 지도/목록 전환은 뺐다(2026-11-15 사용자)
-    expect((await screen.findByRole("button", { name: "평소 대비 · 준비 중" })).getAttribute("aria-disabled")).toBe("true");
+    // 보기 전환: 처음은 화재 칸·위치(9장에서 "평소 대비"가 동작), 지도/목록 전환은 뺐다(2026-11-15 사용자)
+    expect((await screen.findByRole("button", { name: "화재 칸·위치" })).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "평소 대비" }).getAttribute("aria-pressed")).toBe("false");
     expect(screen.queryByRole("button", { name: /목록/ })).toBeNull();
     // 범례는 지도 위 판 안에, 접을 수 있게(처음엔 펼침)
     const legendToggle = screen.getByRole("button", { name: "범례" });
@@ -225,5 +226,48 @@ describe("나라 지도 (4장)", () => {
     expect(await screen.findByRole("heading", { name: "2025년 3월 · 화재 칸과 감지 위치" })).toBeTruthy();
     expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "다시 시도" }).length).toBeGreaterThan(0);
+  });
+
+  it("평소 대비(9장): 자기 평가 색, 드문 구역 빗금과 빌려 쓴 평가, 점 없음, 지역을 바꿔도 보기 유지", async () => {
+    const bulk = (await mockGet("/KOR/judgement?month=2025-03")) as { regions: { id: string; chip: string | null; ref_chip: string | null }[] };
+    const own = bulk.regions.find((r) => r.chip === "record");
+    const sparse = bulk.regions.find((r) => r.chip === null && r.ref_chip !== null);
+    if (own === undefined || sparse === undefined) throw new Error("목에 평가 구역이 없다");
+    renderRoute("/dashboard/KOR?month=2025-03");
+    fireEvent.click(await screen.findByRole("button", { name: "평소 대비" }));
+    expect(await screen.findByRole("heading", { name: "2025년 3월 · 평소 대비" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "평소 대비" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByText("색 · 같은 달 평소와 비교")).toBeTruthy();
+    expect(screen.getByText("평가 없음")).toBeTruthy();
+    const map = fakeMaps.at(-1);
+    if (map === undefined) throw new Error("지도 없음");
+    await waitFor(() => expect(map.featureStates.get(own.id)).toEqual({ bin: 10 }));
+    expect(map.featureStates.get(sparse.id)).toEqual({ bin: -1 });
+    expect(map.sources.get("points")?.data).toMatchObject({ features: [] });
+  });
+
+  it("평소 대비: 집계 중인 달은 평가하지 않고 안내(일괄 판정을 부르지 않음)", async () => {
+    renderRoute("/dashboard/KOR?month=2026-11");
+    fireEvent.click(await screen.findByRole("button", { name: "평소 대비" }));
+    expect(await screen.findByText("이 달은 아직 집계 중입니다. 평가는 집계가 끝난 뒤 보여 줍니다.")).toBeTruthy();
+  });
+
+  it("평소 대비: 지도에서 지역을 눌러 들어가도 보기가 유지된다(화면이 상태를 든다)", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    const map = await loadedMap();
+    fireEvent.click(await screen.findByRole("button", { name: "평소 대비" }));
+    await screen.findByRole("heading", { name: "2025년 3월 · 평소 대비" });
+    map.hits = [{ layer: "region-fill", properties: { id: UISEONG } }];
+    act(() => map.emit("click", { point: { x: 10, y: 10 } }));
+    expect(await screen.findByRole("heading", { name: /의성군과 주변 지역/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "평소 대비" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByText("색 · 같은 달 평소와 비교")).toBeTruthy();
+  });
+
+  it("평소 대비: 자료 범위 밖 달은 요청하지 않고 범위 밖 안내(다시 시도 없음)", async () => {
+    renderRoute("/dashboard/KOR?month=2030-01");
+    fireEvent.click(await screen.findByRole("button", { name: "평소 대비" }));
+    expect(await screen.findByText("이 달은 감지 지점 자료가 없습니다.")).toBeTruthy();
+    expect(screen.queryByText("평가를 불러오지 못했습니다.")).toBeNull();
   });
 });
