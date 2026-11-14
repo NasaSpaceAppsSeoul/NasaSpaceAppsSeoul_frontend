@@ -161,6 +161,39 @@ export const ko = {
       empty: "이번 달 감지된 곳이 없습니다.",
       preDistrict: "2012년 2월 이전은 시·군·구 값이 없습니다.",
     },
+    // 나라 화면 평소 화재 집중 시기(5장, `/regions/{id}` risk_months). 디자인 "절반 이상이 집중되는 달"은 실제 비중(risk_share)으로 쓴다
+    season: {
+      title: "평소 화재 집중 시기",
+      sub: (share: string | null, period: string | null) =>
+        [share === null ? "평소 연간 활동이 집중되는 달" : `평소 연간 활동의 ${share}가 모이는 달`, period].filter((s) => s !== null).join(" · "),
+      run: (from: number, to: number) => (from === to ? `${from}월` : `${from}–${to}월`),
+      count: (n: number) => (["", "한 달", "두 달", "세 달", "네 달", "다섯 달", "여섯 달"][n] ?? `${n}개월`),
+      detail: (count: string, peak: number | null) =>
+        peak === null ? `평소 감지가 집중되는 ${count}` : `평소 감지가 집중되는 ${count} · ${peak}월이 정점`,
+      note: "과거 기록의 패턴이며 예측이 아닙니다.",
+      empty: "집중 시기를 정할 만큼 기록이 없습니다.",
+      partial: "정점과 비교 기간을 불러오지 못했습니다.",
+    },
+    // 나라 화면 월별 선 그래프(5장). 환산 문구는 NOAA-20 기준(4-3a), 띠는 보통 해 범위(가운데 50%가 아니다, 12절 ④)
+    monthly: {
+      title: (year: number) => `${year}년 월별 활동`,
+      sub: (period: string) => `월별 화재 감지일 · NOAA-20 기준(이전 위성 기록은 NOAA-20 기준으로 환산). 띠: ${period} 보통 해 범위.`,
+      legendYear: (year: number, converted: boolean) => (converted ? `${year} · 센서 환산값 포함` : `${year}`),
+      legendBand: (period: string) => `보통 해 범위 · ${period}`,
+      legendMedian: "중앙값(평소)",
+      pending: (from: number) => (from === 12 ? "12월: 아직 집계 전" : `${from}–12월: 아직 집계 전`),
+      tooltip: {
+        median: "평소 중앙값",
+        band: "보통 해 범위",
+        partial: "집계 중",
+        converted: "센서 환산값",
+        noValue: "값 없음",
+        future: "아직 집계 전",
+      },
+      empty: "이 해에는 표시할 값이 없습니다.",
+      tableCaption: (year: number) => `${year}년 월별 화재 감지일과 평소 값`,
+      columns: { month: "달", value: "값", median: "평소 중앙값", band: "보통 해 범위" },
+    },
     // 시·군·구 화면의 인접 지역 목록(5장, 6-2). 값 큰 순, 0도 보인다
     neighbors: {
       title: (monthName: string) => `인접 지역의 ${monthName} 기록`,

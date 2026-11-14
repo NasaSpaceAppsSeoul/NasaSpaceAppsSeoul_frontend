@@ -20,7 +20,9 @@ import { HeadSection } from "./sections/HeadSection";
 import { HeatmapSection } from "./sections/HeatmapSection";
 import { JudgementSection } from "./sections/JudgementSection";
 import { MapSection } from "./sections/MapSection";
+import { MonthlySection } from "./sections/MonthlySection";
 import { RegionListSection } from "./sections/RegionListSection";
+import { RiskSeasonSection } from "./sections/RiskSeasonSection";
 import { RegionMapSection } from "./sections/RegionMapSection";
 
 type DashboardBodyProps = { country: Country; regionId: string | undefined; monthParam: string | undefined; meta: Meta };
@@ -143,6 +145,17 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
           )}
         </div>
       </div>
+      {/* 나라 화면: 평소 화재 집중 시기(1/3) + 월별 선 그래프(2/3), 디자인 dashboard-national */}
+      {national && (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <RiskSeasonSection scope={scope} />
+          </div>
+          <div className="lg:col-span-2">
+            <MonthlySection scope={scope} />
+          </div>
+        </div>
+      )}
       {/* 지역이 바뀌면 다시 그려 표시 연도를 기본으로 되돌린다 */}
       <HeatmapSection key={region.id} scope={scope} navigate={navigate} openDialog={setDialog} mockMode={apiMode() === "mock"} />
       {dialogs}
