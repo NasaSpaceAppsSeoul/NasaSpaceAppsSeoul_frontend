@@ -370,7 +370,6 @@ export const ko = {
     png: "달력 PNG ↓",
     csvMock: "목 모드에서는 내려받을 수 없습니다",
     monthHead: (m: number) => `${m}월`,
-    yearHead: "연도",
     empty: "이 지역의 월별 자료가 없습니다.",
     gridLabel: "연도별·월별 화재 달력. 방향키로 칸을 옮기고 Enter로 그 달을 엽니다.",
     divider: {

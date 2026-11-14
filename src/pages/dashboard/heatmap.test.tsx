@@ -94,16 +94,35 @@ describe("히트맵 (3장)", () => {
     expect((await screen.findByRole("tooltip")).textContent).toContain("대한민국 · 2024년 6월");
   });
 
-  it("키보드: 방향키로 칸을 옮기고 누르면 그 달", async () => {
+  it("키보드: 해는 가로(←→), 달은 세로(↑↓)로 칸을 옮기고 누르면 그 달(시안 배치, 2026-11-15 사용자)", async () => {
     const { router } = renderRoute("/dashboard/KOR?month=2025-03");
     const g = await grid();
     const selected = cell(g, "대한민국 · 2025년 3월");
     selected.focus();
-    fireEvent.keyDown(selected, { key: "ArrowRight" });
-    const next = cell(g, "대한민국 · 2025년 4월");
-    expect(document.activeElement).toBe(next);
-    fireEvent.click(next);
+    fireEvent.keyDown(selected, { key: "ArrowDown" });
+    const below = cell(g, "대한민국 · 2025년 4월");
+    expect(document.activeElement).toBe(below);
+    fireEvent.keyDown(below, { key: "ArrowLeft" });
+    const left = cell(g, "대한민국 · 2024년 4월");
+    expect(document.activeElement).toBe(left);
+    fireEvent.keyDown(left, { key: "ArrowRight" });
+    expect(document.activeElement).toBe(below);
+    fireEvent.click(below);
     await waitFor(() => expect(router.state.location.search).toBe("?month=2025-04"));
+  });
+
+  it("배치: 맨 윗줄은 해(왼쪽이 오래된 해), 왼쪽 칸은 1~12월", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    const g = await grid();
+    const years = within(g)
+      .getAllByText(/^\d{4}$/)
+      .map((el) => Number(el.textContent));
+    expect(years[0]).toBe(2001);
+    expect(years.at(-1)).toBe(2026);
+    // 같은 달(3월) 줄 안에서 2024년 칸이 2025년 칸보다 앞(왼쪽)
+    const a = cell(g, "대한민국 · 2024년 3월");
+    const b = cell(g, "대한민국 · 2025년 3월");
+    expect(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("시·군·구(의성): 2012년부터, 표시 연도 버튼 없음, 드문 지역은 툴팁에 범위가 없다", async () => {

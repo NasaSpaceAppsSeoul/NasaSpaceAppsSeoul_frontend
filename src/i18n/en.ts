@@ -366,7 +366,6 @@ export const en: Messages = {
     png: "Calendar PNG ↓",
     csvMock: "Downloads are not available with mock data",
     monthHead: (m: number) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1] ?? String(m),
-    yearHead: "Year",
     empty: "There is no monthly data for this region.",
     gridLabel: "Fire calendar by year and month. Use the arrow keys to move between cells and Enter to open that month.",
     divider: {
