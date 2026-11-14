@@ -154,6 +154,20 @@ export const ko = {
   },
   dashboard: {
     unit: "화재 감지일",
+    // 시·도 목록 3곳(5장, `decisions.md` 6-1·6-3). 디자인 "3월 화재 감지일 순위"는 백엔드 정렬(그 지역 같은 달 순위 → 값)과 뜻이 달라 고쳐 씀
+    top: {
+      title: "평소보다 두드러진 곳",
+      sub: (lv2: string) => `각 ${lv2}의 지난 같은 달 기록과 비교해 두드러진 순서입니다.`,
+      empty: "이번 달 감지된 곳이 없습니다.",
+      preDistrict: "2012년 2월 이전은 시·군·구 값이 없습니다.",
+    },
+    // 시·군·구 화면의 인접 지역 목록(5장, 6-2). 값 큰 순, 0도 보인다
+    neighbors: {
+      title: (monthName: string) => `인접 지역의 ${monthName} 기록`,
+      sub: "맞닿은 지역의 같은 달 값입니다. 같은 단위로 비교합니다.",
+      empty: "맞닿은 지역이 없습니다.",
+      preDistrict: "2012년 2월 이전은 시·군·구 값이 없습니다.",
+    },
     natTitle: (month: string) => `${month}은 평소와 비교해 어땠을까요?`,
     natSub: (country: string, lv2: string, dataEnd: string) => `${country} · ${lv2} · ${dataEnd}까지 자료`,
     stage: (level: string) => `${level} / 지역 보기`,

@@ -20,6 +20,7 @@ import { HeadSection } from "./sections/HeadSection";
 import { HeatmapSection } from "./sections/HeatmapSection";
 import { JudgementSection } from "./sections/JudgementSection";
 import { MapSection } from "./sections/MapSection";
+import { RegionListSection } from "./sections/RegionListSection";
 import { RegionMapSection } from "./sections/RegionMapSection";
 
 type DashboardBodyProps = { country: Country; regionId: string | undefined; monthParam: string | undefined; meta: Meta };
@@ -128,8 +129,10 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
       {national ? controls : head}
       {national ? head : controls}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1">
+        <div className="flex flex-col gap-6 lg:col-span-1">
           <JudgementSection scope={scope} navigate={navigate} openDialog={setDialog} />
+          {/* 시·도: 평소보다 두드러진 곳 3곳, 시·군·구: 인접 지역 목록(5장). 나라 화면은 디자인대로 목록 없음 */}
+          {!national && <RegionListSection key={region.id} scope={scope} navigate={navigate} />}
         </div>
         {/* 나라는 나라 지도(4장), 시·도·시·군·구는 지역 지도(5장) */}
         <div className="lg:col-span-2">

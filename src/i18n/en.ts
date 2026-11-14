@@ -149,6 +149,18 @@ export const en: Messages = {
   },
   dashboard: {
     unit: "fire grid-days",
+    top: {
+      title: "Standing out from usual",
+      sub: (lv2: string) => `Ordered by how much each ${lv2.toLowerCase()} stands out against its own past records for the same month.`,
+      empty: "No detections this month.",
+      preDistrict: "District values are not available before February 2012.",
+    },
+    neighbors: {
+      title: (monthName: string) => `Neighboring areas in ${monthName}`,
+      sub: "Same-month values for adjacent areas, in the same unit.",
+      empty: "No adjacent areas.",
+      preDistrict: "District values are not available before February 2012.",
+    },
     natTitle: (month: string) => `How did ${month} compare with usual?`,
     natSub: (country: string, lv2: string, dataEnd: string) => `${country} · ${lv2} · data through ${dataEnd}`,
     stage: (level: string) => `${level} / Region view`,
