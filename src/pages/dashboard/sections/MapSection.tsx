@@ -3,6 +3,7 @@ import type { GeoFeature, MapResponse } from "../../../api/types";
 import { Card, CardHeader } from "../../../components/Card";
 import { MapCanvas, type MapCanvasHandle, type MapHover, type ZoomState } from "../../../components/map/MapCanvas";
 import { MapLegend } from "../../../components/map/MapLegend";
+import { MapPanel, PANEL_FIT_PADDING } from "../../../components/map/MapPanel";
 import { MapToggles } from "../../../components/map/MapToggles";
 import { MapTooltip } from "../../../components/map/MapTooltip";
 import { MapZoomControls } from "../../../components/map/MapZoomControls";
@@ -29,7 +30,6 @@ type MapSectionProps = { scope: DashboardScope; navigate: DashboardNavigate };
 const START: ZoomState = { canZoomIn: true, canZoomOut: false, atStart: true };
 const EMPTY: readonly GeoFeature[] = [];
 const NO_BORDERS: readonly BorderFeature[] = [];
-const GRID = "grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-center";
 
 export function MapSection({ scope, navigate }: MapSectionProps) {
   const t = useMessages();
@@ -64,11 +64,21 @@ export function MapSection({ scope, navigate }: MapSectionProps) {
   if (data !== undefined && !map.isPlaceholderData && data.regions.some((r) => r.reason === "PRE_2012_DISTRICT")) notes.push(t.map.notes.pre2012(data.points.sensor));
 
   const title = t.map.title(formatMonth(month, locale));
+  // 에러는 일반 카드로(지도가 없으니 떠 있는 판도 없다)
   const frame = (body: ReactNode) => (
     <Card className="flex flex-col gap-4">
       <CardHeader title={title} sub={t.map.sub} />
       {body}
     </Card>
+  );
+  const header = (
+    <>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-base font-medium text-ink">{title}</h2>
+        <p className="text-xs text-muted">{t.map.sub}</p>
+      </div>
+      <MapToggles />
+    </>
   );
   // 처음부터 받지 못한 것만 에러로(범위 밖 달은 빈 지도와 안내, 5-9)
   const failed = [geo, ...(outOfRange ? [] : [map])].filter((q) => q.isError && q.data === undefined);
@@ -76,20 +86,9 @@ export function MapSection({ scope, navigate }: MapSectionProps) {
   if (firstFailed !== undefined) {
     return frame(<SectionError kind={errorKind(firstFailed.error)} onRetry={() => failed.forEach((q) => void q.refetch())} />);
   }
-  // 로딩 자리는 실제 배치(전환 줄, 지도 3 : 범례 2)와 같게 그려 다 받은 뒤 높이가 출렁이지 않게 한다
+  // 로딩 자리는 지도 카드와 같은 크기로 그려 다 받은 뒤 높이가 출렁이지 않게 한다
   if (geo.data === undefined || (map.data === undefined && !outOfRange)) {
-    return frame(
-      <>
-        <Skeleton className="h-10 w-full" />
-        <div className={GRID}>
-          <div className="flex flex-col gap-2">
-            <Skeleton className="aspect-square w-full" />
-            <Skeleton className="h-4 w-full" />
-          </div>
-          <Skeleton className="h-64 w-full" />
-        </div>
-      </>,
-    );
+    return <Skeleton className="min-h-155 w-full rounded-card" />;
   }
 
   const name = (id: string) => regionNameById(id, id, index, locale);
@@ -110,43 +109,42 @@ export function MapSection({ scope, navigate }: MapSectionProps) {
     return { ...at, title: name(h.id), label: null, value: text };
   })();
 
-  return frame(
-    <>
-      <MapToggles />
-      <div className={GRID}>
-        <div className="flex flex-col gap-2">
-          <div className={`relative aspect-square w-full transition-opacity ${map.isPlaceholderData ? "opacity-60" : ""}`}>
-            {/* 휠 안내 문구는 지도를 만들 때 한 번만 쓰므로 언어가 바뀌면 지도를 새로 만든다(`/`와 `/en`은 같은 자리에 그려진다) */}
-            <MapCanvas
-              key={locale}
-              ref={canvas}
-              features={visible.features}
-              featureKey={visible.key}
-              fills={fills}
-              outlines={borders}
-              gestureHelp={t.map.gestureHelp}
-              selectedId={null}
-              cells={cells}
-              fallbackBounds={region.bbox}
-              label={t.map.canvasLabel(title, visible.list.length, cells.length)}
-              onRegionClick={(id) => id !== region.id && navigate.toRegion(id)}
-              onHover={(at) => setHover(at === null ? null : { at, data: map.data })}
-              onZoomChange={setZoom}
-            />
-            <div className="absolute top-0 right-0">
-              <MapZoomControls
-                state={zoom}
-                onZoomIn={() => canvas.current?.zoomIn()}
-                onZoomOut={() => canvas.current?.zoomOut()}
-                onReset={() => canvas.current?.reset()}
-              />
-            </div>
-            {tooltip !== null && <MapTooltip {...tooltip} />}
-          </div>
-          <p className="text-right text-xs text-muted">{t.map.hint}</p>
-        </div>
-        <MapLegend bins={meta.labels.bins} showSelected={false} notes={notes} orientation="vertical" />
-      </div>
-    </>,
+  return (
+    <MapPanel
+      header={header}
+      dimmed={map.isPlaceholderData}
+      map={
+        // 휠 안내 문구는 지도를 만들 때 한 번만 쓰므로 언어가 바뀌면 지도를 새로 만든다(`/`와 `/en`은 같은 자리에 그려진다)
+        <MapCanvas
+          key={locale}
+          ref={canvas}
+          features={visible.features}
+          featureKey={visible.key}
+          fills={fills}
+          outlines={borders}
+          gestureHelp={t.map.gestureHelp}
+          selectedId={null}
+          cells={cells}
+          fallbackBounds={region.bbox}
+          fitPadding={PANEL_FIT_PADDING}
+          label={t.map.canvasLabel(title, visible.list.length, cells.length)}
+          onRegionClick={(id) => id !== region.id && navigate.toRegion(id)}
+          onHover={(at) => setHover(at === null ? null : { at, data: map.data })}
+          onZoomChange={setZoom}
+        />
+      }
+      zoom={
+        <MapZoomControls
+          state={zoom}
+          onZoomIn={() => canvas.current?.zoomIn()}
+          onZoomOut={() => canvas.current?.zoomOut()}
+          onReset={() => canvas.current?.reset()}
+        />
+      }
+      legend={<MapLegend bins={meta.labels.bins} showSelected={false} notes={notes} orientation="vertical" />}
+      legendLabel={t.map.legend.toggle}
+      hint={t.map.hint}
+      tooltip={tooltip !== null && <MapTooltip {...tooltip} />}
+    />
   );
 }

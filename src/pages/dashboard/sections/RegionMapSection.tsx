@@ -68,12 +68,8 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
   // 자리 표시는 처음 받을 때만. 실패한 뒤 다시 받는 동안은 자기만 그린 지도를 그대로 둔다(지도를 새로 만들지 않게)
   const waitingNeighbors = district && detail.isPending && detail.errorUpdatedAt === 0;
   if (geo.data === undefined || (map.data === undefined && !outOfRange) || waitingNeighbors) {
-    return frame(
-      <div className="flex flex-col gap-4">
-        <Skeleton className="aspect-video w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>,
-    );
+    // 지도 카드와 같은 크기로(다 받은 뒤 높이가 출렁이지 않게)
+    return <Skeleton className="min-h-155 w-full rounded-card" />;
   }
 
   const data = map.data;
@@ -115,8 +111,16 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
       </div>
     ) : undefined;
 
-  return frame(
+  return (
     <RegionMap
+      layout="panel"
+      header={
+        <div className="flex flex-col gap-1">
+          <p className="mono-overline text-action">{t.map.regional.eyebrow}</p>
+          <h2 className="text-base font-medium text-ink">{title}</h2>
+          <p className="text-xs text-muted">{t.map.regional.sub}</p>
+        </div>
+      }
       features={visible.features}
       featureKey={visible.key}
       fills={fills}
@@ -130,6 +134,6 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
       dimmed={map.isPlaceholderData}
       describe={describe}
       onRegionClick={(id) => id !== region.id && navigate.toRegion(id)}
-    />,
+    />
   );
 }

@@ -259,12 +259,6 @@ export const en: Messages = {
       tableCaption: (year: number) => `Monthly fire grid-days in ${year} and usual values`,
       columns: { month: "Month", value: "Value", median: "Usual median", band: "Usual range" },
     },
-    export: {
-      title: "Take this region and month with you.",
-      points: "Detection points CSV / GeoJSON",
-      share: "Copy link to this view",
-      footnote: (lv2: string) => `Choose a ${lv2.toLowerCase()} to open the monthly insight for the same month.`,
-    },
     share: {
       title: "Share this view",
       description: "The link keeps the selected region and reference month.",
@@ -293,6 +287,8 @@ export const en: Messages = {
       search: "Region",
       // 보이는 이름표 "Region"이 읽히는 이름에 그대로 들어가게(음성 조작)
       searchHint: "Region search, now:",
+      // 경로 줄 오른쪽 공유 버튼(대화상자를 연다). 예전 "자료 가져가기" 카드에서 옮김(2026-11-15)
+      share: "Copy link to this view",
       searchPlaceholder: "Search a country, province, city or county",
       month: "Reference month",
     },
@@ -409,11 +405,11 @@ export const en: Messages = {
     title: (month: string) => `${month} · Fire cells and detection locations`,
     sub: "Fill shows monthly fire cells. Dots show detected locations and first-detection dates.",
     modes: { cells: "Fire cells & points", usual: "Vs usual" },
-    views: { map: "Map", list: "List" },
     soon: "Coming soon",
     zoom: { in: "Zoom in", out: "Zoom out", reset: "Reset view" },
     hint: "Zoom + / − · hover dots",
     legend: {
+      toggle: "Legend",
       fillTitle: "Fill · fire cells this month",
       below: (to: string) => `Under ${to}`,
       between: (from: string, to: string) => `${from}–${to}`,

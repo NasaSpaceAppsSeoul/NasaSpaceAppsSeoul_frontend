@@ -35,6 +35,9 @@ export type MapHover = ({ kind: "region"; id: string } | { kind: "point"; index:
 };
 export type ZoomState = { canZoomIn: boolean; canZoomOut: boolean; atStart: boolean };
 export type MapCanvasHandle = { zoomIn: () => void; zoomOut: () => void; reset: () => void };
+type Padding = { top: number; right: number; bottom: number; left: number };
+/** 고정 여백이나, 지도 칸 크기(px)를 받아 여백을 돌려주는 함수(카드 폭에 따라 판 자리를 다르게 비울 때) */
+export type FitPadding = number | Padding | ((width: number, height: number) => Padding);
 
 type MapCanvasProps = {
   features: readonly GeoFeature[];
@@ -59,6 +62,11 @@ type MapCanvasProps = {
    * 언어가 바뀌면 쓰는 쪽이 `key`로 지도를 새로 만든다(`/`와 `/en`은 같은 자리에 그려져 다시 만들어지지 않는다)
    */
   gestureHelp?: { windows: string; mac: string; mobile: string };
+  /**
+   * 처음 크기로 맞출 때 지도 가장자리에서 비울 여백(px). 지도 위에 판이 떠 있는 카드(대시보드 지도 카드)는
+   * 판에 가리지 않게 위·오른쪽을 더 비운다. 만들 때와 "처음 크기"에서 쓴다. 기본 16
+   */
+  fitPadding?: FitPadding;
   /** 구역을 눌렀을 때. 없으면 누름을 받지 않는다 */
   onRegionClick?: (id: string) => void;
   onHover: (hover: MapHover | null) => void;
@@ -67,6 +75,12 @@ type MapCanvasProps = {
 };
 
 const ZOOM_RANGE = 4;
+
+function paddingFor(map: MapLibreMap, padding: FitPadding | undefined): number | Padding {
+  if (typeof padding !== "function") return padding ?? 16;
+  const { clientWidth, clientHeight } = map.getContainer();
+  return padding(clientWidth, clientHeight);
+}
 const EPSILON = 0.01;
 const NO_OUTLINES: readonly BorderFeature[] = [];
 const collection = (features: readonly unknown[]) => ({ type: "FeatureCollection" as const, features: [...features] });
@@ -120,7 +134,7 @@ export function MapCanvas(props: MapCanvasProps) {
     map.setMaxBounds(null);
     map.setMinZoom(null);
     map.setMaxZoom(null);
-    map.fitBounds(b, { padding: 16, animate: false });
+    map.fitBounds(b, { padding: paddingFor(map, props.fitPadding), animate: false });
     startZoom.current = map.getZoom();
     map.setMinZoom(startZoom.current);
     map.setMaxZoom(startZoom.current + ZOOM_RANGE);
@@ -240,7 +254,8 @@ export function MapCanvas(props: MapCanvasProps) {
     zoomOut: () => mapRef.current?.zoomOut(),
     reset: () => {
       const b = startBounds.current;
-      if (b !== null) mapRef.current?.fitBounds(b, { padding: 16 });
+      const map = mapRef.current;
+      if (b !== null && map !== null) map.fitBounds(b, { padding: paddingFor(map, props.fitPadding) });
     },
   }));
 

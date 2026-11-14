@@ -15,6 +15,8 @@ export class FakeMap {
   filters = new Map<string, unknown>();
   hits: Hit[] = [];
   fitCalls: unknown[] = [];
+  /** `fitBounds`에 넘긴 여백(지도 카드의 판 자리를 비우는지 본다) */
+  fitPaddings: unknown[] = [];
   removed = false;
   zoom = 5;
   minZoom = 0;
@@ -63,8 +65,9 @@ export class FakeMap {
   queryRenderedFeatures(_point: unknown, options: { layers: string[] }) {
     return this.hits.filter((h) => options.layers.includes(h.layer)).map((h) => ({ properties: h.properties }));
   }
-  fitBounds(bounds: unknown) {
+  fitBounds(bounds: unknown, options?: { padding?: unknown }) {
     this.fitCalls.push(bounds);
+    this.fitPaddings.push(options?.padding);
     this.zoom = 5;
   }
   getZoom() {

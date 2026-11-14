@@ -1,5 +1,6 @@
 import { Breadcrumb, type Crumb } from "../../../components/dashboard/Breadcrumb";
 import { MonthField } from "../../../components/dashboard/MonthPicker";
+import { LinkIcon } from "../../../components/icons";
 import { SearchField, SelectBox } from "../../../components/dashboard/SelectBox";
 import { useLocale, useMessages } from "../../../i18n";
 import type { Locale } from "../../../lib/locale";
@@ -59,8 +60,21 @@ export function ControlsSection({ scope, navigate, openDialog }: ControlsSection
         {/* 기준 월은 양옆 한 달 이동 + 가운데를 누르면 아래로 펼치는 격자(2026-11-15 사용자) */}
         <MonthField label={c.month} month={month} range={scope.range} onPick={navigate.toMonth} />
       </div>
-      <div className="pt-6">
+      {/* 경로 줄 오른쪽 끝: 이 화면 공유(대화상자만 열고 복사는 안에서. 예전 "자료 가져가기" 카드에서 옮김, 2026-11-15 사용자) */}
+      <div className="flex items-center justify-between gap-4 pt-6">
         <Breadcrumb items={crumbs} />
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => navigate.share()}
+          className={
+            "flex shrink-0 items-center gap-2 rounded-control border border-line bg-wash px-3 py-1.5 text-xs text-ink transition-colors " +
+            "hover:bg-row-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-selection"
+          }
+        >
+          <LinkIcon className="size-3.5 text-muted" />
+          {c.share}
+        </button>
       </div>
     </section>
   );

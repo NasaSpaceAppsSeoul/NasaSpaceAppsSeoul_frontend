@@ -21,7 +21,6 @@ function sections() {
     neighbors: heading(/^인접 지역의/) !== null,
     season: heading("평소 화재 집중 시기") !== null,
     monthly: heading(/월별 활동$/) !== null,
-    export: heading("이 지역·월의 자료를 가져가세요.") !== null,
     insight: screen.queryByRole("link", { name: "월간 인사이트 열기 →" }) !== null,
   };
 }
@@ -37,21 +36,21 @@ describe("단계별 구역 (5장)", () => {
     await screen.findByRole("heading", { name: "평소 화재 집중 시기" });
     await waitFor(() => expect(heading(/화재 칸과 감지 위치/)).not.toBeNull());
     expect(sections()).toEqual({
-      nationalMap: true, regionalMap: false, top: false, neighbors: false, season: true, monthly: true, export: true, insight: false,
+      nationalMap: true, regionalMap: false, top: false, neighbors: false, season: true, monthly: true, insight: false,
     });
 
     await act(() => router.navigate(`/dashboard/KOR/${GB}?month=2025-03`));
     await screen.findByRole("heading", { name: "평소보다 두드러진 곳" });
     await waitFor(() => expect(heading("경북의 시·군·구")).not.toBeNull());
     expect(sections()).toEqual({
-      nationalMap: false, regionalMap: true, top: true, neighbors: false, season: false, monthly: false, export: true, insight: false,
+      nationalMap: false, regionalMap: true, top: true, neighbors: false, season: false, monthly: false, insight: false,
     });
 
     await act(() => router.navigate(`/dashboard/KOR/${UISEONG}?month=2025-03`));
     await screen.findByRole("heading", { name: "인접 지역의 3월 기록" });
     await waitFor(() => expect(heading("의성군과 주변 지역")).not.toBeNull());
     expect(sections()).toEqual({
-      nationalMap: false, regionalMap: true, top: false, neighbors: true, season: false, monthly: false, export: true, insight: true,
+      nationalMap: false, regionalMap: true, top: false, neighbors: true, season: false, monthly: false, insight: true,
     });
   });
 

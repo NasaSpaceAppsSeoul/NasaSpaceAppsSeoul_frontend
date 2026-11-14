@@ -63,6 +63,8 @@ describe("지역 지도 (5장)", () => {
     expect(screen.getByText("선택 지역 · 파란 테두리")).toBeTruthy();
     // 도형은 이웃이 온 뒤 한 번만 넣고 맞춘다
     expect(map.fitCalls.length).toBe(1);
+    // 지도 카드는 왼쪽 판·오른쪽 확대 칸 자리를 비우고 맞춘다(여백은 지도 칸 폭으로 계산, jsdom 폭 0이면 왼쪽 0)
+    expect(map.fitPaddings[0]).toEqual({ top: 24, right: 72, bottom: 40, left: 0 });
   });
 
   it("점은 처음부터 보여 바로 점 툴팁. 이웃을 누르면 그 지역으로(자기는 무시)", async () => {
