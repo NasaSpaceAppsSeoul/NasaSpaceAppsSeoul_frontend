@@ -28,7 +28,8 @@ export function Header({ homeHref, hrefs, current, locale, localeHrefs }: Header
   const t = useMessages();
   return (
     // 양옆 칸을 같은 너비(1fr)로 두어 가운데 메뉴가 화면 중앙에 오게 한다(tokens.md "상단 내비는 화면 중앙 기준")
-    <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-6">
+    // 높이 104px(선 포함)과 아래 얇은 구분선: 디자인 시안 v9 `.site-header`(2026-11-14 사용자, 모든 화면)
+    <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-header-line h-26">
       <Link to={homeHref} className="justify-self-start text-xl font-medium text-ink">
         {t.brand}
       </Link>
@@ -43,9 +44,10 @@ export function Header({ homeHref, hrefs, current, locale, localeHrefs }: Header
                   to={hrefs[item]}
                   aria-current={selected ? "page" : undefined}
                   className={
-                    "block rounded-full px-6 py-2 text-sm font-medium transition-colors " +
+                    // 크기·전환은 시안 v9 `.primary-nav a`(좌우 16, 위아래 8, 배경 전환 180ms)
+                    "block rounded-full px-4 py-2 text-sm font-medium transition-colors duration-180 " +
                     "focus-visible:outline-2 focus-visible:outline-selection " +
-                    (selected ? "bg-nav-ink text-nav" : "text-nav-ink hover:bg-nav-hover")
+                    (selected ? "bg-nav-active text-nav-active-ink" : "text-nav-ink hover:bg-nav-hover")
                   }
                 >
                   {t.nav[item]}
@@ -59,7 +61,7 @@ export function Header({ homeHref, hrefs, current, locale, localeHrefs }: Header
       <div
         role="group"
         aria-label={t.language.label}
-        className="flex gap-1 justify-self-end rounded-control border border-border bg-surface p-1"
+        className="flex gap-1 justify-self-end rounded-control border border-segment-line bg-segment p-1"
       >
         {LOCALE_ORDER.map((target) => {
           const selected = target === locale;
@@ -73,9 +75,10 @@ export function Header({ homeHref, hrefs, current, locale, localeHrefs }: Header
               title={t.language[`${target}Name`]}
               aria-current={selected ? "true" : undefined}
               className={
-                "rounded-control-sm px-3 py-1.5 text-sm font-medium " +
+                // 크기는 시안 v9 `.language-switch span`(34 × 32, 글자 12)
+                "grid h-8 w-8.5 place-items-center rounded-control-sm text-xs font-medium " +
                 "focus-visible:outline-2 focus-visible:outline-selection " +
-                (selected ? "bg-inverse text-surface" : "text-muted hover:text-ink")
+                (selected ? "bg-segment-active text-segment-active-ink" : "text-segment-ink hover:text-ink")
               }
             >
               {t.language[target]}
