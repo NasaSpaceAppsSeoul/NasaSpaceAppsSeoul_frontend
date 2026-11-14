@@ -8,7 +8,7 @@ import { korMeta } from "./kor";
 import { singleLevelCountry } from "./grid";
 import type { CountryMock } from "./types";
 
-const { regions, geo } = singleLevelCountry(
+const { regions, geo, detail } = singleLevelCountry(
   "CAL",
   { labelKo: "캘리포니아", nameEn: "California", box: [-124.4, 32.5, -114.1, 42.0] },
   [
@@ -42,5 +42,6 @@ export const cal: CountryMock = {
   },
   regions,
   geo,
+  detail,
   missingGeoLevels: [],
 };

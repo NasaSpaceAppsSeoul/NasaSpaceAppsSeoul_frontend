@@ -1,5 +1,5 @@
 import type { Country, GeoFeature, Position, RegionSummary, RegionType } from "../types";
-import type { MockGeo } from "./types";
+import type { MockDetail, MockGeo } from "./types";
 
 /*
  * 캘리포니아·캐나다 목의 임시 도형(`decisions.md` 10-4). 실제 지형이 아니라 나라 상자를 3×2로 나눈 사각형이다.
@@ -56,9 +56,17 @@ export function singleLevelCountry(
   country: Country,
   nation: { labelKo: string; nameEn: string; box: Box },
   districts: GridDistrict[],
-): { regions: RegionSummary[]; geo: () => MockGeo[] } {
+): { regions: RegionSummary[]; geo: () => MockGeo[]; detail: (id: string) => MockDetail | undefined } {
   const boxes = cells(nation.box, districts.length);
   const dists = districts.map((d, i) => ({ ...d, box: boxes[i] ?? nation.box }));
+  // 이웃: 변이 맞닿은 칸(같은 행의 옆 열, 같은 열의 위아래 행). 위험 시기는 `detail-route.ts`가 시계열로 만든다
+  const neighborsOf = (i: number) =>
+    dists.filter((_, j) => (j % 3 === i % 3 && Math.abs(Math.floor(j / 3) - Math.floor(i / 3)) === 1) ||
+      (Math.floor(j / 3) === Math.floor(i / 3) && Math.abs((j % 3) - (i % 3)) === 1)).map((d) => d.id);
+  const details = new Map<string, MockDetail>([
+    [country, { neighbors: [] }],
+    ...dists.map((d, i): [string, MockDetail] => [d.id, { neighbors: neighborsOf(i) }]),
+  ]);
   // 백엔드 정렬: (시·도, 이름) 순. 시·도가 없으니 이름순(문자 코드 순)
   const sorted = [...dists].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
@@ -92,5 +100,5 @@ export function singleLevelCountry(
     ...sorted.map((d): MockGeo => ({ level: "dist", parentId: country, feature: feature(d.id, d.name, d.box) })),
   ];
 
-  return { regions, geo };
+  return { regions, geo, detail: (id) => details.get(id) };
 }

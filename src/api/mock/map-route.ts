@@ -41,6 +41,17 @@ export function lastPointMonth(country: Country): string {
   return month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, "0")}`;
 }
 
+/** `/map`·`/top`의 달 검사: 없음·형식(400 `INVALID_PARAM`) → 감지 점 달 범위(400 `MONTH_OUT_OF_RANGE`) */
+export function checkSpatialMonth(country: Country, month: string | null): string {
+  if (month === null || month === "") throw new ApiError(400, "INVALID_PARAM", "month is required");
+  if (!MONTH.test(month)) throw new ApiError(400, "INVALID_PARAM", `month: expected YYYY-MM, got '${month}'`);
+  const lastMonth = lastPointMonth(country);
+  if (month < FIRST_MONTH || month > lastMonth) {
+    throw new ApiError(400, "MONTH_OUT_OF_RANGE", `month '${month}' is outside ${FIRST_MONTH}..${lastMonth}`);
+  }
+  return month;
+}
+
 /** FNV-1a 32비트 + mulberry32: 같은 달·구역이면 같은 점을 만든다 */
 function rng(text: string): () => number {
   let h = 0x811c9dc5;
@@ -160,13 +171,7 @@ export function mockMap(
   query: URLSearchParams,
   cap: number = POINT_CAP,
 ): MapResponse {
-  const month = query.get("month");
-  if (month === null || month === "") throw new ApiError(400, "INVALID_PARAM", "month is required");
-  if (!MONTH.test(month)) throw new ApiError(400, "INVALID_PARAM", `month: expected YYYY-MM, got '${month}'`);
-  const lastMonth = lastPointMonth(country);
-  if (month < FIRST_MONTH || month > lastMonth) {
-    throw new ApiError(400, "MONTH_OUT_OF_RANGE", `month '${month}' is outside ${FIRST_MONTH}..${lastMonth}`);
-  }
+  const month = checkSpatialMonth(country, query.get("month"));
   const all = mock?.regions ?? [];
   const parent = query.get("parent");
   // 빈 `parent=`는 백엔드처럼 404(`SpatialService.childrenOf`). 프론트는 빈 값을 보내지 않는다

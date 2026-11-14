@@ -11,6 +11,9 @@
  * 목의 한계 (실제 서버와 다름)
  * - 영광군(`PATCH-KOR-Yeonggwang`)은 경계 파일에 도형이 없어 `/geo`에 없고, `/regions`의 `center`·`bbox`가
  *   `null`, `region_type`은 지어낸 값(`sparse`)이다. 실제 서버에는 도형이 있다.
+ * - `/regions/{id}`의 이웃·위험 시기: `data/kor-detail.json`. 같은 스크립트의 `--detail`이 파이프라인
+ *   `regions.geojson`(시·군·구), `calendar_by_province.json`(시·도), `meta.json` `national_risk`(나라)에서 뽑았다(5장).
+ *   영광군은 경계 파일에 없어 이웃·위험 시기가 없다.
  * - 시·도 경계(`/geo?level=prov`): `data/kor-prov.geo.json`. `.claude/reference/scripts/build-mock-kor-prov.py`가
  *   geoBoundaries ADM1 17곳의 영문 이름을 백엔드 시·도 ID(`경북` 등)로 바꿔 만들었다(4장).
  * - 의성군의 `region_type`은 경계 원천에서 `sufficient`로 나오지만 백엔드 기대값(`spec_test.py`, 명세 7-2)은
@@ -23,8 +26,9 @@
 import type { Meta, RegionSummary } from "../types";
 import korGeo from "./data/kor-dist.geo.json";
 import korProvGeo from "./data/kor-prov.geo.json";
+import korDetail from "./data/kor-detail.json";
 import korRegions from "./data/kor-regions.json";
-import { expectFeatureCollection, expectRegions } from "./guards";
+import { expectDetails, expectFeatureCollection, expectRegions, type MockDetailJson } from "./guards";
 import { UISEONG } from "./series-overrides";
 import type { CountryMock, MockGeo } from "./types";
 
@@ -91,4 +95,16 @@ export const kor: CountryMock = {
   ),
   geo: () => [...korGeoList(), ...korProvGeoList()],
   missingGeoLevels: [],
+  detail: (id) => {
+    const row = korDetails().get(id);
+    if (row === undefined) return undefined;
+    return { neighbors: row.neighbors, risk: { months: row.risk_months, share: row.risk_share, from: row.risk_from } };
+  },
 };
+
+let details: Map<string, MockDetailJson> | null = null;
+/** 처음 부를 때 한 번만 읽는다 */
+function korDetails(): Map<string, MockDetailJson> {
+  details ??= expectDetails(korDetail, "kor-detail.json");
+  return details;
+}

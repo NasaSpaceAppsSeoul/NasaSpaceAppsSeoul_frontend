@@ -8,7 +8,7 @@ import { korMeta } from "./kor";
 import { singleLevelCountry } from "./grid";
 import type { CountryMock } from "./types";
 
-const { regions, geo } = singleLevelCountry(
+const { regions, geo, detail } = singleLevelCountry(
   "BC",
   { labelKo: "브리티시컬럼비아", nameEn: "British Columbia", box: [-139.1, 48.3, -114.0, 60.0] },
   [
@@ -41,5 +41,6 @@ export const bc: CountryMock = {
   },
   regions,
   geo,
+  detail,
   missingGeoLevels: [],
 };
