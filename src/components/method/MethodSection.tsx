@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
  * 머리글이 고정되지 않아 해시로 올 때 화면 위에서 조금만 띄운다(`scroll-mt`).
  * 첫 화면 `NumberedHeading`(번호 줄 + 48~64px 제목, 머리만)·옛 `SectionHeading`(파란 작은 제목)과 크기·색·구조가 달라
  * 따로 둔다: 여기는 38px 제목 + 한 줄 요지에 절 전체(구분선·해시·목차 표시)를 함께 그린다.
+ * 글자 크기·자간·폭의 임의 값(`text-[0.8125rem]` 등)은 시안 `method_page.html` CSS의 px 값을 rem으로 옮긴 것이다(토큰에 같은 크기가 없음).
  */
 type MethodSectionProps = { id: string; index: string; title: string; lead: string; children: ReactNode };
 

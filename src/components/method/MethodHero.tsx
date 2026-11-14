@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
  * 기법 페이지 머리 (시안 `method_page.html` `.hero`): 돌아가기 링크, 주황 점이 붙은 Mono 작은 제목, 큰 제목, 설명, 숫자 카드 3장.
  * 숫자 카드는 인사이트 `StatTile`(이름표 + 값 + 한 줄)과 모양이 달라(큰 값 + 설명 두 줄, 세 칸이 한 판) 따로 그린다.
  * 판은 다른 화면과 같은 유리 재료(`plans/cosmic-redesign.md` 8절).
+ * 글자 크기·자간·폭의 임의 값(`text-[0.8125rem]` 등)은 시안 `method_page.html` CSS의 px 값을 rem으로 옮긴 것이다(토큰에 같은 크기가 없음).
  */
 export type HeroStat = { id: string; value: { before: string; accent: string; after: string }; sub: string };
 

@@ -1,6 +1,7 @@
 /*
  * 04절 보정 사슬 (시안 `.chain`): 기간 네 칸이 화살표로 이어지고, 마지막 칸(기준 위성 실측)만 주황.
  * 칸 사이 화살표는 장식이라 읽지 않는다. 목록 순서가 곧 시간 순서다.
+ * 글자 크기·자간·폭의 임의 값(`text-[0.8125rem]` 등)은 시안 `method_page.html` CSS의 px 값을 rem으로 옮긴 것이다(토큰에 같은 크기가 없음).
  */
 export type ChainStep = { id: string; period: string; sensor: string; formula: string; quality: string };
 

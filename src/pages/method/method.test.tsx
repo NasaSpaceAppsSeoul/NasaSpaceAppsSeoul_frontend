@@ -5,7 +5,7 @@ import { resetEntryHashForTest } from "../../hooks/useActiveSection";
 import { renderRoute } from "../../test/render";
 
 /*
- * 기법 페이지(`/method`). 지금 있는 절: 머리, 01~06(`plans/method-page.md` 12절).
+ * 기법 페이지(`/method`). 절: 머리, 01~10, 끝 줄(`plans/method-page.md` 12절).
  * 목차의 "지금 보는 절"은 IntersectionObserver를 쓰는데 jsdom에는 없어 손으로 부를 수 있는 가짜를 넣는다.
  */
 type Callback = (entries: { isIntersecting: boolean; target: Element }[]) => void;
@@ -37,7 +37,7 @@ afterEach(() => {
 const title = () => screen.findByRole("heading", { level: 1 });
 
 describe("기법 페이지", () => {
-  it("머리 · 숫자 카드 3장 · 01~06 순서, 머리글은 소개가 켜진다", async () => {
+  it("머리 · 숫자 카드 3장 · 01~10 · 끝 줄 순서, 머리글은 소개가 켜진다", async () => {
     renderRoute("/method");
     expect((await title()).textContent).toBe("25년의 불을 하나의 자로.");
     const stats = within(screen.getByRole("list", { name: "요약 숫자" })).getAllByRole("listitem");
@@ -50,6 +50,11 @@ describe("기법 페이지", () => {
       "센서를 하나의 자로 맞추기",
       "보정이 맞는지 어떻게 아나",
       "판단 칩",
+      "불이 드문 구역",
+      "나머지 지표",
+      "한계",
+      "만든 방법과 배운 것",
+      "출처",
     ]);
     const nav = screen.getByRole("navigation", { name: "주 메뉴" });
     expect(within(nav).getByRole("link", { name: "소개" }).getAttribute("aria-current")).toBe("page");
@@ -218,6 +223,50 @@ describe("기법 페이지 05·06", () => {
     expect(await section.findByText("2025년 3월은 평년 3월의 6.28배, 25년 중 가장 많았습니다")).toBeTruthy();
     const values = section.getByRole("table", { name: "한국 2001–2025년 3월 화재 칸과 보통 범위" });
     expect(values.querySelectorAll("tbody tr")).toHaveLength(25);
+  });
+});
+
+describe("기법 페이지 07·08", () => {
+  it("07: 빌리는 순서 세 단계, 현황 표 네 줄, 기준 표는 사용한 30% 줄을 강조", async () => {
+    renderRoute("/method");
+    const section = within(await screen.findByRole("region", { name: "불이 드문 구역" }));
+    expect(within(section.getByRole("list", { name: "판정을 빌리는 순서" })).getAllByRole("listitem")).toHaveLength(3);
+    expect(section.getByRole("table", { name: "구역 성격 현황" }).querySelectorAll("tbody tr")).toHaveLength(4);
+    const used = section.getByRole("rowheader", { name: "30%(사용)" }).closest("tr");
+    expect(used?.className).toContain("bg-tone-orange");
+  });
+
+  it("08: 지표 표 11줄, 민감도 표, 바뀐 정의 7개", async () => {
+    renderRoute("/method");
+    const section = within(await screen.findByRole("region", { name: "나머지 지표" }));
+    expect(section.getByRole("table", { name: "지표별 계산과 이유" }).querySelectorAll("tbody tr")).toHaveLength(11);
+    expect(section.getByRole("table", { name: "기준값을 바꿨을 때의 결과" })).toBeTruthy();
+    expect(section.getByText("감지 묶음: 2 km·1일 → 3 km·2일")).toBeTruthy();
+  });
+});
+
+describe("기법 페이지 09·10·끝", () => {
+  it("09 한계 카드 10개, 10 기술 표 5줄·다섯 단계·판단 7개, 끝 줄 링크(언어 유지, 맨 위로는 해시 없는 주소)", async () => {
+    renderRoute("/en/method#built");
+    await title();
+    const limits = within(screen.getByRole("region", { name: "Limits" }));
+    // 한계 카드 목록(첫 목록) 10개 + 시험하지 않은 선택 4개
+    const [cards, untested] = limits.getAllByRole("list");
+    expect(cards === undefined ? [] : within(cards).getAllByRole("listitem")).toHaveLength(10);
+    expect(untested === undefined ? [] : within(untested).getAllByRole("listitem")).toHaveLength(4);
+    const built = within(screen.getByRole("region", { name: "How it's built and what we learned" }));
+    expect(built.getByRole("table", { name: "Technology and reasons by layer" }).querySelectorAll("tbody tr")).toHaveLength(5);
+    expect(within(built.getByRole("list", { name: "Five steps to add a region" })).getAllByRole("listitem")).toHaveLength(5);
+    expect(screen.getByRole("link", { name: "Explore dashboard →" }).getAttribute("href")).toBe("/en/dashboard");
+    expect(screen.getByRole("link", { name: "Back to top ↑" }).getAttribute("href")).toBe("/en/method");
+    const toc = screen.getByRole("navigation", { name: "Contents" });
+    expect(within(toc).getAllByRole("link")).toHaveLength(10);
+    cleanup();
+
+    renderRoute("/method#built");
+    await title();
+    expect(screen.getByRole("link", { name: "대시보드 보기 →" }).getAttribute("href")).toBe("/dashboard");
+    expect(screen.getByRole("link", { name: "맨 위로 ↑" }).getAttribute("href")).toBe("/method");
   });
 });
 

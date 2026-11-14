@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
  * 기법 페이지의 그림 판 (시안 `figure`): 제목, 설명 한 줄, (있으면) 오른쪽 나라 탭, 그림, (있으면) 읽는 법 한 줄, Mono 출처 줄.
  * 판은 유리 재료. 그림 자체의 읽는 이름은 안쪽 그림(`role="img"`)이 단다.
  * 공용 `Card`는 `<section>`이라 쓰지 않는다: 그림·설명·출처를 한 덩어리로 읽히게 `<figure>`·`<figcaption>`이 필요하다.
+ * 글자 크기·자간·폭의 임의 값(`text-[0.8125rem]` 등)은 시안 `method_page.html` CSS의 px 값을 rem으로 옮긴 것이다(토큰에 같은 크기가 없음).
  */
 type MethodFigureProps = {
   title: string;

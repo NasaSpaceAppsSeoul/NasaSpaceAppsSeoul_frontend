@@ -5,9 +5,10 @@
  */
 export type WhyItem = { title: string; body: readonly string[] };
 
-export function WhyList({ items }: { items: readonly WhyItem[] }) {
+/** `columns={2}`: 한계처럼 짧은 칸이 많을 때 두 줄로(시안 `.limits`) */
+export function WhyList({ items, columns = 1 }: { items: readonly WhyItem[]; columns?: 1 | 2 }) {
   return (
-    <ul data-reveal className="grid max-w-[44em] gap-3">
+    <ul data-reveal className={`grid gap-3 ${columns === 2 ? "grid-cols-2" : "max-w-[44em]"}`}>
       {items.map((item) => (
         <li key={item.title} className="rounded-xl border border-line bg-wash px-5 py-4 text-base leading-relaxed text-subtle">
           <p className="mb-0.5 font-medium text-ink">{item.title}</p>

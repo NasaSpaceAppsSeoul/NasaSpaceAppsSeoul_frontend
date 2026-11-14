@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
  * 누르면 주소 해시를 그 절로 바꾸고(뒤로 가기 기록을 쌓지 않게 `replace`), 라우터 스크롤 복원이 그 절로 옮긴다
  * (`plans/method-page.md` 8-2). 부드러운 이동은 페이지가 켜 둔 `scroll-behavior`가 맡는다(움직임 줄이기면 바로).
  * 머리글이 고정되지 않아 화면 위에서 조금 띄워 붙는다.
+ * 글자 크기·자간·폭의 임의 값(`text-[0.8125rem]` 등)은 시안 `method_page.html` CSS의 px 값을 rem으로 옮긴 것이다(토큰에 같은 크기가 없음).
  */
 export type TocItem = { id: string; index: string; label: string };
 

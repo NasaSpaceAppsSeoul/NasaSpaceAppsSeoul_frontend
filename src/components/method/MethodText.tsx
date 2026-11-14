@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
  * - `ChangeNote`: "바뀐 과정" 묶음. 왼쪽 주황 선 + 이름 + 문단(시안 `.note`). 트러블슈팅 기록을 담는다
  * - `Formula`: Mono 공식 상자와 아래 한 줄
  * - `MethodBullets`: 한계처럼 짧은 항목 목록
+ * 글자 크기·자간·폭의 임의 값(`text-[0.8125rem]` 등)은 시안 `method_page.html` CSS의 px 값을 rem으로 옮긴 것이다(토큰에 같은 크기가 없음).
  */
 export function MethodParagraphs({ paragraphs }: { paragraphs: readonly string[] }) {
   return (
@@ -17,11 +18,17 @@ export function MethodParagraphs({ paragraphs }: { paragraphs: readonly string[]
   );
 }
 
-export function ChangeNote({ title, body }: { title: string; body: readonly string[] }) {
+/** `items`가 있으면 문단 아래에 항목 목록을 붙인다(바뀐 정의 목록 등) */
+export function ChangeNote({ title, body, items }: { title: string; body: readonly string[]; items?: readonly string[] }) {
   return (
     <aside data-reveal className="my-7 max-w-[42em] border-l-2 border-fire py-1 pl-4.5">
       <p className="mb-2 font-medium text-ink">{title}</p>
       <MethodParagraphs paragraphs={body} />
+      {items !== undefined && (
+        <div className="mt-3">
+          <MethodBullets items={items} />
+        </div>
+      )}
     </aside>
   );
 }
