@@ -22,8 +22,11 @@ export function ContextSection() {
 
   return (
     <section aria-labelledby="context-title" className="grid gap-12 py-24 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] xl:items-start">
-      <NumberedHeading id="context-title" index={c.index} title={c.title} lead={c.lead} size="sm" />
-      <div className="min-w-0 border-b border-white/20 pb-8">
+      {/* `data-reveal`: 스크롤 등장 묶음(`hooks/useScrollReveal`, AboutPage가 붙인다) */}
+      <div data-reveal>
+        <NumberedHeading id="context-title" index={c.index} title={c.title} lead={c.lead} size="sm" />
+      </div>
+      <div data-reveal data-reveal-delay="1" className="min-w-0 border-b border-white/20 pb-8">
         {series.isPending ? (
           <Skeleton className="h-96" />
         ) : series.isError ? (

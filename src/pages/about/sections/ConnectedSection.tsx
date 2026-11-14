@@ -35,13 +35,16 @@ export function ConnectedSection() {
   return (
     // `tabIndex={-1}`: 히어로 "스크롤해서 읽기"가 초점을 옮겨 올 수 있게(탭 순서에는 들지 않는다)
     <section id="connected" tabIndex={-1} aria-labelledby="connected-title" className="flex flex-col gap-12 py-24 outline-none">
-      <NumberedHeading id="connected-title" index={c.index} title={c.title} lead={c.lead} />
+      {/* `data-reveal`: 스크롤 등장 묶음(`hooks/useScrollReveal`, AboutPage가 붙인다) */}
+      <div data-reveal>
+        <NumberedHeading id="connected-title" index={c.index} title={c.title} lead={c.lead} />
+      </div>
       <div className="grid border-y border-border xl:grid-cols-[minmax(0,46fr)_minmax(0,54fr)]">
         {/* 그림은 오른쪽 카드 높이의 세로 가운데(Make `.record-stage` align-items) */}
-        <div className="flex items-center py-10 xl:pr-8">
+        <div data-reveal className="flex items-center py-10 xl:pr-8">
           <SensorDiagram />
         </div>
-        <div className="border-t border-border xl:border-t-0 xl:border-l">
+        <div data-reveal data-reveal-delay="1" className="border-t border-border xl:border-t-0 xl:border-l">
           <RecordReadout
             title={c.readoutTitle(t.countries.KOR, READOUT_YEAR)}
             body={body}

@@ -2,7 +2,6 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { EarthErrorBoundary } from "../../components/about/EarthPanel";
 import { lazy, Suspense } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { korMeta } from "../../api/mock/kor";
 import { mockGet } from "../../api/mock/index";
 import { renderRoute } from "../../test/render";
 
@@ -11,27 +10,34 @@ import { renderRoute } from "../../test/render";
  */
 
 describe("소개 화면 (목)", () => {
-  it("보정 전후 막대 두 장(같은 세로축)과 감지율 다섯 줄을 그린다", async () => {
+  it("히어로 → 01 → 02 → 03 순서, 옛 구역(보정 막대·방법 카드·감지율)은 없다", async () => {
     renderRoute("/");
-    const raw = await screen.findByRole("img", { name: "원시값 막대 그래프, 2001–2025년" });
-    const harmonized = screen.getByRole("img", { name: "보정값 막대 그래프, 2001–2025년" });
-    expect(raw.querySelectorAll("rect").length).toBeGreaterThan(20);
-    expect(harmonized.querySelectorAll("rect").length).toBeGreaterThan(20);
-    // 두 카드의 부제에 같은 세로축 끝이 들어간다
-    const subs = screen.getAllByText(/공통 세로축 0–/).map((el) => el.textContent?.split("0–").pop());
-    expect(subs).toHaveLength(2);
-    expect(subs[0]).toBe(subs[1]);
-
-    expect(screen.getByText("100 ha 이상: 감지율 91%, 우연 기준 3%")).toBeTruthy();
-    expect(screen.getByText(/^0\.1–1 ha: 감지율/)).toBeTruthy();
-    expect(screen.getByText(/감지율 계산에 쓴 공식 산불 5,543건/)).toBeTruthy();
+    await screen.findByRole("heading", { level: 1 });
+    const sections = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(sections).toEqual(["센서는 달라도\n기록은 하나로.", "한 달만 보지 말고\n흐름을 보세요.", "기록을 읽고\n한계를 알기."]);
+    // 옛 구역은 8-2 기법 페이지로 옮긴다(2026-11-15 사용자)
+    expect(screen.queryByText("위성의 변화가 화재 증가로 보이지 않도록.")).toBeNull();
+    expect(screen.queryByText("기록을 연결하는 방법")).toBeNull();
+    expect(screen.queryByText("위성이 보는 것과 놓칠 수 있는 것을 함께.")).toBeNull();
     // 데모 문구는 없다(1-10)
     expect(screen.queryByText(/합성|데모/)).toBeNull();
   });
 
+  it("03 신뢰와 한계: 한계 설명과 언어를 유지하는 대시보드 링크", async () => {
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "기록을 읽고\n한계를 알기." }));
+    expect(section.getByText(/^위성 기록은 불을 놓칠 수 있습니다/)).toBeTruthy();
+    expect(section.getByRole("link", { name: "대시보드 보기" }).getAttribute("href")).toBe("/dashboard");
+    cleanup();
+    renderRoute("/en");
+    const en = within(await screen.findByRole("region", { name: "Read the record.\nKnow its limits." }));
+    expect(en.getByRole("link", { name: "Explore dashboard" }).getAttribute("href")).toBe("/en/dashboard");
+  });
+
   it("자료를 받기 전에는 검색 줄을 막고 숫자 구역은 회색 자리, 받으면 연다", async () => {
     renderRoute("/");
-    expect(screen.getAllByRole("status").length).toBeGreaterThanOrEqual(3);
+    // 01 비교 카드·02 막대 자리의 회색 판
+    expect(screen.getAllByRole("status").length).toBeGreaterThanOrEqual(2);
     const search = () => screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
     expect(search().hasAttribute("disabled")).toBe(true);
     await waitFor(() => expect(search().hasAttribute("disabled")).toBe(false));
@@ -163,8 +169,13 @@ describe("소개 화면 (목)", () => {
 
   it("영어 화면도 같은 구조다", async () => {
     renderRoute("/en");
-    expect(await screen.findByRole("img", { name: "Raw bar chart, 2001–2025" })).toBeTruthy();
-    expect(screen.getByText("100 ha or more: detected 91%, chance baseline 3%")).toBeTruthy();
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual([
+      "Different sensors.\nOne connected record.",
+      "Look beyond\na single month.",
+      "Read the record.\nKnow its limits.",
+    ]);
+    expect(await screen.findByRole("heading", { name: "Republic of Korea · 2011" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Republic of Korea →" }).getAttribute("href")).toBe("/en/dashboard/KOR");
   });
 });
@@ -238,58 +249,23 @@ describe("소개 화면 (서버 에러)", () => {
     fetchMock.mockReset();
   });
 
-  it("/landing이 실패하면 문구 구역은 남고 숫자 구역 둘에 다시 시도. 한쪽에서 다시 시도하면 둘 다 복구된다", async () => {
+  it("/landing이 실패하면 01 숫자 칸에만 다시 시도, 글·그림·다른 구역은 남고, 다시 시도하면 복구된다", async () => {
     live();
     let down = true;
     serve((path) => (down && path === "/KOR/landing" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
     renderRoute("/");
-    // 01 비교 카드 + 옛 구역 둘(조각 5에서 뺀다)
-    await waitFor(() => expect(screen.getAllByRole("button", { name: "다시 시도" })).toHaveLength(3));
+    const connected = within(await screen.findByRole("region", { name: "센서는 달라도\n기록은 하나로." }));
+    expect(await connected.findByRole("button", { name: "다시 시도" })).toBeTruthy();
     // 01은 글·그림이 남고 숫자 칸에만 에러, 설명 줄은 값이 없으니 숨긴다
-    expect(screen.getByRole("img", { name: /MODIS와 VIIRS 관측 기록/ })).toBeTruthy();
-    expect(screen.queryByText(/MODIS로만 관측한 마지막 해/)).toBeNull();
-    expect(screen.getByRole("heading", { name: "위성의 변화가 화재 증가로 보이지 않도록." })).toBeTruthy();
-    expect(screen.getByText("화재 감지일 집계")).toBeTruthy();
-    expect(screen.getByText("위성이 모든 불을 볼 수는 없습니다.")).toBeTruthy();
+    expect(connected.getByRole("img", { name: /MODIS와 VIIRS 관측 기록/ })).toBeTruthy();
+    expect(connected.queryByText(/MODIS로만 관측한 마지막 해/)).toBeNull();
+    expect(screen.getByRole("heading", { name: "기록을 읽고\n한계를 알기." })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "다시 시도" })).toHaveLength(1);
 
     down = false;
-    fireEvent.click(screen.getAllByRole("button", { name: "다시 시도" })[0] as HTMLElement);
-    expect(await screen.findByRole("img", { name: "원시값 막대 그래프, 2001–2025년" })).toBeTruthy();
-    expect(await screen.findByText("100 ha 이상: 감지율 91%, 우연 기준 3%")).toBeTruthy();
+    fireEvent.click(connected.getByRole("button", { name: "다시 시도" }));
+    expect(await connected.findAllByRole("definition")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: "다시 시도" })).toBeNull();
-  });
-
-  it("감지율 목록이 비거나 연간 값이 모두 0이면 안내 문구", async () => {
-    live();
-    serve((path) => {
-      if (path !== "/KOR/landing") return null;
-      return json({
-        country: "KOR", data_version: null, labels: korMeta.labels, stats: [],
-        annual: { years: [2001, 2002], before: [0, 0], after: [0, 0] },
-        official_break: { source: "", before: null, after: null, inconclusive: false },
-        break_test: { before: { ratio: null, ci95: null }, after: { ratio: null, ci95: null }, jump_raw: null },
-        detect_by_size: [], detect_n: 0,
-      });
-    });
-    renderRoute("/");
-    expect(await screen.findByText("연간 자료가 없습니다.")).toBeTruthy();
-    expect(screen.queryByText(/두 차트는 동일한 세로축/)).toBeNull();
-    expect(screen.getByText("감지율 자료가 없습니다.")).toBeTruthy();
-    expect(screen.queryByText(/감지율 계산에 쓴 공식 산불/)).toBeNull();
-  });
-
-  it("보정값만 모두 0이면 그 카드에만 안내 문구, 원시값 카드는 그대로", async () => {
-    live();
-    const base = (await mockGet("/KOR/landing")) as { annual: { years: number[]; before: number[] } };
-    serve((path) =>
-      path === "/KOR/landing"
-        ? json({ ...base, annual: { ...base.annual, after: base.annual.years.map(() => 0) } })
-        : null,
-    );
-    renderRoute("/");
-    expect(await screen.findByRole("img", { name: "원시값 막대 그래프, 2001–2025년" })).toBeTruthy();
-    expect(screen.queryByRole("img", { name: "보정값 막대 그래프, 2001–2025년" })).toBeNull();
-    expect(screen.getAllByText("연간 자료가 없습니다.")).toHaveLength(1);
   });
 
   it("검색 대화상자 나라 목록에서 준비 안 된 나라는 빠진다", async () => {
@@ -338,18 +314,6 @@ describe("소개 화면 (서버 에러)", () => {
     expect(await section.findByText("값 없음")).toBeTruthy();
     expect(section.queryAllByRole("definition")).toHaveLength(0);
     expect(section.queryByText(/MODIS로만 관측한 마지막 해/)).toBeNull();
-  });
-
-  it("감지율·우연 기준이 없는 줄은 —, 세로선 없음", async () => {
-    live();
-    const base = (await mockGet("/KOR/landing")) as Record<string, unknown>;
-    serve((path) =>
-      path === "/KOR/landing"
-        ? json({ ...base, detect_by_size: [{ bin: "1~10", n: 3, detected: null, chance: null }], detect_n: 3 })
-        : null,
-    );
-    renderRoute("/");
-    expect(await screen.findByText("1–10 ha: 감지율 —, 우연 기준 —")).toBeTruthy();
   });
 
   it("/meta가 404 COUNTRY_NOT_READY인 나라는 준비 중 비활성 버튼", async () => {

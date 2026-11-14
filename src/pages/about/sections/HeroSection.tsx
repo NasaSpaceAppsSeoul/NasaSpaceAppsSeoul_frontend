@@ -52,8 +52,12 @@ export function HeroSection() {
        * xl에서 글 칸은 560px 고정, 지구는 남은 칸(2026-11-14 사용자 결정 A). 비율(42%)로 두면 1280에서 463px라
        * 영문 검색 안내 문구가 잘린다. 글 칸 최대 640px(1절)은 지구가 아래로 내려가는 1024에서 검색 줄이 늘어나지 않게
        */}
-      <div className="grid gap-12 xl:grid-cols-[35rem_minmax(0,1fr)] xl:items-center">
-        <div className="flex max-w-160 flex-col">
+      {/*
+       * 세로는 위쪽 기준: 가운데 맞춤이면 글 칸 높이(언어마다 다름)에 따라 시작 위치가 언어 전환 때 밀린다(2026-11-15 사용자).
+       * 글 칸 위 여백(xl:pt-8)은 지구 칸(600px)과 나란할 때 예전 가운데 위치와 비슷하게 둔 값이다
+       */}
+      <div className="grid gap-12 xl:grid-cols-[35rem_minmax(0,1fr)] xl:items-start">
+        <div className="flex max-w-160 flex-col xl:pt-8">
           {/* 크기·자간·색은 시안 v9 `.eyebrow`·`h1`·`.hero-body` 값(기본 단계에 없는 것은 이유 주석과 임의 값) */}
           <p className="flex items-center gap-3 font-mono text-xs font-medium tracking-[0.08em] text-subtle uppercase">
             {/* 주황 점의 은은한 빛(시안 box-shadow, 장식) */}

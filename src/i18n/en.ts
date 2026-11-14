@@ -86,6 +86,13 @@ export const en: Messages = {
       legendHelp:
         "Dashed bars are months whose values are not final yet. Either the month has not ended (in progress), or the value comes from fast near-real-time processing before the final archive, so it may change later. Solid bars are final values.",
     },
+    limits: {
+      index: "03 / Trust & limits",
+      title: "Read the record.\nKnow its limits.",
+      body: "Satellite records can miss fires. One fire grid-day counts a roughly 1 km cell with fire detected on one day. It is not a fire incident count or burned area.",
+      guidance: "Check the sensor basis and data coverage before interpreting a change.",
+      dashboard: "Explore dashboard",
+    },
     earth: {
       label: "Two conceptual observation satellites slowly orbiting a three-dimensional Earth on different paths",
       loading: "Loading Earth surface",
