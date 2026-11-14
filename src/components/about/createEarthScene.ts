@@ -13,19 +13,24 @@ const TEXTURE_PATH = "/assets/earth/blue-marble-january-2048.jpg";
 
 /*
  * 장면 색 (10절 ⑦: 디자인 토큰 예외). 사진 질감·조명·금속 재질의 값이라 화면 역할 색(토큰)과 뜻이 다르다.
- * 테마가 바뀌어도 그대로다. 값은 Make 원본 그대로다.
+ * 테마가 바뀌어도 그대로다. 값은 새 시안 v9(`design/cosmic/src/EarthScene.tsx`, v7에서 밝기·대기광 보강) 그대로다.
  */
 const SCENE_COLORS = {
   earthBase: 0xffffff,
-  atmosphereRgb: "0.22, 0.55, 0.9",
+  /** 바다의 은은한 푸른 빛(발광). 가장자리로 갈수록 줄여 입체감을 남긴다 */
+  oceanGlow: 0x214a8a,
+  atmosphereRgb: "0.22, 0.5, 0.95",
   orbitLine: 0x9cc9da,
   satelliteBody: 0x92999e,
   satelliteDarkMetal: 0x59636a,
   satellitePanel: 0x142a39,
   observationCone: 0xc5f5f1,
   footprint: 0xd4faf7,
-  ambientLight: 0x162534,
+  ambientLight: 0xd4e3f7,
+  hemisphereSky: 0xc7e1ff,
+  hemisphereGround: 0x354a68,
   keyLight: 0xe8f2ff,
+  fillLight: 0xc9e0ff,
 } as const;
 
 /** 처음에 동아시아(한국)가 보이도록 돌려 둔 각도 */
@@ -36,19 +41,40 @@ const SECOND_ORBIT_PERIOD_SECONDS = 64;
 
 const ATMOSPHERE_VERTEX_SHADER = `
   varying vec3 vViewNormal;
+  varying vec3 vViewDirection;
   void main() {
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
     vViewNormal = normalize(normalMatrix * normal);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vViewDirection = normalize(-viewPosition.xyz);
+    gl_Position = projectionMatrix * viewPosition;
   }
 `;
 
+/** 대기광: 시선과 비스듬할수록 밝다. 바깥 층(`outerLayer` 1)은 가장자리에서 0으로 사라진다(딱딱한 네온 테두리 대신) */
 const ATMOSPHERE_FRAGMENT_SHADER = `
+  uniform float strength;
+  uniform float outerLayer;
   varying vec3 vViewNormal;
+  varying vec3 vViewDirection;
   void main() {
-    float rim = pow(clamp(0.72 - vViewNormal.z, 0.0, 1.0), 3.2);
-    gl_FragColor = vec4(${SCENE_COLORS.atmosphereRgb}, rim * 0.38);
+    float facing = abs(dot(normalize(vViewNormal), normalize(vViewDirection)));
+    float rim = pow(clamp(1.0 - facing, 0.0, 1.0), 2.8);
+    float edgeFade = mix(1.0, smoothstep(0.0, 0.6, facing), outerLayer);
+    gl_FragColor = vec4(${SCENE_COLORS.atmosphereRgb}, rim * edgeFade * strength);
   }
 `;
+
+function atmosphereMaterial(strength: number, outerLayer: 0 | 1): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    uniforms: { strength: { value: strength }, outerLayer: { value: outerLayer } },
+    vertexShader: ATMOSPHERE_VERTEX_SHADER,
+    fragmentShader: ATMOSPHERE_FRAGMENT_SHADER,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: outerLayer === 1 ? THREE.BackSide : THREE.FrontSide,
+  });
+}
 
 export type EarthStatus = "loading" | "ready" | "error";
 
@@ -208,7 +234,7 @@ function startScene(
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.92;
+  renderer.toneMappingExposure = 1.08;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
   renderer.domElement.setAttribute("aria-hidden", "true");
   renderer.domElement.className = "block size-full";
@@ -226,23 +252,25 @@ function startScene(
     color: SCENE_COLORS.earthBase,
     roughness: 0.88,
     metalness: 0.01,
+    emissive: SCENE_COLORS.oceanGlow,
+    emissiveIntensity: 0.18,
   });
+  // 바다의 푸른 빛을 읽히게 두되, 가장자리(시선과 비스듬한 면)는 어둡게 해 구의 깊이를 남긴다(시안 그대로)
+  earthMaterial.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <emissivemap_fragment>",
+      `#include <emissivemap_fragment>
+       float surfaceFacing = max(dot(normal, normalize(vViewPosition)), 0.0);
+       totalEmissiveRadiance *= mix(0.28, 1.0, sqrt(surfaceFacing));`,
+    );
+  };
   const earth = new THREE.Mesh(new THREE.SphereGeometry(1.2, 96, 64), earthMaterial);
   earth.rotation.y = INITIAL_EAST_ASIA_ROTATION;
   axialGroup.add(earth);
 
-  const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(1.225, 96, 64),
-    new THREE.ShaderMaterial({
-      vertexShader: ATMOSPHERE_VERTEX_SHADER,
-      fragmentShader: ATMOSPHERE_FRAGMENT_SHADER,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.BackSide,
-    }),
-  );
-  axialGroup.add(atmosphere);
+  // 대기광 두 겹: 표면에 붙은 얇은 안쪽 층 + 바깥으로 사라지는 바깥 층
+  axialGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.212, 96, 64), atmosphereMaterial(0.09, 0)));
+  axialGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.285, 96, 64), atmosphereMaterial(0.24, 1)));
 
   const firstOrbit: Orbit = { radius: 1.64, tilt: new THREE.Euler(-0.45, 0, 0.18) };
   const secondOrbit: Orbit = { radius: 1.72, tilt: new THREE.Euler(-1.15, 0.25, -0.6) };
@@ -256,10 +284,15 @@ function startScene(
   const secondFootprint = footprint.clone();
   scene.add(satellite, footprint, secondSatellite, secondFootprint);
 
-  scene.add(new THREE.AmbientLight(SCENE_COLORS.ambientLight, 0.42));
-  const keyLight = new THREE.DirectionalLight(SCENE_COLORS.keyLight, 3.1);
+  // 조명(시안 v7 보강): 밝은 주변광 + 하늘·땅 반구광 + 왼쪽 위 주광 + 앞쪽 아래 보조광
+  scene.add(new THREE.AmbientLight(SCENE_COLORS.ambientLight, 1.05));
+  scene.add(new THREE.HemisphereLight(SCENE_COLORS.hemisphereSky, SCENE_COLORS.hemisphereGround, 0.7));
+  const keyLight = new THREE.DirectionalLight(SCENE_COLORS.keyLight, 2.3);
   keyLight.position.set(-4.2, 3.2, 2.2);
   scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(SCENE_COLORS.fillLight, 1.8);
+  fillLight.position.set(3.5, -1, 5.5);
+  scene.add(fillLight);
 
   /** 정리가 시작됨(늦게 온 사진·컨텍스트 소실 알림을 무시한다) */
   let disposed = false;

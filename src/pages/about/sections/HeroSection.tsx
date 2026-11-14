@@ -54,14 +54,18 @@ export function HeroSection() {
        */}
       <div className="grid gap-12 xl:grid-cols-[35rem_minmax(0,1fr)] xl:items-center">
         <div className="flex max-w-160 flex-col">
-          <p className="flex items-center gap-3 font-mono text-xs font-medium tracking-widest text-muted uppercase">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-fire" />
+          {/* 크기·자간·색은 시안 v9 `.eyebrow`·`h1`·`.hero-body` 값(기본 단계에 없는 것은 이유 주석과 임의 값) */}
+          <p className="flex items-center gap-3 font-mono text-xs font-medium tracking-[0.08em] text-subtle uppercase">
+            {/* 주황 점의 은은한 빛(시안 box-shadow, 장식) */}
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-fire shadow-[0_0_14px_rgba(244,122,50,0.7)]" />
             {h.eyebrow}
           </p>
-          <h1 className="mt-7 text-6xl leading-none font-medium tracking-tighter whitespace-pre-line xl:text-7xl">
+          {/* 제목: 화면 너비에 따라 56~84px, 줄 간격 0.98, 자간 −0.052em(시안 h1) */}
+          <h1 className="mt-7 max-w-150 text-[clamp(56px,5.7vw,84px)] leading-[0.98] font-medium tracking-[-0.052em] whitespace-pre-line">
             {h.title}
           </h1>
-          <p className="mt-8 max-w-md text-lg text-muted">{h.lead}</p>
+          {/* 설명: 최대 435px(시안 .hero-body) */}
+          <p className="mt-8 max-w-[435px] text-lg text-subtle">{h.lead}</p>
 
           <div className="mt-10">
             <HeroSearchBar
