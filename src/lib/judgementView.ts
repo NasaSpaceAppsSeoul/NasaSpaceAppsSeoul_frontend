@@ -22,8 +22,7 @@ export type JudgementLike = {
   band_high: number | null;
   ratio_to_median: number | null;
   ytd_sum: number | null;
-  ytd_median?: number | null;
-  ytd_ratio: number | null;
+  ytd_median: number | null;
   quality: QualityValue | null;
   status: "final" | "partial" | "nrt";
   reason: string | null;
@@ -110,16 +109,8 @@ export function judgementView(j: JudgementLike, source: string | null, seasonSta
       ? // 하한은 계산상 음수일 수 있지만 감지일은 0보다 작을 수 없어 화면에는 0으로 쓴다(3-6)
         { low: Math.max(0, j.band_low), high: j.band_high }
       : null;
-  // 누적 평년: `ytd_median`(PR #17). 그 전 판정 서비스는 이 필드가 없어 `ytd_sum ÷ ytd_ratio`로 대신한다
-  // (그 빌드의 비율은 달별 평년 합 기준이라 값이 조금 다르다). 0 이하면 두 경로 모두 줄을 뺀다
-  const usual =
-    j.ytd_median !== undefined
-      ? j.ytd_median !== null && j.ytd_median > 0
-        ? j.ytd_median
-        : null
-      : j.ytd_sum !== null && j.ytd_ratio !== null && j.ytd_ratio > 0
-        ? j.ytd_sum / j.ytd_ratio
-        : null;
+  // 누적 평년: 백엔드 `ytd_median`(PR #17, 해마다 같은 기간 누적 합의 중앙값). 없거나 0 이하면 "평소" 줄을 뺀다
+  const usual = j.ytd_median !== null && j.ytd_median > 0 ? j.ytd_median : null;
 
   return {
     kind,

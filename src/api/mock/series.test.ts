@@ -242,7 +242,7 @@ describe("/series와 /judgement의 일관성", () => {
     for (const month of monthList) {
       const j = await judge(country, id, month);
       if (j.judge_unit !== "self" || j.ytd_sum === null || j.rank_period === null) {
-        expect([j.ytd_median ?? null, j.ytd_lo, j.ytd_hi]).toEqual([null, null, null]);
+        expect([j.ytd_median, j.ytd_lo, j.ytd_hi]).toEqual([null, null, null]);
         continue;
       }
       const [start, end] = j.rank_period;

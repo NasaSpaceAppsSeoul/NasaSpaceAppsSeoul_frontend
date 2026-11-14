@@ -5,7 +5,7 @@ import { Badge } from "../Chip";
 
 /*
  * 누적 카드 (screens/kr/dashboard-national.png, 나라 단계만, `decisions.md` 3-5. 모양은 시안 v9 유리 카드).
- * 기간은 시즌 시작 달(`from`, 남반구 7월)부터 그 달까지. 평소 누적은 `ytd_median`(없으면 `ytd_sum ÷ ytd_ratio`, `judgementView`).
+ * 기간은 시즌 시작 달(`from`, 남반구 7월)부터 그 달까지. 평소 누적은 백엔드 `ytd_median`(`judgementView`).
  * 평소 값이 없으면 그 줄을 뺀다. 환산 범위 줄은 자리만(1-9).
  * 집계 중인 달은 덜 찬 누적이라 평소와 비교하지 않고 "집계 중"을 붙인다(숫자 카드가 칩을 숨기는 것과 같은 기준).
  */

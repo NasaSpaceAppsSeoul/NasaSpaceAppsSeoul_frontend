@@ -174,7 +174,7 @@ const base: JudgementLike = {
   band_high: 294.8,
   ratio_to_median: 6.28,
   ytd_sum: 1157,
-  ytd_ratio: 2.5,
+  ytd_median: 315.6,
   quality: "high",
   status: "final",
   reason: null,
@@ -190,7 +190,7 @@ describe("숫자 카드 분기 (3절, 7가지 순서)", () => {
     expect(v.ratio).toEqual({ median: 174, ratio: 6.28 });
     expect(v.rank).toEqual({ rank: 1, n: 25, period: [2001, 2025] });
     expect(v.converted).toBe(false);
-    expect(v.ytd).toEqual({ sum: 1157, usual: 1157 / 2.5, from: "2025-01" });
+    expect(v.ytd).toEqual({ sum: 1157, usual: 315.6, from: "2025-01" });
   });
 
   it("순서대로 먼저 맞는 하나", () => {
@@ -251,16 +251,11 @@ describe("숫자 카드 분기 (3절, 7가지 순서)", () => {
     expect(judgementView(base, null, 1).converted).toBe(false);
   });
 
-  it("평소 누적은 ytd_median, 없으면(옛 판정 서비스) 합 ÷ 비율, 비율도 없거나 0이면 빼고, 누적이 없으면 누적도 없다", () => {
+  it("평소 누적은 ytd_median, 없거나 0이면 빼고, 누적이 없으면 누적도 없다", () => {
     expect(judgementView({ ...base, ytd_median: 410.5 }, null, 1).ytd).toEqual({ sum: 1157, usual: 410.5, from: "2025-01" });
     expect(judgementView({ ...base, ytd_median: null }, null, 1).ytd).toEqual({ sum: 1157, usual: null, from: "2025-01" });
-    expect(judgementView({ ...base, ytd_ratio: 0 }, null, 1).ytd).toEqual({ sum: 1157, usual: null, from: "2025-01" });
-    expect(judgementView({ ...base, ytd_ratio: null }, null, 1).ytd).toEqual({ sum: 1157, usual: null, from: "2025-01" });
-    expect(judgementView({ ...base, ytd_sum: null }, null, 1).ytd).toBeNull();
-  });
-
-  it("평소 누적 0이면 줄을 뺀다(두 경로 같게)", () => {
     expect(judgementView({ ...base, ytd_median: 0 }, null, 1).ytd?.usual).toBeNull();
+    expect(judgementView({ ...base, ytd_sum: null }, null, 1).ytd).toBeNull();
   });
 
   it("누적 문구: 한 달·같은 해·해 넘김, 달 구간(ko/en)", () => {

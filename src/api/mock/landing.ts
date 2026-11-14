@@ -84,9 +84,9 @@ function korLanding(): Landing {
  * 9장에서 서버 응답으로 바꾼다.
  *
  * 그리스·칠레·NSW (9장): `annual`, `detect_by_size`, `official_break`, `break_test`, 위험 시기는 서버 `/landing` 응답
- * (2026-11-15, 백엔드 `abfd9fe` 전 빌드). 대표 달은 백엔드 `LandingService.java`의 달(GRC 2007-08·CHL 2023-02·NSW 2019-12)이고,
- * 그 옛 빌드는 대표 달이 없어 배수·칸·순위가 `null`이었다 → 목도 `null`(그림 제목의 배수는 `/series`에서 읽는다).
- * 그리스는 공식 기록 단절 비율과 감지율이 비어 왔다(`null`, 빈 배열). 재배포 뒤 서버 값과 다시 맞춘다.
+ * (2026-11-15, 백엔드 `abfd9fe` 서버, `.claude/reference/samples/*-landing.json`). 대표 달은 `LandingService.java`의 달
+ * (GRC 2007-08·CHL 2023-02·NSW 2019-12)이고 배수·칸·순위도 그 응답 값이다.
+ * 그리스는 공식 기록 단절 비율·감지율·위험 시기가 비어 온다(`null`, 빈 배열, `months: null`).
  */
 const DETECT_BINS = ["0.1 ha 미만", "0.1~1", "1~10", "10~100", "100 ha 이상"];
 const detect = (rows: readonly (readonly [number, number | null, number | null])[]): Landing["detect_by_size"] =>
@@ -144,8 +144,8 @@ const REGION_LANDING = {
     breakTest: { before: { ratio: 0.98, ci95: [0.95, 1.02] }, after: { ratio: 1.01, ci95: [0.98, 1.04] }, jump_raw: 2.8 },
     stats: [
       { key: "burned_area_record", year: null, value: null, source: "그리스 소방청", unit: "ha" },
-      { key: "case_month_ratio", month: "2007-08", value: null, cells: null, rank: null, n: null },
-      { key: "risk_share", value: null, months: [] },
+      { key: "case_month_ratio", month: "2007-08", value: 11.47, cells: 5091.9, rank: 1, n: 25 },
+      { key: "risk_share", value: null, months: null },
     ],
   },
   CHL: {
@@ -156,7 +156,7 @@ const REGION_LANDING = {
     breakTest: { before: { ratio: 1.02, ci95: [0.99, 1.06] }, after: { ratio: 1.02, ci95: [0.99, 1.06] }, jump_raw: 2.8 },
     stats: [
       { key: "burned_area_record", year: null, value: null, source: "CONAF", unit: "ha" },
-      { key: "case_month_ratio", month: "2023-02", value: null, cells: null, rank: null, n: null },
+      { key: "case_month_ratio", month: "2023-02", value: 15.43, cells: 9660, rank: 1, n: 25 },
       { key: "risk_share", value: 0.51, months: [3, 4, 5] },
     ],
   },
@@ -168,7 +168,7 @@ const REGION_LANDING = {
     breakTest: { before: { ratio: 1.02, ci95: [0.98, 1.07] }, after: { ratio: 1.03, ci95: [0.98, 1.08] }, jump_raw: 3.0 },
     stats: [
       { key: "burned_area_record", year: null, value: null, source: "NSW NPWS", unit: "ha" },
-      { key: "case_month_ratio", month: "2019-12", value: null, cells: null, rank: null, n: null },
+      { key: "case_month_ratio", month: "2019-12", value: 61.66, cells: 50656, rank: 1, n: 25 },
       { key: "risk_share", value: 0.55, months: [4, 5, 8, 9, 12] },
     ],
   },
