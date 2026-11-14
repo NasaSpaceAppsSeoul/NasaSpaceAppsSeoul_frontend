@@ -3,6 +3,7 @@ import { mockGet } from "../../api/mock/index";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { resetEntryHashForTest } from "../../hooks/useActiveSection";
 import { renderRoute } from "../../test/render";
+import { COUNTRIES } from "../../lib/country";
 
 /*
  * 기법 페이지(`/method`). 절: 머리, 01~10, 끝 줄(`plans/method-page.md` 12절).
@@ -69,7 +70,7 @@ describe("기법 페이지", () => {
     const data = within(await screen.findByRole("region", { name: "데이터" }));
     expect(data.getByRole("img").getAttribute("aria-label")).toContain("NOAA-20 2018년 4월부터 현재까지");
     const rows = data.getAllByRole("row").map((row) => row.textContent);
-    expect(rows).toHaveLength(4);
+    expect(rows).toHaveLength(1 + COUNTRIES.length);
     expect(rows[1]).toContain("산림청 산불 기록 7,628건");
   });
 

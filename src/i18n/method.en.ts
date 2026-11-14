@@ -8,7 +8,7 @@ export const methodEn: MethodMessages = {
   lead:
     "When the satellites changed in 2012, the same fires began to be detected far more often. Burnline puts MODIS and VIIRS " +
     "on one scale, and every region goes through the same notebook and the same validation. It currently covers South Korea, " +
-    "California and British Columbia. A new region runs the same computation from its boundaries, satellite data and one " +
+    "California, British Columbia, Greece, Chile and New South Wales. A new region runs the same computation from its boundaries, satellite data and one " +
     "line of settings, and is then added to the server and the site by its region code.",
   stats: [
     {
@@ -20,8 +20,8 @@ export const methodEn: MethodMessages = {
     },
     {
       id: "areas",
-      value: { before: "3 regions · ", accent: "315", after: " areas" },
-      sub: "Every month: whole regions since 2001; districts, counties and regional districts since 2012",
+      value: { before: "6 regions · ", accent: "1,114", after: " areas" },
+      sub: "Every month: whole regions since 2001; districts, counties and other sub-areas since 2012",
     },
     {
       id: "detection",
@@ -113,8 +113,9 @@ export const methodEn: MethodMessages = {
       {
         title: "Open boundaries",
         body: [
-          "geoBoundaries by default, or a finer official set where it fits better (BC's 28 regional districts from the " +
-            "BC Data Catalogue). Yeonggwang County is missing from the Korean geoBoundaries file, so it was filled in as the " +
+          "geoBoundaries by default (for Greece from EuroGeographics, for Chile from the Library of the National Congress (BCN), " +
+            "for NSW from the ABS 2022 local government areas), or a finer official set where it fits better (BC's 28 regional " +
+            "districts from the BC Data Catalogue). Yeonggwang County is missing from the Korean geoBoundaries file, so it was filled in as the " +
             "area left after removing the other counties from South Jeolla (some islands excluded). Gunwi County is assigned " +
             "to Daegu, following its transfer in July 2023.",
         ],
@@ -137,6 +138,9 @@ export const methodEn: MethodMessages = {
           key: "BC",
           cells: ["British Columbia", "28 regional districts", "BC Wildfire Service records, 42,170 (2001-01 – 2026-03)"],
         },
+        { key: "GRC", cells: ["Greece", "14 regions · 325 municipalities", "Hellenic Fire Service fire records"] },
+        { key: "CHL", cells: ["Chile", "16 regions · 345 municipalities", "CONAF large-fire records (200 ha and over)"] },
+        { key: "NSW", cells: ["New South Wales", "129 local government areas", "NSW NPWS fire history (wildfires only)"] },
       ],
     },
   },
@@ -619,7 +623,7 @@ export const methodEn: MethodMessages = {
       { id: "province", title: "Its province", note: "If the district is sparse" },
       { id: "nearest", title: "Nearest sufficient province", note: "If the province is sparse too; stated in the text" },
     ],
-    flowNote: "In California and BC, counties and regional districts borrow from the whole state or province.",
+    flowNote: "In California, BC and NSW, counties, regional districts and local government areas borrow from the whole state or province.",
     statusTable: {
       caption: "Area status",
       head: ["Status", "Sufficient", "Sparse", "No detections"],
@@ -877,7 +881,7 @@ export const methodEn: MethodMessages = {
       rows: [
         {
           key: "processing",
-          cells: ["Processing", "Python · pandas, NumPy, SciPy. One notebook shared by all three regions, only the settings differ", "A new region goes through the same computation and validation"],
+          cells: ["Processing", "Python · pandas, NumPy, SciPy. One notebook shared by all regions, only the settings differ", "A new region goes through the same computation and validation"],
         },
         { key: "storage", cells: ["Storage", "PostgreSQL 16 + Flyway", "Region × month × day queries, versioned schema"] },
         {
@@ -940,11 +944,13 @@ export const methodEn: MethodMessages = {
     sourcesTitle: "Sources",
     sources: [
       { id: "firms", label: "NASA FIRMS", body: "MODIS C6.1 and VIIRS C2 (S-NPP, NOAA-20, NOAA-21) active fires" },
-      { id: "official", label: "Official records", body: "Korea Forest Service · KOSIS, CAL FIRE FRAP, BC Wildfire Service" },
+      { id: "official", label: "Official records", body: "Korea Forest Service · KOSIS, CAL FIRE FRAP, BC Wildfire Service, Hellenic Fire Service, CONAF, NSW NPWS" },
       {
         id: "boundary",
         label: "Boundaries",
-        body: "geoBoundaries (CC BY 3.0) · US Census Bureau (public domain) · BC Data Catalogue (OGL–BC)",
+        body:
+          "geoBoundaries (CC BY 3.0) · US Census Bureau (public domain) · BC Data Catalogue (OGL–BC) · " +
+          "geoBoundaries (EuroGeographics, CC BY 4.0) · geoBoundaries (BCN, CC BY 3.0 IGO) · geoBoundaries (ABS, CC BY 4.0)",
       },
     ],
     dashboard: "Explore dashboard →",

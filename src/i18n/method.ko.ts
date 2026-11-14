@@ -9,7 +9,7 @@ export const methodKo = {
   title: "25년의 불을 하나의 자로.",
   lead:
     "2012년에 위성이 바뀌면서 같은 불도 훨씬 많이 잡히게 되었습니다. Burnline은 MODIS와 VIIRS를 하나의 자로 맞추고, " +
-    "어느 지역이든 같은 노트북과 같은 검증을 거칩니다. 현재 한국, 캘리포니아, 브리티시컬럼비아를 다루며, " +
+    "어느 지역이든 같은 노트북과 같은 검증을 거칩니다. 현재 한국, 캘리포니아, 브리티시컬럼비아, 그리스, 칠레, 뉴사우스웨일스를 다루며, " +
     "새 지역은 경계·위성 자료·설정 한 줄로 같은 계산을 돌린 뒤 서버와 화면에 지역 코드를 더하면 됩니다.",
   // 숫자 카드 3장(12-1). 값은 앞말 + 주황 강조 + 뒷말. 고정 문구이고 9장에서 서버 값과 대조한다
   stats: [
@@ -22,8 +22,9 @@ export const methodKo = {
     },
     {
       id: "areas",
-      value: { before: "3개 지역 · ", accent: "315", after: "곳" },
-      sub: "나라는 2001년부터, 시·군·구·카운티·지역구는 2012년부터 매달",
+      // 하위 구역 수 합: 서버 `/regions`(2026-11-15 재배포 뒤) KOR 229 · CAL 58 · BC 28 · GRC 325 · CHL 345 · NSW 129
+      value: { before: "6개 지역 · ", accent: "1,114", after: "곳" },
+      sub: "나라는 2001년부터, 시·군·구·카운티 같은 하위 구역은 2012년부터 매달",
     },
     {
       id: "detection",
@@ -107,7 +108,8 @@ export const methodKo = {
       {
         title: "공개 경계",
         body: [
-          "기본은 geoBoundaries이고, 더 맞는 공식 경계가 있으면 그것을 씁니다(BC 지역구 28곳은 BC Data Catalogue). " +
+          "기본은 geoBoundaries이고(그리스·칠레·NSW는 geoBoundaries가 각각 EuroGeographics, 칠레 국회도서관 BCN, 호주 통계청 ABS 2022 지방정부 경계를 옮긴 것), " +
+            "더 맞는 공식 경계가 있으면 그것을 씁니다(BC 지역구 28곳은 BC Data Catalogue). " +
             "한국은 geoBoundaries에 영광군이 빠져 있어, 전남 경계에서 다른 시·군을 뺀 빈 곳으로 보강했습니다(섬 일부 제외). " +
             "군위군은 2023년 7월 편입에 맞춰 대구로 배정했습니다.",
         ],
@@ -127,6 +129,10 @@ export const methodKo = {
         },
         { key: "CAL", cells: ["캘리포니아", "카운티 58", "CAL FIRE FRAP 화재 경계 8,686건(2001 ~ 2025)"] },
         { key: "BC", cells: ["브리티시컬럼비아", "지역구 28", "BC Wildfire Service 기록 42,170건(2001-01 ~ 2026-03)"] },
+        // 새 세 지역: 구역 수는 서버 `/regions`(2026-11-15 재배포 뒤), 기록 출처는 `OfficialFireReader.java`(abfd9fe). 건수는 자료 재적재 뒤(9장)
+        { key: "GRC", cells: ["그리스", "광역 14 · 시군 325", "그리스 소방청 화재 기록"] },
+        { key: "CHL", cells: ["칠레", "주 16 · 시군 345", "CONAF 대형 산불 기록(200 ha 이상)"] },
+        { key: "NSW", cells: ["뉴사우스웨일스", "지방정부 129", "NSW NPWS 화재 이력(산불만)"] },
       ],
     },
   },
@@ -578,7 +584,7 @@ export const methodKo = {
       { id: "province", title: "소속 시·도", note: "구역이 부족하면" },
       { id: "nearest", title: "가장 가까운 충분한 시·도", note: "시·도도 부족하면, 빌렸다는 것을 문장으로 밝힘" },
     ],
-    flowNote: "캘리포니아·BC는 카운티·지역구 → 주 전체 순서로 빌립니다.",
+    flowNote: "캘리포니아·BC·NSW는 카운티·지역구·지방정부 → 주 전체 순서로 빌립니다.",
     statusTable: {
       caption: "구역 성격 현황",
       head: ["현황", "충분", "부족", "감지 없음"],
@@ -833,7 +839,7 @@ export const methodKo = {
       rows: [
         {
           key: "processing",
-          cells: ["자료 처리", "Python · pandas, NumPy, SciPy. 노트북 하나를 세 지역이 같이 쓰고 설정만 다름", "새 지역도 같은 계산과 같은 검증을 거칩니다"],
+          cells: ["자료 처리", "Python · pandas, NumPy, SciPy. 노트북 하나를 모든 지역이 같이 쓰고 설정만 다름", "새 지역도 같은 계산과 같은 검증을 거칩니다"],
         },
         { key: "storage", cells: ["저장", "PostgreSQL 16 + Flyway", "지역 × 달 × 날짜 조회, 표 구조 버전 관리"] },
         {
@@ -900,11 +906,13 @@ export const methodKo = {
     sourcesTitle: "출처",
     sources: [
       { id: "firms", label: "NASA FIRMS", body: "MODIS C6.1, VIIRS C2(S-NPP, NOAA-20, NOAA-21) 활성 화재" },
-      { id: "official", label: "공식 기록", body: "산림청 · KOSIS, CAL FIRE FRAP, BC Wildfire Service" },
+      { id: "official", label: "공식 기록", body: "산림청 · KOSIS, CAL FIRE FRAP, BC Wildfire Service, 그리스 소방청, CONAF, NSW NPWS" },
       {
         id: "boundary",
         label: "경계",
-        body: "geoBoundaries(CC BY 3.0) · 미국 인구조사국(퍼블릭 도메인) · BC Data Catalogue(OGL–BC)",
+        body:
+          "geoBoundaries(CC BY 3.0) · 미국 인구조사국(퍼블릭 도메인) · BC Data Catalogue(OGL–BC) · " +
+          "geoBoundaries(EuroGeographics, CC BY 4.0) · geoBoundaries(BCN, CC BY 3.0 IGO) · geoBoundaries(ABS, CC BY 4.0)",
       },
     ],
     dashboard: "대시보드 보기 →",
