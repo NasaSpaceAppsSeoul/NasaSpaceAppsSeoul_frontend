@@ -22,7 +22,7 @@ import type { DashboardNavigate, DashboardScope } from "../scope";
  * 시·도·시·군·구 화면의 지도는 `RegionMapSection`(5장).
  * 시·도 경계선은 시·군·구 도형에서 만든다(`provinceBorders`, 2026-11-14 사용자 선택 안 B). 시·도 원본 경계(`/geo?level=prov`)는
  * 시·군·구와 원본이 달라 어긋나므로 쓰지 않는다.
- * 화면이 `key={region.id}`로 그려 지역이 바뀌면 확대 상태가 처음으로 돌아간다.
+ * 화면이 `key={region.id}`로 그려 지역이 바뀌면 확대 상태가 처음으로 돌아간다. 언어를 바꿔도(`MapCanvas`의 `key={locale}`) 처음으로 돌아간다.
  */
 type MapSectionProps = { scope: DashboardScope; navigate: DashboardNavigate };
 
@@ -116,7 +116,9 @@ export function MapSection({ scope, navigate }: MapSectionProps) {
       <div className={GRID}>
         <div className="flex flex-col gap-2">
           <div className={`relative aspect-square w-full transition-opacity ${map.isPlaceholderData ? "opacity-60" : ""}`}>
+            {/* 휠 안내 문구는 지도를 만들 때 한 번만 쓰므로 언어가 바뀌면 지도를 새로 만든다(`/`와 `/en`은 같은 자리에 그려진다) */}
             <MapCanvas
+              key={locale}
               ref={canvas}
               features={visible.features}
               featureKey={visible.key}

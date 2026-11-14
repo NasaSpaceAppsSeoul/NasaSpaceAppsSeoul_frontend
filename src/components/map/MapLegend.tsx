@@ -15,7 +15,7 @@ type MapLegendProps = {
   /** 표본·2012년 전·범위 밖 안내 */
   notes: readonly string[];
   orientation: "vertical" | "horizontal";
-  /** "처음 크기에서는 번져 보이고 확대하면 점" 줄. 확대하지 않는 지역 지도(`MapCanvas variant="regional"`)는 `false` */
+  /** "처음 크기에서는 번져 보이고 확대하면 점" 줄. 번짐이 없는 지역 지도(`MapCanvas variant="regional"`, 처음부터 점)는 `false` */
   showZoomNote?: boolean;
 };
 
