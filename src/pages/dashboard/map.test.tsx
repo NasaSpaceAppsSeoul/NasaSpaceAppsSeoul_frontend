@@ -34,17 +34,26 @@ describe("나라 지도 (4장)", () => {
   it("제목·전환 버튼·범례, 면 단계와 값 없음(2025-03 울릉군)", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     expect(await screen.findByRole("heading", { name: "2025년 3월 · 화재 칸과 감지 위치" })).toBeTruthy();
-    expect(await screen.findByRole("button", { name: "평소 대비 · 준비 중" })).toHaveProperty("disabled", true);
-    expect(screen.getByRole("button", { name: "목록 · 준비 중" })).toHaveProperty("disabled", true);
+    // "평소 대비"는 자리만(누를 수 없음), 지도/목록 전환은 뺐다(2026-11-15 사용자)
+    expect((await screen.findByRole("button", { name: "평소 대비 · 준비 중" })).getAttribute("aria-disabled")).toBe("true");
+    expect(screen.queryByRole("button", { name: /목록/ })).toBeNull();
+    // 범례는 지도 위 판 안에, 접을 수 있게(처음엔 펼침)
+    expect(screen.getByText("범례").closest("details")?.open).toBe(true);
     expect(screen.getByText("3 미만")).toBeTruthy();
     expect(screen.getByText("30 이상")).toBeTruthy();
     const map = await loadedMap();
     await waitFor(() => expect(map.featureStates.get(UISEONG)).toEqual({ bin: 4 }));
     expect(map.featureStates.get(ULLEUNG)).toEqual({ bin: -1 });
     expect(map.fitCalls.length).toBe(1);
+    expect(map.fitPaddings[0]).toMatchObject({ top: 24, right: 72, bottom: 40 });
     // 나라 지도는 Ctrl·⌘+휠·끌기 확대, 처음엔 번짐(지역 지도의 고정 모양과 다르다)
     expect(map.options).toMatchObject({ cooperativeGestures: true, dragPan: true, scrollZoom: true });
     expect(map.paint.get("points.circle-opacity")).not.toBe(0.95);
+    // 점 뒤 빛번짐도 처음 크기에서는 투명(점이 나타날 때 함께), 연기 번짐은 앰버 계열(2026-11-15 다듬기)
+    expect(map.paint.get("points-halo.circle-opacity")).toEqual(["interpolate", ["linear"], ["zoom"], 6, 0, 6.5, 0.35]);
+    // 지역 그라데이션 캔버스 소스 두 장(번갈아 그리고 서서히 맞바꾼다)이 들어갔다(그림은 진짜 브라우저에서만 그린다)
+    expect(map.getSource("region-glow-canvas-a")).toBeDefined();
+    expect(map.getSource("region-glow-canvas-b")).toBeDefined();
     // 끌기 범위는 처음 맞춘 화면으로 묶인다
     expect(map.maxBounds).not.toBeNull();
     // 키로 할 일이 없는 캔버스는 초점을 받지 않는다
@@ -89,6 +98,7 @@ describe("나라 지도 (4장)", () => {
     await waitFor(() => expect(map.featureStates.get(UISEONG)).toEqual({ bin: -1 }));
     expect(fakeMaps.at(-1)).toBe(map);
     expect(map.fitCalls.length).toBe(1);
+    expect(map.fitPaddings[0]).toMatchObject({ top: 24, right: 72, bottom: 40 });
   });
 
   it("처음 크기에서는 안 보이는 점 대신 구역 툴팁, 확대하면 점 툴팁(그 칸의 첫 감지일)", async () => {

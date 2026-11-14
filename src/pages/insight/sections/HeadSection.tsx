@@ -54,7 +54,7 @@ export function HeadSection({ scope, insight }: { scope: InsightScope; insight: 
         <h1 className="text-title-lg text-ink">{it.title(scope.name, scope.monthLabel)}</h1>
         <p className="text-base text-muted">{it.lead(scope.monthName)}</p>
       </header>
-      <p className="rounded-card bg-page px-6 py-4 text-sm text-muted">{it.unitNote}</p>
+      <p className="rounded-card bg-wash px-6 py-4 text-sm text-muted">{it.unitNote}</p>
       <div className="grid grid-cols-4 gap-4">
         <StatTile
           label={it.tiles.total}

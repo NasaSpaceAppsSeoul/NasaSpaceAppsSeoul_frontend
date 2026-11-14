@@ -18,16 +18,16 @@ export function MapTooltip({ x, y, flipX, below, title, label, value }: MapToolt
   return (
     <div
       role="tooltip"
-      className="pointer-events-none absolute z-10 min-w-36 rounded-control border border-border bg-surface px-3 py-2 text-xs shadow-md"
+      className="pointer-events-none absolute z-10 min-w-36 rounded-control-sm bg-inverse px-3 py-2 text-xs text-surface shadow-[0_8px_24px_#0004]"
       style={{
         left: x,
         top: y,
         transform: `translate(${flipX ? "calc(-100% - 12px)" : "12px"}, ${below ? "16px" : "calc(-100% - 8px)"})`,
       }}
     >
-      {title !== null && <p className="text-sm font-medium text-ink">{title}</p>}
-      {label !== null && <p className="text-muted">{label}</p>}
-      <p className="font-semibold text-ink">{value}</p>
+      {title !== null && <p className="text-sm font-medium">{title}</p>}
+      {label !== null && <p className="text-surface/70">{label}</p>}
+      <p className="font-semibold">{value}</p>
     </div>
   );
 }

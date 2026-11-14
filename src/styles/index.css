@@ -24,8 +24,18 @@
   --text-title-lg--line-height: 2.25rem;
   --text-display: 3rem;
   --text-display--line-height: 3.75rem;
-  --text-number: 6rem;
-  --text-number--line-height: 6rem;
+  /* 숫자 카드 큰 숫자. 오른쪽 좁은 칸에서 칩·단위와 한 줄에 들어가게 글자 수로 세 단계(`lib/judgementView` `numberSize`) */
+  --text-number: 4.5rem;
+  --text-number--line-height: 1;
+  --text-number-md: 3.25rem;
+  --text-number-md--line-height: 1;
+  --text-number-sm: 2.5rem;
+  --text-number-sm--line-height: 1;
+  /* 시안 v9 Mono 대문자 머리말(`.db-overline` 10/16)과 칸 이름표(`.db-filter-label` 9/16). 자간은 아래 `mono-overline`·`mono-tag` 유틸리티 */
+  --text-overline: 0.625rem;
+  --text-overline--line-height: 1rem;
+  --text-tag: 0.5625rem;
+  --text-tag--line-height: 1rem;
 
   /* 움직임: 첫 화면 "스크롤해서 읽기" 선 (Make `@keyframes scroll-line` 값 그대로) */
   --animate-scroll-line: scroll-line 2s ease-in-out infinite;
@@ -39,127 +49,33 @@
     }
   }
 
-  /* 유리 표면 바탕(`glass` 유틸리티가 흐림과 함께 쓴다). 어두운 화면 위에서만 쓴다(시안 v9 카드) */
+  /* 유리 표면 바탕(`glass` 유틸리티가 흐림과 함께 쓴다). 시안 v9 카드 */
   --color-glass: rgba(18, 21, 27, 0.4);
-
-  /* 둥근 모서리 */
-  --radius-cell: 4px;
-  --radius-control-sm: 8px;
-  --radius-control: 12px;
-  --radius-card: 24px;
-
-  /* 색: 역할 */
-  --color-page: #f5f5f7;
-  --color-surface: #ffffff;
-  --color-inverse: #1d1d1f;
-  --color-inverse-hover: #2c2c2e;
-  --color-ink: #202022;
-  --color-muted: #66666e;
-  --color-border: #dfdfe5;
-  --color-selection: #005aae;
-  --color-fire: #f68c3e;
-  --color-action: #0066cc;
-  --color-row-hover: #f5f5f7;
-  --color-row-selected: #e8f1fc;
+  /*
+   * 유리 재료 (시안 v9 원칙: 40% 어두운 반투명 + 흐림 + 얇은 흰 선 하나, 반사 테두리·양각 그림자 없음).
+   * `line`은 유리 판의 선(시안 `--line` 흰 14%보다 한 단계 옅게), `wash`는 판 안의 옅은 흰 막(칸·표 머리·안내 상자),
+   * 대화상자는 글을 읽어야 해서 카드보다 진한 유리, 뒤 막은 별이 살짝 비치게 어둡게만 한다
+   */
+  --color-line: rgba(255, 255, 255, 0.12);
+  --color-wash: rgba(255, 255, 255, 0.05);
+  --color-dialog: rgba(14, 16, 21, 0.72);
+  --color-scrim: rgba(5, 5, 6, 0.55);
 
   /*
-   * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`).
-   * 밝은 화면 값은 예전 모양 그대로(알약 = inverse, 언어 = surface·border·muted·inverse).
-   * 어두운 화면은 시안 v9 값(반투명 흰색 바탕 위에 순백 선택칸)이라 surface/inverse 짝으로는 안 나와 따로 둔다.
-   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음). 밝은 화면은 투명
+   * 둥근 모서리 (시안 v9: 카드 16, 대화상자 18, 지도 위 판 12, 버튼 묶음·검색 칸 6, 칩 4).
+   * 대화상자는 카드와 2px 차이라 카드 값을 같이 쓴다
    */
-  --color-nav: #1d1d1f;
-  --color-nav-hover: #2c2c2e;
-  --color-nav-ink: #ffffff;
-  --color-nav-line: transparent;
-  --color-nav-active: #ffffff;
-  --color-nav-active-ink: #1d1d1f;
-  --color-segment: #ffffff;
-  --color-segment-line: #dfdfe5;
-  --color-segment-ink: #66666e;
-  --color-segment-active: #1d1d1f;
-  --color-segment-active-ink: #ffffff;
-  /* 머리글 아래 구분선. 밝은 화면은 border와 같다 */
-  --color-header-line: #dfdfe5;
-  /* 히어로 작은 제목·설명처럼 muted보다 한 단계 밝은 보조 글자(시안 #a7a8ac). 밝은 화면은 muted와 같다 */
-  --color-subtle: #66666e;
+  --radius-cell: 4px;
+  --radius-control-sm: 4px;
+  --radius-control: 6px;
+  --radius-panel: 12px;
+  --radius-card: 16px;
 
-  /* 색: 히트맵 8단계 (낮은 값 → 높은 값) */
-  --color-heat-0: #faf7f0;
-  --color-heat-1: #fff5d6;
-  --color-heat-2: #fde3a7;
-  --color-heat-3: #fbc46e;
-  --color-heat-4: #f59e42;
-  --color-heat-5: #e8702a;
-  --color-heat-6: #c8471e;
-  --color-heat-7: #8e2a14;
-
-  /* 색: 지도 면 5단계 */
-  --color-map-0: #edeeeb;
-  --color-map-1: #ffd7a7;
-  --color-map-2: #ff993a;
-  --color-map-3: #c84810;
-  --color-map-4: #7f2d12;
-
-  /* 색: 지도 점 (첫 감지일, +1일, +2일, +3일~) */
-  --color-dot-0: #ffffff;
-  --color-dot-1: #ffe58c;
-  --color-dot-2: #ff8e3c;
-  --color-dot-3: #f46b72;
-
-  /* 색: 막대 그라데이션 (위 → 아래) */
-  --color-bar-raw-from: #54a0f8;
-  --color-bar-raw-to: #0c6fd2;
-  --color-bar-harmonized-from: #f4873b;
-  --color-bar-harmonized-to: #e26224;
-  --color-bar-pre2012: #d5d2cc;
-
-  /* 색: 평가 칩 */
-  --color-chip-record: #c8471e;
-  --color-chip-above: #f59e42;
-  --color-chip-normal: #edeae4;
-  --color-chip-below: #e9f2ec;
-  --color-chip-below-ink: #2f6e50;
-
-  /* 색: 둥근 색조 배지 5가지 (바탕, 글자). components/sheet/05-charts-badges.png 맨 아래에서 뽑음 */
-  --color-tone-orange: #fff0e2;
-  --color-tone-orange-ink: #9a3412;
-  --color-tone-green: #ddf6e9;
-  --color-tone-green-ink: #166534;
-  --color-tone-blue: #e4f0ff;
-  --color-tone-blue-ink: #0758a5;
-  --color-tone-red: #fee7e2;
-  --color-tone-red-ink: #9f2d1a;
-  --color-tone-yellow: #fff3d6;
-  --color-tone-yellow-ink: #785016;
-
-  /* 색: 히트맵 칸 무늬 (components/sheet/04-calendar-legend.png에서 뽑음) */
-  --color-heat-dot: #7f6643; /* 센서 환산값 점무늬 */
-  --color-heat-hatch: #7d7d81; /* 관측 자료 없음 빗금 선, 바탕은 border */
-  --color-heat-partial: #9a5400; /* 집계 중 갈색 점선 */
-  --color-heat-future: #94949e; /* 아직 집계 전 회색 점선 */
-}
-
-@layer base {
-  body {
-    /*
-     * 글자 다듬기(`antialiased`)는 쓰지 않는다: 시안 v9는 브라우저 기본 렌더링이라 macOS에서 글자가 더 또렷하고 굵다.
-     * 없는 굵기·기울임을 브라우저가 만들어 내지 않게 한다(시안 `font-synthesis: none`)
-     */
-    @apply bg-page font-sans text-base text-ink;
-    font-synthesis: none;
-  }
-}
-
-/*
- * 어두운 테마 (`plans/about-revise.md` 9-1, 표는 `.claude/design/tokens.md` "색: 어두운 테마").
- * 첫 화면·기법 페이지만 `<html data-theme="dark">`가 붙는다(`app/documentTheme.ts`).
- * 값은 Figma Make 내보내기(`design/extra/landing/src/index.css`)에서 옮겼다. 반투명 선·바탕은 #050506 위에 섞은 불투명 값으로 바꿨다
- * (`border/40`처럼 투명도를 다시 거는 곳이 있어서).
- * `surface`↔`inverse`는 뒤집힌 짝이다(머리글 알약, 검정·파랑 버튼 글자). 데이터 색(히트맵·지도·칩)은 이 화면들에 없어 그대로 둔다.
- */
-:root[data-theme="dark"] {
-  color-scheme: dark;
+  /*
+   * 색: 역할. 모든 화면이 우주 배경 위 어두운 테마다(`plans/cosmic-redesign.md` 8절, 표는 `.claude/design/tokens.md`).
+   * 반투명 선·바탕은 #050506 위에 섞은 불투명 값이다(`border/40`처럼 투명도를 다시 거는 곳이 있어서).
+   * `surface`↔`inverse`는 뒤집힌 짝이다(밝은 판 위 어두운 글자: 툴팁, 흰 버튼 글자).
+   */
   --color-page: #050506;
   --color-surface: #111113;
   --color-inverse: #f4f4f1;
@@ -167,11 +83,17 @@
   --color-ink: #f4f4f1;
   --color-muted: #929398;
   --color-border: #2a2a2d;
-  --color-row-hover: #1a1a1d;
-  --color-row-selected: #0f1e30;
+  --color-selection: #7ab6ff;
+  --color-fire: #f47a32;
+  --color-action: #4c9eff;
+  /* 줄·칸 호버와 선택. 유리 위에 겹치는 반투명 막이다(투명도를 다시 거는 사용처 없음) */
+  --color-row-hover: rgba(255, 255, 255, 0.08);
+  --color-row-selected: rgba(76, 158, 255, 0.16);
+
   /*
-   * 시안 v9 `.primary-nav`·`.language-switch` 값 그대로. 우주 배경이 비치도록 반투명으로 둔다
-   * (투명도를 다시 거는 사용처가 없는 머리글 전용 토큰이라 괜찮다)
+   * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`). 시안 v9 `.primary-nav`·`.language-switch` 값.
+   * 우주 배경이 비치도록 반투명으로 둔다(투명도를 다시 거는 사용처가 없는 머리글 전용 토큰이라 괜찮다).
+   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음)
    */
   --color-nav: rgba(255, 255, 255, 0.08);
   --color-nav-hover: rgba(255, 255, 255, 0.12);
@@ -185,52 +107,126 @@
   --color-segment-ink: #929398;
   --color-segment-active: #ffffff;
   --color-segment-active-ink: #050506;
-  /* 시안 `.site-header` border-bottom */
+  /* 머리글 아래 구분선(시안 `.site-header` border-bottom) */
   --color-header-line: rgba(255, 255, 255, 0.1);
-  /* 시안 `.hero-body` #a7a8ac(작은 제목 #b0b1b5와 거의 같아 하나로) */
+  /* muted보다 한 단계 밝은 보조 글자(시안 `.hero-body` #a7a8ac) */
   --color-subtle: #a7a8ac;
-  --color-action: #4c9eff;
-  --color-selection: #7ab6ff;
-  --color-fire: #f47a32;
+  /* 선택 줄 칸 테두리·밑줄(시안 `.db-region-filter` #34373e, `.db-select` #3c414b를 하나로) */
+  --color-field-line: #3c414b;
+
+  /* 색: 히트맵 8단계 (낮은 값 → 높은 값). 시안 v9 `calendarTheme.ts` harmonized */
+  --color-heat-0: #dfe2e5;
+  --color-heat-1: #ebd7bd;
+  --color-heat-2: #e5c59f;
+  --color-heat-3: #ddb17e;
+  --color-heat-4: #d39a5e;
+  --color-heat-5: #ca8547;
+  --color-heat-6: #be7037;
+  --color-heat-7: #ae5b2b;
+
+  /* 색: 지도 면 5단계 (시안 v9 `mapData.ts` cellColors) */
+  --color-map-0: #465260;
+  --color-map-1: #ad7852;
+  --color-map-2: #e3a264;
+  --color-map-3: #ed813b;
+  --color-map-4: #c95226;
+  /* 지도 경계선·점 테두리(시안 v9 지도 선 #101b25). 글자색(밝음)을 쓰면 면 위에 흰 선이 된다 */
+  --color-map-line: #101b25;
+
+  /* 색: 지도 점 (첫 감지일, +1일, +2일, +3일~). 시안 v9 `mapData.ts` */
+  --color-dot-0: #f4f4f1;
+  --color-dot-1: #f5d677;
+  --color-dot-2: #f99b4a;
+  --color-dot-3: #ed777d;
+
+  /* 색: 막대 그라데이션 (위 → 아래) */
+  --color-bar-raw-from: #54a0f8;
+  --color-bar-raw-to: #0c6fd2;
+  --color-bar-harmonized-from: #f4873b;
+  --color-bar-harmonized-to: #e26224;
+  --color-bar-pre2012: #d5d2cc;
+
+  /*
+   * 색: 둥근 색조 배지 5가지 (바탕, 글자). 시안 v9 `.db-status--usual·above·below`(반투명 바탕 + 밝은 글자)를
+   * 초록·주황·파랑으로 쓰고, 빨강·노랑은 같은 방식으로 만들었다(시안에 없음)
+   */
+  --color-tone-orange: rgba(105, 68, 42, 0.4);
+  --color-tone-orange-ink: #eebc96;
+  --color-tone-green: rgba(40, 74, 60, 0.4);
+  --color-tone-green-ink: #acd5bd;
+  --color-tone-blue: rgba(36, 68, 101, 0.4);
+  --color-tone-blue-ink: #a6c9f0;
+  --color-tone-red: rgba(120, 44, 30, 0.45);
+  --color-tone-red-ink: #f2a99a;
+  --color-tone-yellow: rgba(110, 90, 40, 0.4);
+  --color-tone-yellow-ink: #ecd08f;
+
+  /*
+   * 색: 평가 칩. 시안 v9 상태 칩(평소 = 초록, 평소보다 많음 = 주황, 평소보다 적음 = 파랑)과 "매우 이례적" #be5128.
+   * 뜻(값)은 백엔드 칩 그대로다
+   */
+  --color-chip-record: #be5128;
+  --color-chip-record-ink: #ffffff;
+  --color-chip-above: rgba(105, 68, 42, 0.4);
+  --color-chip-above-ink: #eebc96;
+  --color-chip-normal: rgba(40, 74, 60, 0.4);
+  --color-chip-normal-ink: #acd5bd;
+  --color-chip-below: rgba(36, 68, 101, 0.4);
+  --color-chip-below-ink: #a6c9f0;
+
+  /* 색: 히트맵 칸 무늬 */
+  --color-heat-dot: rgba(8, 9, 11, 0.27); /* 센서 환산값 점무늬(시안 `.converted`) */
+  --color-heat-hatch: #7d7d81; /* 관측 자료 없음 빗금 선, 바탕은 border */
+  /* 집계 중 진한 갈색 점선. 시안에 없는 칸이라, 밝은 달력 칸 8단계 모두에서 3:1 이상 보이게 진하게 정했다 */
+  --color-heat-partial: #3d1f0a;
+  /* 집계 중 점 바깥 점선 고리(어두운 바탕 위라 밝은 앰버, 시안 보정 후 글자색) */
+  --color-heat-partial-ring: #e99a60;
+  --color-heat-future: #737d89; /* 아직 집계 전 점선(시안 `.future`) */
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  body {
+    /*
+     * 글자 다듬기(`antialiased`)는 쓰지 않는다: 시안 v9는 브라우저 기본 렌더링이라 macOS에서 글자가 더 또렷하고 굵다.
+     * 없는 굵기·기울임을 브라우저가 만들어 내지 않게 한다(시안 `font-synthesis: none`)
+     */
+    @apply bg-page font-sans text-base text-ink;
+    font-synthesis: none;
+  }
 }
 
 /*
- * 어두운 화면 안에서 밝게 되돌릴 곳(첫 화면 대화상자, `plans/about-revise.md` 10절 ⑤). 값은 위 `@theme`의 밝은 값과 같아야 한다.
- * `:root[data-theme="dark"]`보다 가까운 조상이라 이 값이 이긴다.
+ * Mono 대문자 머리말·이름표 (시안 v9 `.db-overline` 자간 .11em, `.db-filter-label` .08em).
+ * 자간은 영문 화면에만 준다: 한글은 Mono 글꼴에 없어 Plex Sans KR로 넘어가는데, 자간을 넓히면 "대 한 민 국"처럼 벌어진다.
  */
-[data-theme="light"] {
-  color-scheme: light;
-  --color-page: #f5f5f7;
-  --color-surface: #ffffff;
-  --color-inverse: #1d1d1f;
-  --color-inverse-hover: #2c2c2e;
-  --color-ink: #202022;
-  --color-muted: #66666e;
-  --color-border: #dfdfe5;
-  --color-row-hover: #f5f5f7;
-  --color-row-selected: #e8f1fc;
-  --color-action: #0066cc;
-  --color-selection: #005aae;
-  --color-fire: #f68c3e;
-  --color-nav: #1d1d1f;
-  --color-nav-hover: #2c2c2e;
-  --color-nav-ink: #ffffff;
-  --color-nav-line: transparent;
-  --color-nav-active: #ffffff;
-  --color-nav-active-ink: #1d1d1f;
-  --color-segment: #ffffff;
-  --color-segment-line: #dfdfe5;
-  --color-segment-ink: #66666e;
-  --color-segment-active: #1d1d1f;
-  --color-segment-active-ink: #ffffff;
-  --color-header-line: #dfdfe5;
-  --color-subtle: #66666e;
+/* Tailwind 기본 `overline`(윗줄 장식)과 겹치지 않게 `mono-` 접두사 */
+@utility mono-overline {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  line-height: var(--text-overline--line-height);
+  text-transform: uppercase;
+  &:lang(en) {
+    letter-spacing: 0.11em;
+  }
 }
 
-/* 히트맵 칸 무늬. 크기 숫자는 디자인 조각에 맞춘 것이다 */
+@utility mono-tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-tag);
+  line-height: var(--text-tag--line-height);
+  text-transform: uppercase;
+  &:lang(en) {
+    letter-spacing: 0.08em;
+  }
+}
+
+/* 히트맵 점 무늬. 센서 환산값 점무늬는 16px 점 안에 들어가게 시안 `.converted` 값(0.65px 점, 4px 간격) */
 @utility heat-dots {
-  background-image: radial-gradient(var(--color-heat-dot) 0.8px, transparent 1.2px);
-  background-size: 6px 6px;
+  background-image: radial-gradient(var(--color-heat-dot) 0.65px, transparent 0.8px);
+  background-size: 4px 4px;
 }
 
 @utility heat-hatch {
@@ -357,6 +353,104 @@
     }
     .cosmic-grain {
       display: none;
+    }
+  }
+}
+
+/*
+ * 첫 화면 ↔ 대시보드 화면 전환 슬라이드 (시안 v9 `.route-page` 값 그대로, `app/routeTransition.ts`).
+ * 화면 내용 칸만 움직인다: 새 화면은 48px 옆에서 620ms로 들어오고, 이전 화면은 반대쪽으로 420ms에 나간다.
+ * 문서 전체(머리글·푸터·우주 배경)는 그대로 두어 배경이 고정으로 보인다. 움직임 줄이기면 바로 바뀐다.
+ */
+@layer components {
+  .route-page {
+    view-transition-name: route-page;
+  }
+  /*
+   * 칸 자체의 위치·크기 애니메이션은 끈다: 새 화면은 맨 위에서 시작해(스크롤 복원) 이전 위치에서 옮겨 오면
+   * 세로로 크게 쏟아져 보인다. 가로 슬라이드는 아래 old/new 그림이 맡는다
+   */
+  ::view-transition-group(route-page) {
+    animation: none;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(route-page) {
+    animation: route-out 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  ::view-transition-new(route-page) {
+    animation: route-in 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  :root[data-route-direction="forward"] {
+    --route-in-x: 48px;
+    --route-out-x: -48px;
+  }
+  :root[data-route-direction="back"] {
+    --route-in-x: -48px;
+    --route-out-x: 48px;
+  }
+  @keyframes route-in {
+    from {
+      opacity: 0;
+      transform: translateX(var(--route-in-x, 48px));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes route-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(var(--route-out-x, -48px));
+    }
+  }
+  /*
+   * 같은 페이지 안에서 라우터가 전환을 켠 경우(뒤로 가기)는 바로 바뀐다.
+   * 이전 그림은 숨긴다(애니메이션만 끄면 두 그림이 한 프레임 겹쳐 밝게 번쩍일 수 있다)
+   */
+  :root[data-route-direction="none"]::view-transition-old(route-page) {
+    display: none;
+  }
+  :root[data-route-direction="none"]::view-transition-new(route-page) {
+    animation: none;
+  }
+  /*
+   * 언어 전환: 같은 페이지라 미끄러지지 않고 겹쳐 바뀐다. 머리글 글자도 바뀌므로 문서 전체(루트)도 함께 겹친다
+   * (우주 배경은 두 그림이 같아 그대로 보인다). 이전 것은 0.22초에 옅어지고 새 것은 0.32초에 나타난다
+   */
+  :root[data-route-direction="fade"]::view-transition-old(root),
+  :root[data-route-direction="fade"]::view-transition-old(route-page) {
+    animation: route-fade-out 220ms ease both;
+  }
+  :root[data-route-direction="fade"]::view-transition-new(root),
+  :root[data-route-direction="fade"]::view-transition-new(route-page) {
+    animation: route-fade-in 320ms ease both;
+  }
+  @keyframes route-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes route-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(route-page),
+    ::view-transition-old(route-page),
+    ::view-transition-new(route-page),
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none !important;
     }
   }
 }

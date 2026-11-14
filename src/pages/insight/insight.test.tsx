@@ -257,6 +257,8 @@ describe("월간 인사이트 지도", () => {
     expect(within(section).getByText("선택 지역 · 파란 테두리")).toBeTruthy();
     expect(within(section).getByText("점은 의성군 안에서 감지된 칸만 표시합니다.")).toBeTruthy();
     expect(within(section).queryByRole("alert")).toBeNull();
+    // 인사이트 지도는 지도 위에 판이 없는 기본 배치라 처음 맞춤 여백도 기본 16(대시보드 지도 카드만 판 자리를 비운다)
+    expect(map.fitPaddings[0]).toBe(16);
     // 확대·축소(대시보드 지역 지도와 같은 `RegionMap`, `plans/dashboard-sections.md` 14절)
     expect(map.options).toMatchObject({ dragPan: true, scrollZoom: true });
     expect(within(section).getByRole("button", { name: "확대" })).toBeTruthy();

@@ -107,16 +107,10 @@ describe("주소와 지역", () => {
     expect(router.state.location.search).toBe("?month=2025-03");
   });
 
-  it("범위 밖 달: 달 이동과 달 대화상자는 범위 안으로 맞춰 시작한다", async () => {
-    const { router } = renderRoute("/dashboard/KOR?month=2030-01");
-    fireEvent.click(await screen.findByRole("button", { name: "이전 달" }));
-    await waitFor(() => expect(router.state.location.search).toBe("?month=2026-11"));
-  });
-
   it("범위 밖 달에서 연 달 대화상자는 범위 안의 해에서 시작한다", async () => {
     renderRoute("/dashboard/KOR?month=2030-01");
     fireEvent.click(await screen.findByRole("button", { name: /^기준 월/ }));
-    const dialog = await screen.findByRole("dialog", { name: "기준 월 선택" });
+    const dialog = await screen.findByRole("group", { name: "기준 월 선택" });
     expect(within(dialog).getByText("2026년")).toBeTruthy();
     expect(within(dialog).getByRole("button", { name: "11월" }).hasAttribute("disabled")).toBe(false);
   });
@@ -143,7 +137,7 @@ describe("선택 줄과 대화상자", () => {
     // 선택 줄 칸 중 맨 앞(문서 순서)
     const bar = found[0]?.closest("section");
     if (bar === null || bar === undefined) throw new Error("선택 줄 없음");
-    const fields = within(bar).getAllByRole("button").filter((b) => b.getAttribute("aria-haspopup") === "dialog");
+    const fields = within(bar).getAllByRole("button").filter((b) => b.hasAttribute("aria-haspopup") || b.hasAttribute("aria-expanded"));
     expect(fields[0]).toBe(found[0]);
     view.unmount();
     renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
@@ -160,26 +154,48 @@ describe("선택 줄과 대화상자", () => {
   });
 
   it("선택 줄 순서: 지역 → 시·도 → 시·군·구 → 기준 월, 캘리포니아는 지역 → 카운티 → 기준 월", async () => {
-    // 선택 줄(검색 칸이 든 section) 안의 칸만 문서 순서대로. 시·도·시·군·구 화면은 칸에 이름표가 없어 글자가 곧 이름
+    // 선택 줄(검색 칸이 든 section) 안의 칸만 문서 순서대로, 읽히는 이름(검색 칸은 aria-label, 나머지는 "이름표 값")
+    const nameOf = (b: HTMLElement) =>
+      b.getAttribute("aria-label") ??
+      (b.getAttribute("aria-labelledby") ?? "")
+        .split(" ")
+        .map((id) => document.getElementById(id)?.textContent ?? "")
+        .join(" ");
     const order = () => {
       const search = screen.getByRole("button", { name: /지역 검색, 지금:/ });
       const bar = search.closest("section");
       if (bar === null) throw new Error("선택 줄 없음");
       return within(bar)
         .getAllByRole("button")
-        .filter((b) => b.getAttribute("aria-haspopup") === "dialog")
-        .map((b) => b.getAttribute("aria-label") ?? b.textContent ?? "");
+        .filter((b) => b.hasAttribute("aria-haspopup") || b.hasAttribute("aria-expanded"))
+        .map(nameOf);
     };
     const view = renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
     await screen.findByRole("button", { name: "지역 검색, 지금: 대한민국 · 경북" });
-    expect(order().slice(0, 4)).toEqual(["지역 검색, 지금: 대한민국 · 경북", "시·도 · 경북", "시·군·구 · 전체 시·군·구", "2025년 3월"]);
+    expect(order().slice(0, 4)).toEqual(["지역 검색, 지금: 대한민국 · 경북", "시·도 경북", "시·군·구 전체 시·군·구", "기준 월 2025년 3월"]);
     view.unmount();
     const cal = renderRoute("/dashboard/CAL?month=2025-08");
     expect(await screen.findByRole("button", { name: "지역 검색, 지금: 캘리포니아" })).toBeTruthy();
     cal.unmount();
     renderRoute("/dashboard/CAL/52423323B10000000000002?month=2025-08");
     await screen.findByRole("button", { name: "지역 검색, 지금: Butte" });
-    expect(order().slice(0, 3)).toEqual(["지역 검색, 지금: Butte", "카운티 · Butte", "2025년 8월"]);
+    expect(order().slice(0, 3)).toEqual(["지역 검색, 지금: Butte", "카운티 Butte", "기준 월 2025년 8월"]);
+  });
+
+  it("모든 단계에서 머리(제목)가 선택 줄보다 앞이다(시안 v9 순서)", async () => {
+    for (const path of ["/dashboard/KOR?month=2025-03", `/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`]) {
+      const view = renderRoute(path);
+      const title = await screen.findByRole("heading", { level: 1 });
+      const search = screen.getByRole("button", { name: /지역 검색, 지금:/ });
+      expect(title.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      view.unmount();
+    }
+  });
+
+  it("선택 상자의 읽히는 이름은 이름표 + 값이다", async () => {
+    renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
+    expect(await screen.findByRole("button", { name: "시·도 경북" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "기준 월 2025년 3월" })).toBeTruthy();
   });
 
   it("한국 나라 단계: 시·군·구 칸은 시·도를 먼저 고르라고 비활성", async () => {
@@ -246,19 +262,48 @@ describe("선택 줄과 대화상자", () => {
     await waitFor(() => expect(router.state.location.pathname).toBe(`/dashboard/KOR/${GB}`));
   });
 
-  it("달 대화상자: 범위 밖 달은 비활성, 고르면 그 달로", async () => {
+  it("기준 월 격자: 가운데를 누르면 칸 아래에 펼치고(대화상자 아님), 범위 밖 달은 비활성, 고르면 그 달로 가고 닫힌다", async () => {
     const { router } = renderRoute("/dashboard/KOR?month=2026-03");
-    fireEvent.click(await screen.findByRole("button", { name: /^기준 월/ }));
-    const dialog = await screen.findByRole("dialog", { name: "기준 월 선택" });
-    expect(within(dialog).getByRole("button", { name: "12월" }).hasAttribute("disabled")).toBe(true);
-    fireEvent.click(within(dialog).getByRole("button", { name: "5월" }));
+    const toggle = await screen.findByRole("button", { name: "기준 월 2026년 3월" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const grid = screen.getByRole("group", { name: "기준 월 선택" });
+    expect(within(grid).getByRole("button", { name: "12월" }).hasAttribute("disabled")).toBe(true);
+    fireEvent.click(within(grid).getByRole("button", { name: "5월" }));
     await waitFor(() => expect(router.state.location.search).toBe("?month=2026-05"));
+    expect(screen.queryByRole("group", { name: "기준 월 선택" })).toBeNull();
   });
 
-  it("달 이동: 마지막 달에서는 다음 달 버튼이 비활성", async () => {
+  it("기준 월 격자: Esc와 바깥 누름으로 닫힌다", async () => {
+    renderRoute("/dashboard/KOR?month=2026-03");
+    const toggle = await screen.findByRole("button", { name: "기준 월 2026년 3월" });
+    fireEvent.click(toggle);
+    // 열면 고른 달(3월)에 초점("이전 해" 버튼이 아니라)
+    expect(document.activeElement).toBe(within(screen.getByRole("group", { name: "기준 월 선택" })).getByRole("button", { name: "3월" }));
+    fireEvent.keyDown(screen.getByRole("group", { name: "기준 월 선택" }), { key: "Escape" });
+    expect(screen.queryByRole("group", { name: "기준 월 선택" })).toBeNull();
+    expect(document.activeElement).toBe(toggle);
+    fireEvent.click(toggle);
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole("group", { name: "기준 월 선택" })).toBeNull();
+    // 펼친 채 옆 버튼을 누르면 판을 닫고 한 달 이동
+    fireEvent.click(toggle);
+    fireEvent.click(screen.getByRole("button", { name: "다음 달" }));
+    expect(screen.queryByRole("group", { name: "기준 월 선택" })).toBeNull();
+  });
+
+  it("기준 월 양옆 버튼: 한 달씩 이동, 마지막 달에서는 다음 달 버튼이 비활성(2026-11-15 사용자)", async () => {
     const { router } = renderRoute("/dashboard/KOR?month=2026-11");
     expect((await screen.findByRole("button", { name: "다음 달" })).hasAttribute("disabled")).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: "이전 달" }));
     await waitFor(() => expect(router.state.location.search).toBe("?month=2026-10"));
+  });
+
+  it("범위 밖 달에서 이전 달을 누르면 범위 안(마지막 달)으로 돌아온다", async () => {
+    const { router } = renderRoute("/dashboard/KOR?month=2030-01");
+    fireEvent.click(await screen.findByRole("button", { name: "이전 달" }));
+    await waitFor(() => expect(router.state.location.search).toBe("?month=2026-11"));
   });
 });

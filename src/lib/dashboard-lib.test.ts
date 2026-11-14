@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dashboardPath } from "./dashboardPath";
 import { andParticle, formatFireDays, formatMonth, formatRatio } from "./format";
-import { judgementKind, judgementView, type JudgementLike } from "./judgementView";
+import { judgementKind, judgementView, numberSize, type JudgementLike } from "./judgementView";
 import { beforeDistrictData, clampMonth, isInRange, monthRange, shiftMonth } from "./month";
 import {
   ancestorNames,
@@ -257,5 +257,13 @@ describe("숫자 카드 분기 (3절, 7가지 순서)", () => {
 
   it("준실시간 표시", () => {
     expect(judgementView({ ...base, status: "nrt" }, null).nrt).toBe(true);
+  });
+});
+
+describe("numberSize", () => {
+  it("표시 글자 수로 크기 단계를 정한다(쉼표 포함)", () => {
+    expect(["—", "14", "384"].map(numberSize)).toEqual(["lg", "lg", "lg"]);
+    expect(["1,093", "9,999", "1093"].map(numberSize)).toEqual(["md", "md", "md"]);
+    expect(["10,000", "123,456"].map(numberSize)).toEqual(["sm", "sm"]);
   });
 });

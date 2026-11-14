@@ -5,7 +5,7 @@ import { errorKind } from "./errorKind";
 import { parseMonthParam } from "./month";
 import { starField } from "./cosmic";
 import { revealImmediately } from "./reveal";
-import { routeInfo, routeTheme } from "./route";
+import { routeDirection, routeInfo } from "./route";
 
 describe("parseCountry", () => {
   it("대문자 세 나라만 받는다", () => {
@@ -106,12 +106,25 @@ describe("starField (우주 배경 별)", () => {
   });
 });
 
-describe("routeTheme", () => {
-  it("소개 구역만 어둡고, 대시보드·인사이트·없는 주소는 밝은 기본이다", () => {
-    expect(routeTheme("/")).toBe("dark");
-    expect(routeTheme("/en")).toBe("dark");
-    expect(routeTheme("/dashboard/KOR")).toBeUndefined();
-    expect(routeTheme("/en/insight/KOR/abc")).toBeUndefined();
-    expect(routeTheme("/nope")).toBeUndefined();
+describe("routeDirection", () => {
+  it("더 깊은 페이지(첫 화면 → 대시보드 → 인사이트)로 가면 앞으로, 돌아가면 뒤로", () => {
+    expect(routeDirection("/", "/dashboard/KOR")).toBe("forward");
+    expect(routeDirection("/dashboard/KOR/abc", "/insight/KOR/abc")).toBe("forward");
+    expect(routeDirection("/en", "/en/insight/KOR/abc")).toBe("forward");
+    expect(routeDirection("/insight/KOR/abc", "/dashboard/KOR/abc")).toBe("back");
+    expect(routeDirection("/dashboard/KOR", "/")).toBe("back");
+    expect(routeDirection("/", "/nope")).toBe("forward");
+    expect(routeDirection("/nope", "/")).toBe("back");
+  });
+  it("같은 페이지에서 언어만 바뀌면 겹쳐 바뀐다(fade)", () => {
+    expect(routeDirection("/dashboard/KOR", "/en/dashboard/KOR")).toBe("fade");
+    expect(routeDirection("/", "/en")).toBe("fade");
+    expect(routeDirection("/en/insight/KOR/a", "/insight/KOR/a")).toBe("fade");
+  });
+  it("같은 페이지·같은 언어 안(달·지역 바꾸기)은 전환하지 않는다", () => {
+    expect(routeDirection("/dashboard/KOR", "/dashboard/KOR/abc")).toBeNull();
+
+    expect(routeDirection("/insight/KOR/a", "/insight/KOR/b")).toBeNull();
+
   });
 });

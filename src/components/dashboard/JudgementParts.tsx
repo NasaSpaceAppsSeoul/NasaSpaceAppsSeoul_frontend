@@ -1,6 +1,6 @@
 import { useLocale, useMessages } from "../../i18n";
 import { formatFireDays, formatMonthName, formatRatio } from "../../lib/format";
-import type { JudgementView, RankLine } from "../../lib/judgementView";
+import { numberSize, type JudgementView, type NumberSize, type RankLine } from "../../lib/judgementView";
 import { monthNumber } from "../../lib/month";
 import { Badge, Chip, ToneBadge } from "../Chip";
 
@@ -8,25 +8,29 @@ import { Badge, Chip, ToneBadge } from "../Chip";
  * 숫자 카드의 조각들. 모두 `lib/judgementView`의 결과만 보고 그린다. 값이 없는 문장은 그리지 않는다.
  */
 
+const NUMBER_CLASS: Record<NumberSize, string> = { lg: "text-number", md: "text-number-md", sm: "text-number-sm" };
+
 function useRankText() {
   const t = useMessages().dashboard.card;
   return (rank: RankLine) =>
     rank.period !== null ? t.rankWithPeriod(rank.period[0], rank.period[1], rank.n, rank.rank) : t.rank(rank.n, rank.rank);
 }
 
-/** 큰 숫자와 그 옆의 칩·단위 */
+/** 큰 숫자와 그 옆의 칩·단위 (유리 카드 위라 글자는 ink·muted) */
 export function JudgementHead({ view }: { view: JudgementView }) {
   const t = useMessages().dashboard;
   const locale = useLocale();
+  const text = view.value === null ? "—" : formatFireDays(view.value, locale);
   return (
-    <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
-      <p className="text-number font-light text-surface">{view.value === null ? "—" : formatFireDays(view.value, locale)}</p>
-      <div className="flex flex-col items-start gap-2 pb-2">
+    // 숫자와 칩·단위는 늘 한 줄(줄바꿈 없음). 숫자 크기를 글자 수로 줄여 좁은 칸에 맞춘다
+    <div className="flex items-end gap-4">
+      <p className={`shrink-0 font-light text-ink ${NUMBER_CLASS[numberSize(text)]}`}>{text}</p>
+      <div className="flex min-w-0 flex-col items-start gap-2 pb-1">
         {view.chip !== null && <Chip value={view.chip} />}
         {view.kind === "sparse" && <ToneBadge tone="yellow">{t.card.sparse}</ToneBadge>}
         {view.kind === "noRecord" && <Badge tone="neutral">{t.card.noRecord}</Badge>}
         {view.kind === "partial" && <Badge tone="sand">{t.card.partial}</Badge>}
-        {view.value !== null && <span className="text-base text-surface/70">{t.unit}</span>}
+        {view.value !== null && <span className="text-base text-muted">{t.unit}</span>}
       </div>
     </div>
   );
@@ -44,7 +48,7 @@ export function JudgementMeta({ view }: { view: JudgementView }) {
   ].filter((part): part is string => part !== null);
   if (parts.length === 0 && !view.converted) return null;
   return (
-    <div className="flex flex-wrap items-center gap-3 text-sm text-surface/70">
+    <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
       {view.converted && <Badge tone="sand">{t.converted}</Badge>}
       {parts.length > 0 && <span>{parts.join(" · ")}</span>}
     </div>
@@ -80,7 +84,7 @@ export function JudgementSentences({ view, refName }: { view: JudgementView; ref
   }
   if (lines.length === 0) return null;
   return (
-    <div className="flex flex-col gap-1 text-base text-surface">
+    <div className="flex flex-col gap-1 text-base text-ink">
       {lines.map((line) => (
         <p key={line.key}>{line.text}</p>
       ))}
@@ -94,7 +98,7 @@ export function JudgementYtd({ view }: { view: JudgementView }) {
   const locale = useLocale();
   if (view.ytd === null) return null;
   return (
-    <p className="text-sm font-medium text-surface/70">
+    <p className="text-sm font-medium text-muted">
       {t.card.ytd(t.monthsSpan(monthNumber(view.month)), formatFireDays(view.ytd.sum, locale))}
     </p>
   );

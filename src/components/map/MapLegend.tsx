@@ -63,7 +63,7 @@ export function MapLegend({ bins, showSelected, notes, orientation, showZoomNote
         <div className="flex flex-col gap-2">
           {showSelected && (
             <p className="flex items-center gap-2 text-ink">
-              <span aria-hidden="true" className="h-3 w-4 rounded-[2px] border-2 border-selection" />
+              <span aria-hidden="true" className="h-3 w-4 rounded-[2px] border-[1.5px] border-selection/85" />
               {t.selected}
             </p>
           )}

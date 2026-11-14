@@ -17,7 +17,7 @@ type RegionListProps = {
   unit: string;
 };
 
-const ROW = "flex w-full items-center gap-4 rounded-control px-2 text-left hover:bg-page focus-visible:outline-2 focus-visible:outline-selection";
+const ROW = "flex w-full items-center gap-4 rounded-control px-2 text-left hover:bg-row-hover focus-visible:outline-2 focus-visible:outline-selection";
 
 export function RegionList({ rows, variant, unit }: RegionListProps) {
   const ranked = variant === "ranked";

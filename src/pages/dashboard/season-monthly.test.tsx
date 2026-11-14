@@ -140,14 +140,29 @@ describe("월별 선 그래프 옵션 (가짜 ECharts)", () => {
     });
   };
 
-  it("선택한 달 점을 크게, 띠는 low 위에 high − low를 쌓고, 집계 중인 달은 점선 테두리", async () => {
+  it("점은 고른 달(크게)·최고값·집계 중인 달에만, 값 글자는 고른 달·최고값만, 띠는 low 위에 high − low, 집계 중인 달은 점선 테두리", async () => {
     renderRoute("/dashboard/KOR?month=2026-07");
     await card("2026년 월별 활동");
     const opt = await lastOption();
     const values = opt.series[3]?.data ?? [];
-    const sizes = values.map((d) => (typeof d === "object" && d !== null ? d.symbolSize : 0));
-    expect(sizes[6]).toBe(12);
-    expect(sizes.filter((s) => s === 12)).toHaveLength(1);
+    const item = (i: number) => {
+      const d = values[i];
+      return typeof d === "object" && d !== null ? d : null;
+    };
+    expect(item(6)).toMatchObject({ symbol: "circle", symbolSize: 10, label: { show: true }, itemStyle: { borderType: "solid" } });
+    expect(item(6)?.itemStyle).toHaveProperty("borderColor");
+    expect(values.filter((d) => typeof d === "object" && d !== null && d.symbolSize === 10)).toHaveLength(1);
+    // 그 밖의 달은 최고값·집계 중이 아니면 점·값 없음(테마 다듬기, 2026-11-15 사용자)
+    const numbers = values.map((d) => (typeof d === "object" && d !== null && typeof d.value === "number" ? d.value : null));
+    const peak = Math.max(...numbers.filter((v): v is number => v !== null));
+    numbers.forEach((v, i) => {
+      if (i === 6 || i === 10 || v === null) return;
+      // 최고값 달은 점과 값 글자, 나머지는 둘 다 없음
+      if (v === peak) expect(item(i)).toMatchObject({ symbol: "circle", label: { show: true } });
+      else expect(item(i)).toMatchObject({ symbol: "none", label: { show: false } });
+    });
+    // 집계 중인 달(11월)은 점(점선 테두리)만 있고, 최고값이 아니면 값 글자는 없다
+    expect(item(10)).toMatchObject({ symbol: "circle", label: { show: numbers[10] === peak } });
     const base = (await mockGet("/KOR/baseline/KOR")) as BaselineResponse;
     const m0 = base.by_month[0];
     const low = Math.max(0, m0?.band_low ?? 0);
@@ -156,6 +171,14 @@ describe("월별 선 그래프 옵션 (가짜 ECharts)", () => {
     // 목 2026-11은 집계 중
     const nov = values[10];
     expect(typeof nov === "object" && nov !== null ? nov.itemStyle.borderType : "").toBe("dashed");
+  });
+
+  it("고른 달이 집계 중이면 파란 고리이면서 점선 테두리(2026-11)", async () => {
+    renderRoute("/dashboard/KOR?month=2026-11");
+    await card("2026년 월별 활동");
+    const opt = await lastOption();
+    const nov = opt.series[3]?.data[10];
+    expect(typeof nov === "object" && nov !== null ? nov : null).toMatchObject({ symbolSize: 10, itemStyle: { borderType: "dashed" } });
   });
 
   it("점 위 값은 툴팁과 같은 형식, 집계 전 달의 축 글자는 흐린 회색, 툴팁 문구", async () => {
@@ -168,8 +191,9 @@ describe("월별 선 그래프 옵션 (가짜 ECharts)", () => {
     expect(opt.series[3]?.label?.formatter({ value: 1234.56 })).toBe("1,234.6");
     expect(opt.series[3]?.label?.formatter({ value: null })).toBe("");
     // 축 글자 색은 달 항목마다(글자를 건너뛰어 그려도 짝이 맞게)
-    expect(opt.xAxis.data[11]).toEqual({ value: "12월", textStyle: { color: "#66666e" } });
-    expect(opt.xAxis.data[0]?.textStyle.color).toBe("#202022");
+    // 집계 전 달은 흐린 글자를 더 옅게
+    expect(opt.xAxis.data[11]).toEqual({ value: "12월", textStyle: { color: "rgba(102, 102, 110, 0.6)" } });
+    expect(opt.xAxis.data[0]?.textStyle.color).toBe("#66666e");
     const html = opt.tooltip.formatter([{ dataIndex: 2 }]);
     expect(html).toContain("2026년 3월");
     expect(html).toContain("평소 중앙값");

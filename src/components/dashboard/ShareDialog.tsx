@@ -32,14 +32,14 @@ export function ShareDialog({ open, onClose, label, url, state, onCopy }: ShareD
               readOnly
               value={url}
               onFocus={(e) => e.currentTarget.select()}
-              className="h-10 w-full rounded-control-sm border border-border bg-page px-3 text-sm text-ink focus-visible:outline-2 focus-visible:outline-selection"
+              className="h-10 w-full rounded-control-sm border border-line bg-wash px-3 text-sm text-ink focus-visible:outline-2 focus-visible:outline-selection"
             />
           </label>
           <div className="flex flex-wrap items-center gap-3">
             <Button data-autofocus onClick={onCopy}>
               {t.copy}
             </Button>
-            <p role="status" className={`text-sm ${state === "failed" ? "text-heat-6" : "text-muted"}`}>
+            <p role="status" className={`text-sm ${state === "failed" ? "text-tone-red-ink" : "text-muted"}`}>
               {state === "copied" ? t.copied : state === "failed" ? t.failed : ""}
             </p>
           </div>

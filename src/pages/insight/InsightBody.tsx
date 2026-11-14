@@ -4,6 +4,7 @@ import { Button, ButtonLink } from "../../components/Button";
 import { Breadcrumb, type Crumb } from "../../components/dashboard/Breadcrumb";
 import { SectionError } from "../../components/SectionError";
 import { useInsight } from "../../hooks/useInsight";
+import { useScrollReveal } from "../../hooks/useScrollReveal";
 import { useRegions } from "../../hooks/useRegions";
 import { useSeries } from "../../hooks/useSeries";
 import { useLocale, useMessages } from "../../i18n";
@@ -36,6 +37,7 @@ export function InsightBody({ country, regionId, monthParam, meta }: InsightBody
   const region = index?.get(regionId);
   const isDistrict = region?.level === "dist";
   const insight = useInsight(country, isDistrict ? regionId : undefined, monthParam);
+  const reveal = useScrollReveal();
 
   const failed = [regions, series].filter((query) => query.data === undefined && query.isError);
   const firstFailed = failed[0];
@@ -83,7 +85,8 @@ export function InsightBody({ country, regionId, monthParam, meta }: InsightBody
   };
 
   return (
-    <main className="flex flex-col gap-8 py-12">
+    // 구역 카드는 화면에 들어올 때 떠오른다(대시보드·첫 화면과 같은 `useScrollReveal`, 자료를 받은 뒤 생기는 카드도 잡는다)
+    <main ref={reveal} className="flex flex-col gap-8 py-12">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <Breadcrumb items={crumbs(scope, locale)} />
         <ButtonLink to={dashboardPath(locale, country, region.id, monthParam)} size="sm" className="min-w-100">

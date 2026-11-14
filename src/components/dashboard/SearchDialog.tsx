@@ -72,7 +72,7 @@ function SearchBody<T extends NamedRegion>(props: SearchDialogProps<T>) {
 
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex h-12 items-center gap-2 rounded-control border border-border px-3 focus-within:border-selection focus-within:outline-1 focus-within:outline-selection">
+      <label className="flex h-12 items-center gap-2 rounded-control border border-line bg-wash px-3 focus-within:border-selection focus-within:outline-1 focus-within:outline-selection">
         <SearchIcon className="size-4 shrink-0 text-muted" />
         <span className="sr-only">{t.searchTitle}</span>
         <input

@@ -21,7 +21,7 @@ export function SectionError({ kind, onRetry, action, className = "" }: SectionE
   return (
     <div
       role="alert"
-      className={`flex flex-col items-start gap-3 rounded-card border border-border bg-surface p-6 ${className}`.trim()}
+      className={`flex flex-col items-start gap-3 glass rounded-card border border-line p-6 ${className}`.trim()}
     >
       <p className="text-sm text-ink">{t.errors[kind]}</p>
       <div className="flex flex-wrap gap-2">

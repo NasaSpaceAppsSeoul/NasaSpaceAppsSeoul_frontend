@@ -4,6 +4,7 @@ import { useLocale, useMessages } from "../../i18n";
 import type { AgedCell, Bounds, FillState } from "../../lib/map";
 import { MapCanvas, type MapCanvasHandle, type MapHover, type ZoomState } from "./MapCanvas";
 import { MapLegend } from "./MapLegend";
+import { MapPanel, PANEL_FIT_PADDING } from "./MapPanel";
 import { MapTooltip } from "./MapTooltip";
 import { MapZoomControls } from "./MapZoomControls";
 
@@ -11,7 +12,9 @@ const START: ZoomState = { canZoomIn: true, canZoomOut: false, atStart: true };
 
 /*
  * 지역 지도 (디자인 `06-maps-regional`, `06-maps-legends` 가로형): 시·도 지도, 시·군·구 + 맞닿은 지역 지도,
- * 선택 지역 파란 테두리, 지도 아래 가로형 범례. 대시보드(5장)와 월간 인사이트(7장)가 같이 쓴다.
+ * 선택 지역 파란 테두리. 대시보드(5장)와 월간 인사이트(7장)가 같이 쓴다.
+ * 배치 두 가지: `stacked`(기본, 인사이트) 16:9 지도 아래 가로형 범례 / `panel`(대시보드 배치 B) 지도가 카드를 채우고
+ * 제목·범례가 지도 위에 뜬다(`MapPanel`).
  * 범위(scope)·훅·주소를 모르고 값과 콜백만 받는다.
  *
  * 감지 지점은 처음부터 작은 점이다(디자인대로, 번짐 → 확대하면 점 방식은 시험했다가 되돌렸다, `plans/dashboard-sections.md` 12절).
@@ -48,10 +51,14 @@ type RegionMapProps = {
   describe: (hover: RegionMapHover) => RegionMapTooltip | null;
   /** 없으면 구역을 눌러도 아무 일이 없고 손가락 커서도 없다 */
   onRegionClick?: (id: string) => void;
+  /** 기본 `stacked`. `panel`이면 `header`가 지도 위 왼쪽 판에 뜨고, `notice`는 그 판 아래에 붙는다 */
+  layout?: "stacked" | "panel";
+  header?: ReactNode;
 };
 
 export function RegionMap(props: RegionMapProps) {
   const { features, featureKey, fills, cells, selectedId, bins, notes, notice, fallbackBounds, label, dimmed, describe, onRegionClick } = props;
+  const panel = props.layout === "panel";
   const t = useMessages().map;
   const locale = useLocale();
   const [hover, setHover] = useState<{ at: MapHover; cells: readonly AgedCell[]; featureKey: string } | null>(null);
@@ -75,38 +82,64 @@ export function RegionMap(props: RegionMapProps) {
   })();
   const selectedShown = selectedId !== null && features.some((f) => f.properties.id === selectedId);
 
+  // 휠 안내 문구는 지도를 만들 때 한 번만 쓰므로 언어가 바뀌면 지도를 새로 만든다
+  const mapCanvas = (
+    <MapCanvas
+      key={locale}
+      ref={canvas}
+      variant="regional"
+      features={features}
+      featureKey={featureKey}
+      fills={fills}
+      selectedId={selectedId}
+      cells={cells}
+      fallbackBounds={fallbackBounds}
+      fitPadding={panel ? PANEL_FIT_PADDING : undefined}
+      label={label}
+      gestureHelp={t.gestureHelp}
+      onRegionClick={onRegionClick}
+      onHover={(at) => setHover(at === null ? null : { at, cells, featureKey })}
+      onZoomChange={setZoom}
+    />
+  );
+  const zoomControls = (
+    <MapZoomControls
+      state={zoom}
+      onZoomIn={() => canvas.current?.zoomIn()}
+      onZoomOut={() => canvas.current?.zoomOut()}
+      onReset={() => canvas.current?.reset()}
+    />
+  );
+
+  if (panel) {
+    return (
+      <MapPanel
+        header={
+          <>
+            {props.header}
+            {notice}
+          </>
+        }
+        map={mapCanvas}
+        zoom={zoomControls}
+        legend={<MapLegend bins={bins} showSelected={selectedShown} notes={notes} orientation="vertical" showZoomNote={false} />}
+        legendLabel={t.legend.toggle}
+        hint={t.hint}
+        tooltip={tooltip !== null && <MapTooltip {...tooltip} />}
+        dimmed={dimmed}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <div
           aria-busy={dimmed}
-          className={`relative aspect-video w-full overflow-hidden rounded-card bg-page transition-opacity ${dimmed ? "opacity-60" : ""}`}
+          className={`relative aspect-video w-full overflow-hidden rounded-card bg-wash transition-opacity ${dimmed ? "opacity-60" : ""}`}
         >
-          {/* 휠 안내 문구는 지도를 만들 때 한 번만 쓰므로 언어가 바뀌면 지도를 새로 만든다 */}
-          <MapCanvas
-            key={locale}
-            ref={canvas}
-            variant="regional"
-            features={features}
-            featureKey={featureKey}
-            fills={fills}
-            selectedId={selectedId}
-            cells={cells}
-            fallbackBounds={fallbackBounds}
-            label={label}
-            gestureHelp={t.gestureHelp}
-            onRegionClick={onRegionClick}
-            onHover={(at) => setHover(at === null ? null : { at, cells, featureKey })}
-            onZoomChange={setZoom}
-          />
-          <div className="absolute top-3 right-3">
-            <MapZoomControls
-              state={zoom}
-              onZoomIn={() => canvas.current?.zoomIn()}
-              onZoomOut={() => canvas.current?.zoomOut()}
-              onReset={() => canvas.current?.reset()}
-            />
-          </div>
+          {mapCanvas}
+          <div className="absolute top-3 right-3">{zoomControls}</div>
           {tooltip !== null && <MapTooltip {...tooltip} />}
         </div>
         <p className="text-right text-xs text-muted">{t.hint}</p>

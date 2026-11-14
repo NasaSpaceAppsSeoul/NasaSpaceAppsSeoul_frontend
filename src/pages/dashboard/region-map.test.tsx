@@ -44,8 +44,10 @@ describe("지역 지도 (5장)", () => {
     expect(map.options).toMatchObject({ dragPan: true, scrollZoom: true, cooperativeGestures: true });
     await waitFor(() => expect(map.paint.get("points.circle-opacity")).toBe(0.95));
     expect(map.paint.get("points-heat.heatmap-opacity")).toBe(0);
-    // 처음 맞춘 확대값(가짜 지도의 `fitBounds`는 늘 5)에서 3.5, +4에서 6
-    expect(map.paint.get("points.circle-radius")).toEqual(["interpolate", ["linear"], ["zoom"], 5, 3.5, 9, 6]);
+    // 처음 맞춘 확대값(가짜 지도의 `fitBounds`는 늘 5)에서 4.5, +4에서 7. 점 뒤 빛번짐은 11 → 17(2026-11-15 다듬기)
+    expect(map.paint.get("points.circle-radius")).toEqual(["interpolate", ["linear"], ["zoom"], 5, 4.5, 9, 7]);
+    expect(map.paint.get("points-halo.circle-radius")).toEqual(["interpolate", ["linear"], ["zoom"], 5, 11, 9, 17]);
+    expect(map.paint.get("points-halo.circle-opacity")).toBe(0.3);
     expect(screen.queryByText(/확대하면 점으로 보입니다/)).toBeNull();
     expect(screen.getByText("+ / − 확대·축소 · 점에 올려 확인")).toBeTruthy();
     expect(map.filters.get("selected-line")).toEqual(["==", ["get", "id"], ""]);
@@ -63,6 +65,8 @@ describe("지역 지도 (5장)", () => {
     expect(screen.getByText("선택 지역 · 파란 테두리")).toBeTruthy();
     // 도형은 이웃이 온 뒤 한 번만 넣고 맞춘다
     expect(map.fitCalls.length).toBe(1);
+    // 지도 카드는 왼쪽 판·오른쪽 확대 칸 자리를 비우고 맞춘다(여백은 지도 칸 폭으로 계산, jsdom 폭 0이면 왼쪽 0)
+    expect(map.fitPaddings[0]).toEqual({ top: 24, right: 72, bottom: 40, left: 0 });
   });
 
   it("점은 처음부터 보여 바로 점 툴팁. 이웃을 누르면 그 지역으로(자기는 무시)", async () => {

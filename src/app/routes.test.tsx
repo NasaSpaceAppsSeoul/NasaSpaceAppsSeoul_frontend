@@ -105,14 +105,15 @@ describe("주소 값 검사 (decisions 1-5)", () => {
 });
 
 describe("우주 배경", () => {
-  it("어두운 화면(지금은 첫 화면)에만 그리고, 대시보드에는 아직 없다", async () => {
+  it("모든 화면 뒤에 한 장 그린다(첫 화면, 대시보드)", async () => {
     renderAt("/");
     await heading();
+    expect(document.querySelectorAll(".cosmic-backdrop")).toHaveLength(1);
     expect(document.querySelector(".cosmic-backdrop")?.getAttribute("aria-hidden")).toBe("true");
     cleanup();
     renderAt("/dashboard/KOR");
     await heading();
-    expect(document.querySelector(".cosmic-backdrop")).toBeNull();
+    expect(document.querySelectorAll(".cosmic-backdrop")).toHaveLength(1);
   });
 });
 

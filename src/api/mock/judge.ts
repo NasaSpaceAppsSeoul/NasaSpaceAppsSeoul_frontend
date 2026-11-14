@@ -195,6 +195,7 @@ export function seriesMonth(country: Country, profile: Profile, index: number): 
   return {
     month: row.month,
     value: row.value,
+    raw_before: null,   // 지금 원자료(calendar*.json)에 raw_before 키가 없다 → 백엔드도 모두 null
     source: row.value === null ? null : sourceOf(row.month),
     quality: row.quality,
     estimated: row.estimated,
@@ -248,20 +249,35 @@ function ytdRatio(ytd: number | null, baselineYtd: number | null): number | null
   return round(ytd / baselineYtd, 2);
 }
 
-/** 그해 1월~그달 합(반올림 안 함)과 같은 기간 평년 합 */
-function ytd(country: Country, profile: Profile, index: number): { sum: number; baseline: number | null } {
+/** 평소 누적 범위 끝값: 합 ≤ 0이면 null (JudgeService `ytd_lo`·`ytd_hi`) */
+const positiveOrNull = (v: number): number | null => (v > 0 ? v : null);
+
+/**
+ * 그해 1월~그달 합(반올림 안 함), 같은 기간 평년 합, 범위 합.
+ * 범위 합은 SQL `coalesce(sum(band_low), 0)`처럼 `null` 달을 건너뛴다(TimeseriesRepository.baselineYtdRange).
+ */
+function ytd(
+  country: Country,
+  profile: Profile,
+  index: number,
+): { sum: number; baseline: number | null; lo: number; hi: number } {
   const { values } = regionValues(country, profile.region);
   const stats = monthStats(country, profile);
   const first = index - (index % 12);
   let sum = 0;
   let baseline: number | null = 0;
+  let lo = 0;
+  let hi = 0;
   for (let i = first; i <= index; i += 1) {
     const v = values[i];
     if (v !== null && v !== undefined) sum += v;
-    const med = stats[i % 12]?.median ?? null;
+    const s = stats[i % 12];
+    const med = s?.median ?? null;
     baseline = baseline === null || med === null ? null : baseline + med;
+    lo += s?.bandLow ?? 0;
+    hi += s?.bandHigh ?? 0;
   }
-  return { sum, baseline };
+  return { sum, baseline, lo, hi };
 }
 
 function refOf(country: Country, refRegion: RegionSummary, all: readonly RegionSummary[], index: number): JudgementRef {
@@ -310,6 +326,8 @@ export function judgement(
     ratio_to_median: j.ratio,
     ytd_sum: y?.sum ?? null,
     ytd_ratio: profile.self && y !== null ? ytdRatio(y.sum, y.baseline) : null,
+    ytd_lo: profile.self && y !== null ? positiveOrNull(y.lo) : null,
+    ytd_hi: profile.self && y !== null ? positiveOrNull(y.hi) : null,
     quality: j.quality,
     estimated: j.estimated,
     status: j.status,

@@ -26,11 +26,16 @@ export function HeatmapHeader({ title, sub, yearLabel, onOpenYears, mockMode }: 
           <h2 className="text-xl font-semibold text-ink">{title}</h2>
           <p className="text-sm text-muted">{sub}</p>
         </div>
-        <div role="group" aria-label={`${h.raw} / ${h.harmonized}`} className="flex gap-1 rounded-control bg-page p-1">
-          <button type="button" aria-disabled="true" title={soon} className="cursor-not-allowed rounded-control-sm px-6 py-2 text-sm text-muted">
+        {/* 시안 v9 `.db-segment`: 옅은 막 + 흰 선, 고른 "보정 후"는 앰버 알약(`.db-harmonized-choice`) */}
+        <div role="group" aria-label={`${h.raw} / ${h.harmonized}`} className="flex gap-0.5 rounded-control border border-line bg-wash p-0.75">
+          <button type="button" aria-disabled="true" title={soon} className="cursor-not-allowed rounded-control-sm border border-transparent px-4 py-1.5 text-sm text-muted">
             {h.raw}
           </button>
-          <button type="button" aria-pressed="true" className="rounded-control-sm bg-inverse px-6 py-2 text-sm font-medium text-surface">
+          <button
+            type="button"
+            aria-pressed="true"
+            className="rounded-control-sm border border-fire/40 bg-tone-orange px-4 py-1.5 text-sm font-medium text-tone-orange-ink"
+          >
             {h.harmonized}
           </button>
         </div>

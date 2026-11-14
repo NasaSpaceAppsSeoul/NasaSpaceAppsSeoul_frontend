@@ -75,7 +75,7 @@ export function BarChart({ label, bars, max, formatTick }: BarChartProps) {
               height={Math.max(2, TOP + PLOT_H - top)}
               rx={2}
               fill={bar.tone === "accent" ? `url(#${gradientId})` : "var(--color-bar-pre2012)"}
-              stroke={bar.partial === true ? "var(--color-heat-dot)" : undefined}
+              stroke={bar.partial === true ? "var(--color-heat-partial)" : undefined}
               strokeDasharray={bar.partial === true ? "3 2" : undefined}
             >
               <title>{bar.title}</title>

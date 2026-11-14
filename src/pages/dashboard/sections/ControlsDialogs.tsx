@@ -1,4 +1,3 @@
-import { MonthDialog } from "../../../components/dashboard/MonthDialog";
 import { RegionListDialog, type ListOption } from "../../../components/dashboard/RegionListDialog";
 import { SearchDialog } from "../../../components/dashboard/SearchDialog";
 import type { RegionSummary } from "../../../api/types";
@@ -11,7 +10,7 @@ import { ShareDialog } from "../../../components/dashboard/ShareDialog";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "../scope";
 
 /*
- * 선택 줄의 대화상자 4개 (overlays/kr/province·district·search·month-*). 열림 상태는 화면이 들고 있다
+ * 선택 줄의 대화상자 3개 (overlays/kr/province·district·search). 기준 월은 대화상자 대신 칸 아래 격자(`MonthPicker`). 열림 상태는 화면이 들고 있다
  * (지역을 찾지 못했을 때 화면이 바깥에서 검색을 열 수 있게).
  */
 type ControlsDialogsProps = {
@@ -93,13 +92,6 @@ export function ControlsDialogs({ scope, dialog, close, navigate, share }: Contr
           if (next !== null) pick(() => (next === country ? navigate.toRegion(null) : navigate.toCountry(next)));
         }}
         onPickRegion={(r) => pick(() => navigate.toRegion(r.id))}
-      />
-      <MonthDialog
-        open={dialog === "month"}
-        onClose={close}
-        range={scope.range}
-        selected={scope.month}
-        onPick={(month) => pick(() => navigate.toMonth(month))}
       />
       <ShareDialog
         open={dialog === "share"}

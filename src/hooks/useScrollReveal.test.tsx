@@ -84,3 +84,20 @@ describe("useScrollReveal", () => {
     expect(getByTestId("a").dataset.revealState).toBeUndefined();
   });
 });
+
+describe("useScrollReveal: 나중에 생기는 묶음", () => {
+  it("자료를 받은 뒤 그려진 묶음도 숨김으로 두고 관찰한다", async () => {
+    vi.stubGlobal("IntersectionObserver", FakeObserver);
+    function Late({ ready }: { ready: boolean }) {
+      const reveal = useScrollReveal();
+      return <main ref={reveal}>{ready && <section data-reveal data-testid="late" />}</main>;
+    }
+    const view = render(<Late ready={false} />);
+    view.rerender(<Late ready />);
+    const late = view.getByTestId("late");
+    // MutationObserver는 마이크로태스크로 알린다
+    await Promise.resolve();
+    expect(late.dataset.revealState).toBe("pending");
+    expect(observers[observers.length - 1]?.observed.has(late)).toBe(true);
+  });
+});

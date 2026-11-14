@@ -5,7 +5,7 @@ import type { JudgementView } from "../../lib/judgementView";
 import { JudgementHead, JudgementMeta, JudgementSentences, JudgementYtd } from "./JudgementParts";
 
 /*
- * 숫자 카드 (screens/kr/dashboard-*.png 왼쪽 어두운 카드). 분기는 `lib/judgementView`가 정하고 여기서는 그리기만 한다.
+ * 숫자 카드 (screens/kr/dashboard-*.png 왼쪽 카드, 모양은 시안 v9 유리 카드). 분기는 `lib/judgementView`가 정하고 여기서는 그리기만 한다.
  */
 type JudgementCardProps = {
   view: JudgementView;
@@ -32,10 +32,10 @@ export function JudgementCard({ view, regionLabel, refName, showYtd, showDetecti
     <section
       aria-labelledby={titleId}
       aria-busy={stale}
-      className={`flex flex-col gap-5 rounded-card bg-inverse p-6 text-surface transition-opacity ${stale ? "opacity-60" : ""}`}
+      className={`flex flex-col gap-5 glass rounded-card border border-line p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
     >
       <header className="flex flex-col gap-3">
-        <p className="text-xs text-surface/70">{t.dashboard.card.heading(regionLabel, month)}</p>
+        <p className="text-xs text-muted">{t.dashboard.card.heading(regionLabel, month)}</p>
         <h2 id={titleId} className="text-base font-medium">
           {t.dashboard.card.title(month)}
         </h2>
@@ -45,7 +45,7 @@ export function JudgementCard({ view, regionLabel, refName, showYtd, showDetecti
       <JudgementSentences view={view} refName={refName} />
       {showDetectionDays && (
         // 자리만 잡는 줄 (`CLAUDE.md` 구현 범위, `decisions.md` 1-9)
-        <p title={t.common.comingSoon} className="text-sm text-surface/50">
+        <p title={t.common.comingSoon} className="text-sm text-muted">
           {t.dashboard.card.detectionDays} · {t.common.comingSoon}
         </p>
       )}

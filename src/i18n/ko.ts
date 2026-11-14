@@ -264,14 +264,6 @@ export const ko = {
       tableCaption: (year: number) => `${year}년 월별 화재 감지일과 평소 값`,
       columns: { month: "달", value: "값", median: "평소 중앙값", band: "보통 해 범위" },
     },
-    // 자료 가져가기(5장, screens/kr/dashboard-national 맨 아래). 감지 지점 내려받기는 자리만(1-9)
-    export: {
-      title: "이 지역·월의 자료를 가져가세요.",
-      points: "감지 지점 CSV / GeoJSON",
-      share: "이 화면 링크 복사",
-      // 단계 이름은 나라마다(시·군·구, 카운티, 지역구. 모두 받침 없음)
-      footnote: (lv2: string) => `${lv2}를 선택하면 같은 달의 월간 인사이트를 확인할 수 있습니다.`,
-    },
     // 이 화면 공유(overlays/kr/share-link). 디자인의 "프로토타입 미리보기·복사 지원 안 함"은 실제 동작으로 고쳐 씀
     share: {
       title: "이 화면 공유",
@@ -299,12 +291,12 @@ export const ko = {
       // 선택 줄 첫 칸: 지금 위치를 보이고 누르면 검색(2026-11-14 사용자 결정)
       search: "지역",
       searchHint: "지역 검색, 지금:",
+      // 경로 줄 오른쪽 공유 버튼(대화상자를 연다). 예전 "자료 가져가기" 카드에서 옮김(2026-11-15)
+      share: "이 화면 링크 복사",
       searchPlaceholder: "국가·시·도·시·군·구 검색",
       month: "기준 월",
     },
     stepper: {
-      label: "기준 월",
-      latest: "최신",
       previous: "이전 달",
       next: "다음 달",
     },
@@ -378,7 +370,6 @@ export const ko = {
     png: "달력 PNG ↓",
     csvMock: "목 모드에서는 내려받을 수 없습니다",
     monthHead: (m: number) => `${m}월`,
-    yearHead: "연도",
     empty: "이 지역의 월별 자료가 없습니다.",
     gridLabel: "연도별·월별 화재 달력. 방향키로 칸을 옮기고 Enter로 그 달을 엽니다.",
     divider: {
@@ -419,11 +410,11 @@ export const ko = {
     title: (month: string) => `${month} · 화재 칸과 감지 위치`,
     sub: "지역색은 월간 화재 칸 수, 점은 감지 위치와 첫 감지일을 나타냅니다.",
     modes: { cells: "화재 칸·위치", usual: "평소 대비" },
-    views: { map: "지도", list: "목록" },
     soon: "준비 중",
     zoom: { in: "확대", out: "축소", reset: "처음 크기로" },
     hint: "+ / − 확대·축소 · 점에 올려 확인",
     legend: {
+      toggle: "범례",
       fillTitle: "색 · 이번 달 화재 칸 수",
       below: (to: string) => `${to} 미만`,
       between: (from: string, to: string) => `${from}–${to}`,

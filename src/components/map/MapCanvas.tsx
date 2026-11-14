@@ -3,6 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useEffectEvent, useImperativeHandle, useRef, useState, type Ref } from "react";
 import type { GeoFeature } from "../../api/types";
+import { redrawGlow, type GlowLevel, type GlowRegion, type GlowState } from "./regionGlow";
 import { boundsOf, type AgeClass, type BorderFeature, type Bounds, type FillState } from "../../lib/map";
 import {
   LAYER,
@@ -13,6 +14,7 @@ import {
   applyPointZoom,
   applyStaticPoints,
   emptyStyle,
+  lighten,
   readMapColors,
   type MapColors,
 } from "./layers";
@@ -35,6 +37,9 @@ export type MapHover = ({ kind: "region"; id: string } | { kind: "point"; index:
 };
 export type ZoomState = { canZoomIn: boolean; canZoomOut: boolean; atStart: boolean };
 export type MapCanvasHandle = { zoomIn: () => void; zoomOut: () => void; reset: () => void };
+type Padding = { top: number; right: number; bottom: number; left: number };
+/** 고정 여백이나, 지도 칸 크기(px)를 받아 여백을 돌려주는 함수(카드 폭에 따라 판 자리를 다르게 비울 때) */
+export type FitPadding = number | Padding | ((width: number, height: number) => Padding);
 
 type MapCanvasProps = {
   features: readonly GeoFeature[];
@@ -59,6 +64,11 @@ type MapCanvasProps = {
    * 언어가 바뀌면 쓰는 쪽이 `key`로 지도를 새로 만든다(`/`와 `/en`은 같은 자리에 그려져 다시 만들어지지 않는다)
    */
   gestureHelp?: { windows: string; mac: string; mobile: string };
+  /**
+   * 처음 크기로 맞출 때 지도 가장자리에서 비울 여백(px). 지도 위에 판이 떠 있는 카드(대시보드 지도 카드)는
+   * 판에 가리지 않게 위·오른쪽을 더 비운다. 만들 때와 "처음 크기"에서 쓴다. 기본 16
+   */
+  fitPadding?: FitPadding;
   /** 구역을 눌렀을 때. 없으면 누름을 받지 않는다 */
   onRegionClick?: (id: string) => void;
   onHover: (hover: MapHover | null) => void;
@@ -67,6 +77,14 @@ type MapCanvasProps = {
 };
 
 const ZOOM_RANGE = 4;
+/** 지역 그라데이션 경계 쪽 밝기(단계 색에 섞는 흰색 비율) */
+const EDGE_LIGHTEN = 0.3;
+
+function paddingFor(map: MapLibreMap, padding: FitPadding | undefined): number | Padding {
+  if (typeof padding !== "function") return padding ?? 16;
+  const { clientWidth, clientHeight } = map.getContainer();
+  return padding(clientWidth, clientHeight);
+}
 const EPSILON = 0.01;
 const NO_OUTLINES: readonly BorderFeature[] = [];
 const collection = (features: readonly unknown[]) => ({ type: "FeatureCollection" as const, features: [...features] });
@@ -79,6 +97,8 @@ export function MapCanvas(props: MapCanvasProps) {
   const startBounds = useRef<Bounds | null>(null);
   const [ready, setReady] = useState(false);
   const colorsRef = useRef<MapColors | null>(null);
+  // 지역 그라데이션: 번갈아 쓰는 캔버스 두 장과 단계마다 그렸다 지우는 작업 캔버스. 지도를 만들 때 한 번 만든다
+  const glowRef = useRef<GlowState | null>(null);
   // 안내 문구는 지도를 만들 때 한 번만 쓴다(언어가 바뀌면 쓰는 쪽의 `key`로 지도를 새로 만든다, `gestureHelp` 설명)
   const [gestureHelp] = useState(props.gestureHelp);
   const [regional] = useState(props.variant === "regional");
@@ -120,7 +140,7 @@ export function MapCanvas(props: MapCanvasProps) {
     map.setMaxBounds(null);
     map.setMinZoom(null);
     map.setMaxZoom(null);
-    map.fitBounds(b, { padding: 16, animate: false });
+    map.fitBounds(b, { padding: paddingFor(map, props.fitPadding), animate: false });
     startZoom.current = map.getZoom();
     map.setMinZoom(startZoom.current);
     map.setMaxZoom(startZoom.current + ZOOM_RANGE);
@@ -140,6 +160,20 @@ export function MapCanvas(props: MapCanvasProps) {
     fit(map);
     if (!atStart) map.jumpTo({ center, zoom: Math.min(Math.max(zoom, map.getMinZoom()), map.getMaxZoom()) });
     reportZoom(map);
+  });
+
+  /** 단계(1~4)가 있는 지역만 그라데이션을 그린다. 경계 쪽 색은 단계 색에 흰색 30%(50%는 너무 밝다, 2026-11-15 사용자) */
+  const paintGlow = useEffectEvent((map: MapLibreMap) => {
+    const glow = glowRef.current;
+    const colors = colorsRef.current;
+    if (glow === null || colors === null) return;
+    const regions: GlowRegion[] = [];
+    for (const f of features) {
+      const state = fills.get(f.properties.id);
+      if (state === 1 || state === 2 || state === 3 || state === 4) regions.push({ geometry: f.geometry, level: state });
+    }
+    const light = (level: GlowLevel) => lighten(colors.bins[level], EDGE_LIGHTEN);
+    redrawGlow(map, glow, regions, { 1: light(1), 2: light(2), 3: light(3), 4: light(4) }, startZoom.current);
   });
 
   // 생성과 정리
@@ -179,10 +213,19 @@ export function MapCanvas(props: MapCanvasProps) {
       canvas.setAttribute("aria-hidden", "true");
       const colors = readMapColors();
       colorsRef.current = colors;
-      addLayers(map, colors);
+      const glow: GlowState = {
+        canvases: [document.createElement("canvas"), document.createElement("canvas")],
+        scratch: document.createElement("canvas"),
+        front: 0,
+      };
+      glowRef.current = glow;
+      addLayers(map, colors, glow.canvases);
       setReady(true);
     });
     map.on("zoomend", () => reportZoom(map));
+    // 지역 그라데이션: 움직이는 동안은 그림이 지도에 붙어 따라가고(화면보다 넓게 그려 경계가 안 보인다),
+    // 옮기기·확대가 끝나면 그 화면에 맞춰 다시 그려 이전 그림과 서서히 맞바꾼다
+    map.on("moveend", () => paintGlow(map));
     map.on("mousemove", (e) => hover(map, e));
     map.on("mouseout", () => leave());
     map.on("click", (e) => click(map, e));
@@ -215,6 +258,8 @@ export function MapCanvas(props: MapCanvasProps) {
     const map = mapRef.current;
     if (!ready || map === null) return;
     for (const [id, state] of fills) map.setFeatureState({ source: SOURCE.regions, id }, { bin: state === "none" ? NONE_BIN : state });
+    // 달이 바뀌어 단계가 바뀌면 그라데이션도 다시(도형을 새로 넣을 때는 맞춤 뒤 `moveend`가 다시 그린다)
+    paintGlow(map);
   }, [ready, featureKey, fills]);
 
   useEffect(() => {
@@ -240,7 +285,8 @@ export function MapCanvas(props: MapCanvasProps) {
     zoomOut: () => mapRef.current?.zoomOut(),
     reset: () => {
       const b = startBounds.current;
-      if (b !== null) mapRef.current?.fitBounds(b, { padding: 16 });
+      const map = mapRef.current;
+      if (b !== null && map !== null) map.fitBounds(b, { padding: paddingFor(map, props.fitPadding) });
     },
   }));
 

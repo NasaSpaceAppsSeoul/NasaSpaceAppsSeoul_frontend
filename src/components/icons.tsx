@@ -36,6 +36,17 @@ export function SearchIcon({ className = "size-4" }: IconProps) {
   );
 }
 
+/** 사슬 고리 두 개(링크 복사) */
+export function LinkIcon({ className = "size-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" className={className}>
+      <path d="M6.5 9.5l3-3" strokeLinecap="round" />
+      <path d="M7 4.5l1.2-1.2a2.8 2.8 0 014 4L11 8.5" strokeLinecap="round" />
+      <path d="M9 11.5l-1.2 1.2a2.8 2.8 0 01-4-4L5 7.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function PlusIcon({ className = "size-4" }: IconProps) {
   return (
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" className={className}>

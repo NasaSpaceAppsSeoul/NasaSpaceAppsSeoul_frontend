@@ -38,4 +38,4 @@ export type DashboardNavigate = {
   share: () => void;
 };
 
-export type ControlsDialog = "province" | "district" | "search" | "month" | "share" | null;
+export type ControlsDialog = "province" | "district" | "search" | "share" | null;

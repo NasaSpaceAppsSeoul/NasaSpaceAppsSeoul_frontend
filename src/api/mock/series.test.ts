@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Judgement, SeriesMonth, SeriesResponse } from "../types";
+import type { BaselineResponse, Judgement, SeriesMonth, SeriesResponse } from "../types";
 import { mockGet } from "./index";
 import { GOSEONG_GANGWON, GUNPO, UISEONG } from "./series-overrides";
 
@@ -214,6 +214,30 @@ describe("/series와 /judgement의 일관성", () => {
         expect(j.rank).toBe(1 + compared.filter((v) => v > (row.value ?? 0)).length);
         expect(row.rank).toBe(j.rank);
       }
+    }
+  });
+
+  it.each(cases)("%s %s: ytd_lo·ytd_hi는 자체 판정일 때 1월~그 달 범위 합(합 ≤ 0이면 null)", async (country, id, monthList) => {
+    const { by_month } = (await mockGet(`/${country}/baseline/${encodeURIComponent(id)}`)) as BaselineResponse;
+    for (const month of monthList) {
+      const j = await judge(country, id, month);
+      if (j.judge_unit !== "self" || j.ytd_sum === null) {
+        expect([j.ytd_lo, j.ytd_hi]).toEqual([null, null]);
+        continue;
+      }
+      const upTo = by_month.filter((b) => b.month <= Number(month.slice(5)));
+      const lo = upTo.reduce((sum, b) => sum + (b.band_low ?? 0), 0);
+      const hi = upTo.reduce((sum, b) => sum + (b.band_high ?? 0), 0);
+      if (lo > 0) expect(j.ytd_lo).toBeCloseTo(lo, 6);
+      else expect(j.ytd_lo).toBeNull();
+      if (hi > 0) expect(j.ytd_hi).toBeCloseTo(hi, 6);
+      else expect(j.ytd_hi).toBeNull();
+    }
+  });
+
+  it("raw_before는 지금 원자료에 없어 모든 달이 null", async () => {
+    for (const id of ["KOR", "경북", UISEONG]) {
+      expect((await series("KOR", id)).months.every((m) => m.raw_before === null)).toBe(true);
     }
   });
 

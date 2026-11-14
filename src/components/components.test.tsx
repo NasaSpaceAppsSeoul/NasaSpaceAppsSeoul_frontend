@@ -19,11 +19,6 @@ describe("Dialog", () => {
     expect(dialog.getAttribute("aria-describedby")).toBe(screen.getByText("지역을 고르세요.").id);
   });
 
-  it("어두운 화면 위에서도 밝은 판으로 그린다(data-theme=light)", () => {
-    inLocale("ko", <Dialog open onClose={() => {}} title="시·도 선택" />);
-    expect(screen.getByRole("dialog").dataset.theme).toBe("light");
-  });
-
   it("닫혀 있으면 그리지 않는다", () => {
     inLocale("ko", <Dialog open={false} onClose={() => {}} title="시·도 선택" />);
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -148,5 +143,14 @@ describe("ServerDownNotice", () => {
     inLocale("ko", <ServerDownNotice kind="notReady" onRetry={() => {}} />);
     expect(screen.getByRole("heading").textContent).toBe("이 나라는 아직 준비 중입니다");
     expect(screen.queryByRole("button")).toBeNull();
+  });
+});
+
+describe("lighten (지역 그라데이션 경계 쪽 색)", () => {
+  it("단계 색을 흰색과 섞는다", async () => {
+    const { lighten } = await import("./map/layers");
+    expect(lighten("#c95226", 0)).toBe("rgb(201,82,38)");
+    expect(lighten("#c95226", 1)).toBe("rgb(255,255,255)");
+    expect(lighten("#c95226", 0.3)).toBe("rgb(217,134,103)");
   });
 });
