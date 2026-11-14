@@ -3,35 +3,25 @@ import { Navigate, useNavigate } from "react-router-dom";
 import type { Meta, RegionSummary } from "../../api/types";
 import { Button } from "../../components/Button";
 import { SectionError } from "../../components/SectionError";
-import { apiMode } from "../../api/client";
 import { useCopyText } from "../../hooks/useCopyText";
 import { useRegions } from "../../hooks/useRegions";
 import { useSeries } from "../../hooks/useSeries";
 import { useLocale, useMessages } from "../../i18n";
 import type { Country } from "../../lib/country";
 import { dashboardPath } from "../../lib/dashboardPath";
+import { insightPath } from "../../lib/insightPath";
 import { errorKind } from "../../lib/errorKind";
 import { monthRange } from "../../lib/month";
 import { indexRegions } from "../../lib/region";
+import { DashboardLayout } from "./DashboardLayout";
 import { DashboardMessage, DashboardSkeleton } from "./DashboardSkeleton";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "./scope";
 import { ControlsDialogs } from "./sections/ControlsDialogs";
-import { ControlsSection } from "./sections/ControlsSection";
-import { ExportSection } from "./sections/ExportSection";
-import { HeadSection } from "./sections/HeadSection";
-import { HeatmapSection } from "./sections/HeatmapSection";
-import { JudgementSection } from "./sections/JudgementSection";
-import { MapSection } from "./sections/MapSection";
-import { MonthlySection } from "./sections/MonthlySection";
-import { RegionListSection } from "./sections/RegionListSection";
-import { RiskSeasonSection } from "./sections/RiskSeasonSection";
-import { RegionMapSection } from "./sections/RegionMapSection";
 
 type DashboardBodyProps = { country: Country; regionId: string | undefined; monthParam: string | undefined; meta: Meta };
 
 /**
- * `/regions`와 나라 시계열(달 범위)을 확인해 "지금 보는 범위"를 만들고 단계별로 구역을 배치한다.
- * 배치는 디자인대로 단계마다 다르다(2026-11-14 사용자 결정): 나라는 선택 줄 → 머리, 시·도·시·군·구는 머리 → 선택 줄.
+ * `/regions`와 나라 시계열(달 범위)을 확인해 "지금 보는 범위"와 이동·공유를 만들고, 배치는 `DashboardLayout`에 맡긴다.
  * 받아 둔 자료가 있으면 다시 받다 실패해도 그 자료로 계속 그린다(에러 한 장은 처음부터 받지 못했을 때만).
  */
 export function DashboardBody({ country, regionId, monthParam, meta }: DashboardBodyProps) {
@@ -52,6 +42,7 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
     toMonth: (month) => go(current, month),
     toCountry: (c) => go(null, null, c),
     regionHref: (id) => dashboardPath(locale, country, id, monthParam),
+    insightHref: (id) => insightPath(locale, country, id, monthParam),
     // 공유 대화상자를 연다. 복사는 대화상자 안 "링크 복사"를 눌렀을 때(2026-11-14 사용자 결정)
     share: () => {
       copier.reset();
@@ -134,44 +125,5 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
     );
   }
 
-  const national = region.level === "nat";
-  const controls = <ControlsSection scope={scope} navigate={navigate} openDialog={setDialog} />;
-  const head = <HeadSection scope={scope} navigate={navigate} />;
-  return (
-    <main className="flex flex-col gap-8 py-12">
-      {national ? controls : head}
-      {national ? head : controls}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-1">
-          <JudgementSection scope={scope} navigate={navigate} openDialog={setDialog} />
-          {/* 시·도: 평소보다 두드러진 곳 3곳, 시·군·구: 인접 지역 목록(5장). 나라 화면은 디자인대로 목록 없음 */}
-          {!national && <RegionListSection key={region.id} scope={scope} navigate={navigate} />}
-        </div>
-        {/* 나라는 나라 지도(4장), 시·도·시·군·구는 지역 지도(5장) */}
-        <div className="lg:col-span-2">
-          {national ? (
-            <MapSection key={region.id} scope={scope} navigate={navigate} />
-          ) : (
-            <RegionMapSection key={region.id} scope={scope} navigate={navigate} />
-          )}
-        </div>
-      </div>
-      {/* 나라 화면: 평소 화재 집중 시기(1/3) + 월별 선 그래프(2/3), 디자인 dashboard-national */}
-      {national && (
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1">
-            <RiskSeasonSection scope={scope} />
-          </div>
-          <div className="lg:col-span-2">
-            <MonthlySection scope={scope} />
-          </div>
-        </div>
-      )}
-      {/* 지역이 바뀌면 다시 그려 표시 연도를 기본으로 되돌린다 */}
-      <HeatmapSection key={region.id} scope={scope} navigate={navigate} openDialog={setDialog} mockMode={apiMode() === "mock"} />
-      {/* 자료 가져가기: 모든 단계(디자인은 나라만, 2026-11-14 사용자 결정으로 시·도·시·군·구에도) */}
-      <ExportSection navigate={navigate} insightLevel={region.level === "dist" ? null : scope.levelNames.lv2} />
-      {dialogs}
-    </main>
-  );
+  return <DashboardLayout scope={scope} navigate={navigate} openDialog={setDialog} dialogs={dialogs} />;
 }

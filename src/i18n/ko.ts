@@ -255,6 +255,8 @@ export const ko = {
     card: {
       heading: (name: string, month: string) => `${name} · ${month}`,
       title: (month: string) => `${month} 한 달의 화재 감지일`,
+      // 시·군·구 숫자 카드 안 흰 큰 버튼(screens/kr/dashboard-district, 5장)
+      openInsight: "월간 인사이트 열기 →",
       noValue: "값 없음",
       preDistrict: "2012년 2월 이전은 이 단위의 값이 없습니다.",
       noRecord: "감지 기록이 없는 지역",

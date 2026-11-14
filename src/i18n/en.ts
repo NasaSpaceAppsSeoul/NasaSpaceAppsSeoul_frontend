@@ -259,6 +259,7 @@ export const en: Messages = {
     card: {
       heading: (name: string, month: string) => `${name} · ${month}`,
       title: (month: string) => `Fire grid-days in ${month}`,
+      openInsight: "Open monthly insight →",
       noValue: "No value",
       preDistrict: "This unit has no values before February 2012.",
       noRecord: "No detection record",

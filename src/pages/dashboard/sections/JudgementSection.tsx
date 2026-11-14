@@ -1,4 +1,5 @@
-import { Button } from "../../../components/Button";
+import type { ReactNode } from "react";
+import { Button, ButtonLink } from "../../../components/Button";
 import { CumulativeCard } from "../../../components/dashboard/CumulativeCard";
 import { JudgementCard } from "../../../components/dashboard/JudgementCard";
 import { SectionError } from "../../../components/SectionError";
@@ -25,8 +26,25 @@ export function JudgementSection({ scope, navigate, openDialog }: JudgementSecti
   const locale = useLocale();
   const { country, region, month, index } = scope;
   const query = useJudgement(country, region.id, month);
+  // 시·군·구는 카드 안에 "월간 인사이트 열기"(같은 달). 인사이트 화면은 자기 요청을 따로 하므로
+  // 숫자 카드가 로딩·에러여도 버튼은 보인다(`plans/dashboard-sections.md` 11-8)
+  const insightLink =
+    region.level === "dist" ? (
+      <ButtonLink to={navigate.insightHref(region.id)} variant="light" size="lg" className="w-full">
+        {t.dashboard.card.openInsight}
+      </ButtonLink>
+    ) : null;
+  const withInsight = (body: ReactNode) =>
+    insightLink === null ? (
+      body
+    ) : (
+      <div className="flex flex-col gap-3">
+        {body}
+        {insightLink}
+      </div>
+    );
 
-  if (query.isLoading) return <Skeleton className="h-80" />;
+  if (query.isLoading) return withInsight(<Skeleton className="h-80" />);
   if (query.isError) {
     const kind = errorKind(query.error);
     const action =
@@ -39,9 +57,9 @@ export function JudgementSection({ scope, navigate, openDialog }: JudgementSecti
           {t.errors.openRegionPicker}
         </Button>
       ) : undefined;
-    return <SectionError kind={kind} onRetry={() => void query.refetch()} action={action} />;
+    return withInsight(<SectionError kind={kind} onRetry={() => void query.refetch()} action={action} />);
   }
-  if (query.data === undefined) return <Skeleton className="h-80" />;
+  if (query.data === undefined) return withInsight(<Skeleton className="h-80" />);
 
   const source = scope.countrySeries.months.find((m) => m.month === query.data.month)?.source ?? null;
   const view = judgementView(query.data, source);
@@ -57,6 +75,7 @@ export function JudgementSection({ scope, navigate, openDialog }: JudgementSecti
         showYtd={!national}
         showDetectionDays={region.level === "dist"}
         stale={query.isPlaceholderData}
+        footer={insightLink}
       />
       {national && view.ytd !== null && (
         <CumulativeCard

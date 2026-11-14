@@ -32,6 +32,8 @@ export type DashboardNavigate = {
   toCountry: (country: Country) => void;
   /** 같은 나라 안 지역의 링크 주소(경로 표시용). 달은 유지 */
   regionHref: (regionId: string | null) => string;
+  /** 같은 나라 시·군·구의 월간 인사이트 주소. 달은 유지 */
+  insightHref: (regionId: string) => string;
   /** 공유 대화상자를 연다(지난 복사 결과는 비운다). 복사는 대화상자 안 "링크 복사"에서 한다(13절) */
   share: () => void;
 };

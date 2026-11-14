@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { useLocale, useMessages } from "../../i18n";
 import { formatMonth } from "../../lib/format";
 import type { JudgementView } from "../../lib/judgementView";
@@ -19,9 +19,11 @@ type JudgementCardProps = {
   showDetectionDays: boolean;
   /** 같은 지역의 이전 달 값을 보여 주는 중이면 흐리게 */
   stale: boolean;
+  /** 문장 아래, 누적 줄 위 자리(시·군·구의 "월간 인사이트 열기" 버튼) */
+  footer?: ReactNode;
 };
 
-export function JudgementCard({ view, regionLabel, refName, showYtd, showDetectionDays, stale }: JudgementCardProps) {
+export function JudgementCard({ view, regionLabel, refName, showYtd, showDetectionDays, stale, footer }: JudgementCardProps) {
   const t = useMessages();
   const locale = useLocale();
   const month = formatMonth(view.month, locale);
@@ -47,6 +49,7 @@ export function JudgementCard({ view, regionLabel, refName, showYtd, showDetecti
           {t.dashboard.card.detectionDays} · {t.common.comingSoon}
         </p>
       )}
+      {footer}
       {showYtd && <JudgementYtd view={view} />}
     </section>
   );
