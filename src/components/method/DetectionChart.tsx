@@ -41,12 +41,13 @@ export function DetectionChart({ rows, label, percent, count, rowTitle }: Detect
                 width={x(row.width) - BX}
                 height={20}
                 rx={4}
-                className="fill-fire"
+                // 왼쪽부터 자란다(탭을 바꾸면 다시, `chart-grow-x`)
+                className="chart-grow-x fill-fire"
                 opacity={0.35 + row.width * 0.65}
               />
             )}
             {row.chanceAt !== null && (
-              <line x1={x(row.chanceAt)} x2={x(row.chanceAt)} y1={y - 4} y2={y + 24} strokeWidth={2} className="stroke-ink opacity-60" />
+              <line x1={x(row.chanceAt)} x2={x(row.chanceAt)} y1={y - 4} y2={y + 24} strokeWidth={2} className="chart-fade stroke-ink opacity-60" />
             )}
             <text x={BX + BW + 14} y={y + 15} fontSize={14} fontWeight={600} className="fill-ink">
               {detected}

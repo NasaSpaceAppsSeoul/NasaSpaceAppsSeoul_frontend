@@ -39,7 +39,7 @@ export function DetectionFigure() {
     const rows = detectRows(landing.data.detect_by_size, binNames);
     body = (
       <>
-        <DetectionChart rows={rows} label={f.label(t.countryTabs[country])} percent={percent} count={count} rowTitle={f.row} />
+        <DetectionChart key={country} rows={rows} label={f.label(t.countryTabs[country])} percent={percent} count={count} rowTitle={f.row} />
         <FigureDataTable
           caption={f.label(t.countryTabs[country])}
           head={[f.binHead, f.detectedHead, f.chanceHead, f.countHead]}
