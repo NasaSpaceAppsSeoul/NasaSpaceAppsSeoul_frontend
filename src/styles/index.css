@@ -47,6 +47,17 @@
   --color-row-hover: #f5f5f7;
   --color-row-selected: #e8f1fc;
 
+  /*
+   * 색: 머리글 알약 메뉴. 선택칸은 `nav-ink` 바탕 + `nav` 글자로 뒤집는다.
+   * 밝은 화면은 inverse 값을 그대로 쓴다(선택칸 글자만 ink #202022 → #1d1d1f로 눈에 안 띄게 바뀜).
+   * 어두운 화면은 Make처럼 어두운 알약에 흰 선택칸이라 surface/inverse 짝으로는 안 나와 따로 둔다.
+   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음). 밝은 화면은 투명이라 예전 모양 그대로다
+   */
+  --color-nav: #1d1d1f;
+  --color-nav-hover: #2c2c2e;
+  --color-nav-ink: #ffffff;
+  --color-nav-line: transparent;
+
   /* 색: 히트맵 8단계 (낮은 값 → 높은 값) */
   --color-heat-0: #faf7f0;
   --color-heat-1: #fff5d6;
@@ -107,6 +118,59 @@
   body {
     @apply bg-page font-sans text-base text-ink antialiased;
   }
+}
+
+/*
+ * 어두운 테마 (`plans/about-revise.md` 9-1, 표는 `.claude/design/tokens.md` "색: 어두운 테마").
+ * 첫 화면·기법 페이지만 `<html data-theme="dark">`가 붙는다(`app/documentTheme.ts`).
+ * 값은 Figma Make 내보내기(`design/extra/landing/src/index.css`)에서 옮겼다. 반투명 선·바탕은 #050506 위에 섞은 불투명 값으로 바꿨다
+ * (`border/40`처럼 투명도를 다시 거는 곳이 있어서).
+ * `surface`↔`inverse`는 뒤집힌 짝이다(머리글 알약, 검정·파랑 버튼 글자). 데이터 색(히트맵·지도·칩)은 이 화면들에 없어 그대로 둔다.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-page: #050506;
+  --color-surface: #111113;
+  --color-inverse: #f4f4f1;
+  --color-inverse-hover: #e1e1de;
+  --color-ink: #f4f4f1;
+  --color-muted: #929398;
+  --color-border: #2a2a2d;
+  --color-row-hover: #1a1a1d;
+  --color-row-selected: #0f1e30;
+  /* Make `.primary-nav`: 흰색 8% 알약과 흰색 8% 테두리(알약 위에 섞음, #050506 기준).
+     선택칸 바탕은 안 고른 칸 글자와 같은 nav-ink(#f4f4f1, Make는 순백), hover는 Make의 흰 바탕 대신 밝은 화면처럼 약한 nav-hover */
+  --color-nav: #19191a;
+  --color-nav-hover: #2a2a2d;
+  --color-nav-ink: #f4f4f1;
+  --color-nav-line: #2b2b2c;
+  --color-action: #4c9eff;
+  --color-selection: #7ab6ff;
+  --color-fire: #f47a32;
+}
+
+/*
+ * 어두운 화면 안에서 밝게 되돌릴 곳(첫 화면 대화상자, `plans/about-revise.md` 10절 ⑤). 값은 위 `@theme`의 밝은 값과 같아야 한다.
+ * `:root[data-theme="dark"]`보다 가까운 조상이라 이 값이 이긴다.
+ */
+[data-theme="light"] {
+  color-scheme: light;
+  --color-page: #f5f5f7;
+  --color-surface: #ffffff;
+  --color-inverse: #1d1d1f;
+  --color-inverse-hover: #2c2c2e;
+  --color-ink: #202022;
+  --color-muted: #66666e;
+  --color-border: #dfdfe5;
+  --color-row-hover: #f5f5f7;
+  --color-row-selected: #e8f1fc;
+  --color-action: #0066cc;
+  --color-selection: #005aae;
+  --color-fire: #f68c3e;
+  --color-nav: #1d1d1f;
+  --color-nav-hover: #2c2c2e;
+  --color-nav-ink: #ffffff;
+  --color-nav-line: transparent;
 }
 
 /* 히트맵 칸 무늬. 크기 숫자는 디자인 조각에 맞춘 것이다 */

@@ -54,6 +54,8 @@ export function Dialog({ open, onClose, title, description, children }: DialogPr
   return (
     <dialog
       ref={openModal}
+      // 어두운 화면(첫 화면)에서도 대화상자는 밝은 판이다(디자인 대화상자 13장, `plans/about-revise.md` 10절 ⑤)
+      data-theme="light"
       aria-labelledby={titleId}
       aria-describedby={description !== undefined ? descriptionId : undefined}
       // Esc를 누르면 브라우저가 `cancel`을 보낸다. 직접 닫지 않고 부모가 상태를 바꾸게 한다

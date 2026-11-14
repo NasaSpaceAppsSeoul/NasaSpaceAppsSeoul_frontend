@@ -3,7 +3,7 @@ import { cacheMode } from "./cacheMode";
 import { parseCountry } from "./country";
 import { errorKind } from "./errorKind";
 import { parseMonthParam } from "./month";
-import { routeInfo } from "./route";
+import { routeInfo, routeTheme } from "./route";
 
 describe("parseCountry", () => {
   it("대문자 세 나라만 받는다", () => {
@@ -79,5 +79,15 @@ describe("routeInfo", () => {
     expect(routeInfo("/dashboard")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/dashboard/kor")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/nope")).toEqual({ section: null, country: undefined });
+  });
+});
+
+describe("routeTheme", () => {
+  it("소개 구역만 어둡고, 대시보드·인사이트·없는 주소는 밝은 기본이다", () => {
+    expect(routeTheme("/")).toBe("dark");
+    expect(routeTheme("/en")).toBe("dark");
+    expect(routeTheme("/dashboard/KOR")).toBeUndefined();
+    expect(routeTheme("/en/insight/KOR/abc")).toBeUndefined();
+    expect(routeTheme("/nope")).toBeUndefined();
   });
 });

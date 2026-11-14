@@ -33,7 +33,7 @@ export function Header({ homeHref, hrefs, current, locale, localeHrefs }: Header
         {t.brand}
       </Link>
 
-      <nav aria-label={t.nav.label} className="rounded-full bg-inverse p-1">
+      <nav aria-label={t.nav.label} className="rounded-full bg-nav p-1 ring-1 ring-nav-line">
         <ul className="flex gap-1">
           {NAV_ITEMS.map((item) => {
             const selected = item === current;
@@ -45,7 +45,7 @@ export function Header({ homeHref, hrefs, current, locale, localeHrefs }: Header
                   className={
                     "block rounded-full px-6 py-2 text-sm font-medium transition-colors " +
                     "focus-visible:outline-2 focus-visible:outline-selection " +
-                    (selected ? "bg-surface text-ink" : "text-surface hover:bg-inverse-hover")
+                    (selected ? "bg-nav-ink text-nav" : "text-nav-ink hover:bg-nav-hover")
                   }
                 >
                   {t.nav[item]}
