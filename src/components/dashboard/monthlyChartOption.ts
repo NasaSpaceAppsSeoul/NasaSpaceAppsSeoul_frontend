@@ -1,11 +1,12 @@
 import type { EChartsCoreOption } from "echarts/core";
 import type { MonthlyPoint } from "../../lib/monthlyChart";
-import type { ChartColors } from "./chartColors";
+import { withAlpha, type ChartColors } from "./chartColors";
 
 /*
  * 월별 선 그래프의 ECharts 옵션과 툴팁 HTML (React와 무관한 순수 함수, `MonthlyLineChart`가 쓴다).
- * 그 해 값(주황 선과 빈 원 점, 점 위 값), 평년 중앙값(점선), 보통 해 범위(옅은 띠), 세로 안내선과 어두운 툴팁.
- * 집계 중인 달은 점 테두리를 점선으로(색만으로 나누지 않는다), 선택한 달은 점을 크게.
+ * 모양은 우주 테마에 맞게 다듬었다(2026-11-15 사용자): 그 해 값은 앰버 선 + 선 아래 앰버→투명 그라데이션 면,
+ * 점과 점 위 값은 고른 달(파란 고리, 히트맵과 같은 표시)과 그 해 최고값, 집계 중인 달에만(점선 테두리, 색만으로 나누지 않는다).
+ * 다른 달 값은 툴팁과 차트 아래 표에서 읽는다. 평년 중앙값은 얇은 흰 점선, 보통 해 범위는 옅은 흰 띠, 눈금은 아주 옅은 점선.
  */
 export type MonthlyChartText = {
   monthLabel: (month: number) => string;
@@ -27,13 +28,11 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 
-/** 툴팁 줄 앞 기호(범례와 같은 모양): 주황 선 + 빈 원, 점선, 베이지 네모 */
+/** 툴팁 줄 앞 기호(범례와 같은 모양). 툴팁은 밝은 판이라 띠·점선은 어두운 글자색을 옅게 쓴다 */
 function swatch(kind: "year" | "median" | "band", c: ChartColors): string {
-  if (kind === "year") {
-    return `<span style="position:relative;display:inline-block;width:16px;height:2px;background:${c.line};vertical-align:middle"><span style="position:absolute;left:4px;top:-3px;width:8px;height:8px;border:2px solid ${c.line};border-radius:50%;box-sizing:border-box;background:${c.inverse}"></span></span>`;
-  }
-  if (kind === "median") return `<span style="display:inline-block;width:16px;border-top:2px dashed ${c.surface};vertical-align:middle"></span>`;
-  return `<span style="display:inline-block;width:16px;height:10px;border-radius:2px;background:${c.band};vertical-align:middle"></span>`;
+  if (kind === "year") return `<span style="display:inline-block;width:16px;height:2px;border-radius:1px;background:${c.line};vertical-align:middle"></span>`;
+  if (kind === "median") return `<span style="display:inline-block;width:16px;border-top:1.5px dashed ${withAlpha(c.surface, 0.55)};vertical-align:middle"></span>`;
+  return `<span style="display:inline-block;width:16px;height:10px;border-radius:2px;background:${withAlpha(c.surface, 0.15)};vertical-align:middle"></span>`;
 }
 
 export function tooltipHtml(p: MonthlyPoint, text: MonthlyChartText, c: ChartColors): string {
@@ -48,7 +47,7 @@ export function tooltipHtml(p: MonthlyPoint, text: MonthlyChartText, c: ChartCol
     row("year", text.yearLabel, year),
     row("median", text.median, p.median === null ? text.noValue : text.value(p.median)),
     row("band", text.band, p.low === null || p.high === null ? text.noValue : `${text.value(p.low)}–${text.value(p.high)}`),
-    `<div style="color:${c.border};margin-top:6px;font-size:11px">${escapeHtml([text.unit, ...marks].join(" · "))}</div>`,
+    `<div style="color:${withAlpha(c.surface, 0.6)};margin-top:6px;font-size:11px">${escapeHtml([text.unit, ...marks].join(" · "))}</div>`,
   ].join("");
 }
 
@@ -58,6 +57,15 @@ export function buildOption(
   text: MonthlyChartText,
   c: ChartColors,
 ): EChartsCoreOption {
+  // 점·값을 보일 달: 고른 달, 그 해 최고값, 집계 중인 달(점선 테두리로 상태를 보인다)
+  const values = points.map((p) => p.value).filter((v): v is number => v !== null);
+  // 모두 0이면 최고값 표시를 하지 않는다(0이 "최고값"으로 모든 달에 찍히지 않게)
+  const max = values.length > 0 ? Math.max(...values) : 0;
+  const peak = max > 0 ? max : null;
+  const marked = (p: MonthlyPoint) => p.value !== null && (p.month === selectedMonth || p.value === peak || p.partial);
+  const labelled = (p: MonthlyPoint) => p.value !== null && (p.month === selectedMonth || p.value === peak);
+  const axisText = { fontFamily: "IBM Plex Mono, monospace", fontSize: 10 };
+
   return {
     animation: false,
     // ECharts 6은 축 글자를 기본(`outerBoundsMode: "auto"`)으로 칸 안에 넣는다(`containLabel`은 옛 방식)
@@ -65,25 +73,27 @@ export function buildOption(
     xAxis: {
       type: "category",
       boundaryGap: false,
-      // 아직 집계 전인 달은 흐린 회색(읽을 수는 있게). 글자를 건너뛰어 그려도 달과 짝이 맞게 항목마다 색을 둔다
-      data: points.map((p) => ({ value: text.monthLabel(p.month), textStyle: { color: p.future ? c.muted : c.ink } })),
-      axisLine: { lineStyle: { color: c.border } },
+      // 아직 집계 전인 달은 더 흐리게(읽을 수는 있게). 글자를 건너뛰어 그려도 달과 짝이 맞게 항목마다 색을 둔다
+      data: points.map((p) => ({ value: text.monthLabel(p.month), textStyle: { color: p.future ? withAlpha(c.muted, 0.6) : c.muted } })),
+      axisLabel: axisText,
+      axisLine: { lineStyle: { color: c.grid } },
       axisTick: { show: false },
     },
     yAxis: {
       type: "value",
       min: 0,
       splitNumber: 2,
-      axisLabel: { color: c.muted, fontFamily: "IBM Plex Mono, monospace", formatter: (v: number) => text.value(v) },
-      splitLine: { lineStyle: { color: c.border } },
+      axisLabel: { ...axisText, color: c.muted, formatter: (v: number) => text.value(v) },
+      splitLine: { lineStyle: { color: c.grid, type: "dashed", opacity: 0.6 } },
     },
     tooltip: {
       trigger: "axis",
-      axisPointer: { type: "line", lineStyle: { color: c.border, type: "solid" } },
+      axisPointer: { type: "line", lineStyle: { color: withAlpha(c.ink, 0.25), type: "solid" } },
       backgroundColor: c.inverse,
       borderWidth: 0,
       textStyle: { color: c.surface, fontSize: 12 },
-      extraCssText: "border-radius:12px;padding:10px 12px;min-width:180px",
+      // 히트맵·지도 툴팁과 같은 밝은 판
+      extraCssText: "border-radius:10px;padding:10px 12px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.27)",
       formatter: (params: unknown) => {
         const first = Array.isArray(params) ? (params[0] as { dataIndex?: number } | undefined) : undefined;
         const p = first?.dataIndex === undefined ? undefined : points[first.dataIndex];
@@ -105,33 +115,55 @@ export function buildOption(
         stack: "band",
         data: points.map((p) => (p.low === null || p.high === null ? null : p.high - p.low)),
         lineStyle: { opacity: 0 },
-        areaStyle: { color: c.band, opacity: 0.55 },
+        areaStyle: { color: c.band, opacity: 1 },
         symbol: "none",
         silent: true,
       },
       {
         type: "line",
         data: points.map((p) => p.median),
-        lineStyle: { color: c.ink, type: "dashed", width: 1.5 },
+        lineStyle: { color: withAlpha(c.ink, 0.35), type: "dashed", width: 1 },
         symbol: "none",
         silent: true,
       },
       {
         type: "line",
+        // 부드럽게 잇되 달 사이에서 값보다 튀어나오거나 0 아래로 내려가지 않게(단조 보간)
+        smooth: 0.25,
+        smoothMonotone: "x",
         data: points.map((p) => ({
           value: p.value,
-          symbolSize: p.month === selectedMonth ? 12 : 8,
-          itemStyle: { borderType: p.partial ? "dashed" : "solid" },
+          symbol: marked(p) ? "circle" : "none",
+          symbolSize: p.month === selectedMonth ? 10 : 7,
+          itemStyle:
+            p.month === selectedMonth
+              ? // 고른 달도 집계 중이면 점선(파란 고리만으로는 집계 중을 알 수 없다)
+                { color: c.line, borderColor: c.selection, borderWidth: 2, borderType: p.partial ? "dashed" : "solid" }
+              : { color: c.surface, borderColor: c.line, borderWidth: 1.5, borderType: p.partial ? "dashed" : "solid" },
+          label: { show: labelled(p) },
         })),
-        lineStyle: { color: c.line, width: 2 },
-        itemStyle: { color: c.surface, borderColor: c.line, borderWidth: 2 },
-        symbol: "circle",
-        // 점 위 값은 툴팁·표와 같은 형식. 흰 바깥선으로 선 위에서도 읽히게
+        lineStyle: { color: c.line, width: 2, shadowColor: withAlpha(c.line, 0.45), shadowBlur: 8 },
+        // 선 아래 앰버 → 투명(첫 화면 02 막대 색감)
+        areaStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: withAlpha(c.line, 0.28) },
+              { offset: 1, color: withAlpha(c.line, 0) },
+            ],
+          },
+        },
+        // 점 위 값은 툴팁·표와 같은 형식. 어두운 바깥선으로 선·면 위에서도 읽히게
         label: {
-          show: true,
           position: "top",
+          distance: 8,
           color: c.ink,
           fontSize: 12,
+          fontWeight: 500,
           textBorderColor: c.surface,
           textBorderWidth: 3,
           formatter: (p: { value?: unknown }) => {

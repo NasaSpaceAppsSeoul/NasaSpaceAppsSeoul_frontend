@@ -21,18 +21,16 @@ export function MonthlyChartFooter({ chart, year, period }: MonthlyChartFooterPr
     <>
       <ul className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted">
         <li className="flex items-center gap-2">
-          <span aria-hidden="true" className="relative h-0.5 w-5 bg-bar-harmonized-to">
-            <span className="absolute -top-1 left-1.5 size-2.5 rounded-full border-2 border-bar-harmonized-to bg-surface" />
-          </span>
+          <span aria-hidden="true" className="h-0.5 w-5 rounded-full bg-bar-harmonized-from" />
           {m.legendYear(year, chart.anyConverted)}
         </li>
         <li className="flex items-center gap-2">
           {/* 범례 견본 모서리는 지도 범례(`MapLegend`)와 같은 2px */}
-          <span aria-hidden="true" className="h-3 w-5 rounded-[2px] bg-bar-pre2012/55" />
+          <span aria-hidden="true" className="h-3 w-5 rounded-[2px] bg-wash" />
           {m.legendBand(period)}
         </li>
         <li className="flex items-center gap-2">
-          <span aria-hidden="true" className="w-5 border-t-2 border-dashed border-ink" />
+          <span aria-hidden="true" className="w-5 border-t border-dashed border-ink/35" />
           {m.legendMedian}
         </li>
         {/* 그래프 위에 겹치지 않게 범례 줄 오른쪽 끝에 둔다(어느 나라든 집계 전 달의 띠와 겹치지 않게) */}
