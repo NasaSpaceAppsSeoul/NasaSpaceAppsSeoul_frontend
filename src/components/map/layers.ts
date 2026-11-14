@@ -170,3 +170,15 @@ export function applyPointZoom(map: MapLibreMap, colors: MapColors, startZoom: n
   map.setPaintProperty(LAYER.heat, "heatmap-intensity", z([0, 0.8, 1.5, 1.2]));
   map.setPaintProperty(LAYER.heat, "heatmap-opacity", z([0, 0.8, 1, 0.6, 1.5, 0]));
 }
+
+/**
+ * 지역 지도(시·도, 시·군·구 + 맞닿은 지역, 7장 월간 인사이트)의 점. 확대하지 않는 고정 지도라 처음부터 작은 점
+ * (경과일 4색)으로 그리고 번짐은 쓰지 않는다(디자인 `06-maps-regional`, 2026-11-14 사용자 결정).
+ * 테두리는 나라 지도보다 진하게 한다(주황 면 위의 +2일 주황 점이 묻히지 않게, review-ui).
+ */
+export function applyStaticPoints(map: MapLibreMap): void {
+  map.setPaintProperty(LAYER.heat, "heatmap-opacity", 0);
+  map.setPaintProperty(LAYER.points, "circle-radius", 3.5);
+  map.setPaintProperty(LAYER.points, "circle-opacity", 0.95);
+  map.setPaintProperty(LAYER.points, "circle-stroke-opacity", 0.55);
+}

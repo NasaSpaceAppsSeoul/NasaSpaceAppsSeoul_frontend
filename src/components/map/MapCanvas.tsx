@@ -4,7 +4,18 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useEffectEvent, useImperativeHandle, useRef, useState, type Ref } from "react";
 import type { GeoFeature } from "../../api/types";
 import { boundsOf, type AgeClass, type BorderFeature, type Bounds, type FillState } from "../../lib/map";
-import { LAYER, NONE_BIN, POINTS_FROM, SOURCE, addLayers, applyPointZoom, emptyStyle, readMapColors, type MapColors } from "./layers";
+import {
+  LAYER,
+  NONE_BIN,
+  POINTS_FROM,
+  SOURCE,
+  addLayers,
+  applyPointZoom,
+  applyStaticPoints,
+  emptyStyle,
+  readMapColors,
+  type MapColors,
+} from "./layers";
 
 /*
  * MapLibre 래퍼. 인스턴스는 `ref`에 두고 생성·갱신·정리에만 `useEffect`를 쓴다(명령형 라이브러리 예외).
@@ -30,27 +41,34 @@ type MapCanvasProps = {
   /** 보이는 구역이 바뀌었는지 가리는 값(정렬한 ID를 이은 것). 바뀔 때만 도형을 다시 넣는다 */
   featureKey: string;
   fills: ReadonlyMap<string, FillState>;
-  /** 시·도 경계선(`lib/map`의 `provinceBorders`). 없으면 빈 배열 */
-  outlines: readonly BorderFeature[];
+  /** 시·도 경계선(`lib/map`의 `provinceBorders`). 없으면 그리지 않는다(지역 지도) */
+  outlines?: readonly BorderFeature[];
   selectedId: string | null;
   cells: readonly MapCell[];
   /** 보이는 구역이 없을 때 맞출 상자(나라 상자) */
   fallbackBounds: Bounds | null;
   label: string;
-  /** 그냥 휠을 굴렸을 때 지도 위에 잠깐 뜨는 "Ctrl+휠로 확대" 안내(만들 때 한 번 쓴다) */
-  gestureHelp: { windows: string; mac: string; mobile: string };
-  onRegionClick: (id: string) => void;
+  /**
+   * `national`(기본, 4장): Ctrl·⌘+휠·핀치·끌기로 확대, 처음엔 점 대신 연기 번짐, 확대하면 점.
+   * `regional`(5장 시·도·시·군·구, 7장): 확대·끌기 없는 고정 지도, 처음부터 작은 점(2026-11-14 사용자 결정). 만들 때 한 번만 읽는다.
+   */
+  variant?: "national" | "regional";
+  /** `national`에서 그냥 휠을 굴렸을 때 지도 위에 잠깐 뜨는 "Ctrl+휠로 확대" 안내(만들 때 한 번 쓴다) */
+  gestureHelp?: { windows: string; mac: string; mobile: string };
+  /** 구역을 눌렀을 때. 없으면 누름을 받지 않는다 */
+  onRegionClick?: (id: string) => void;
   onHover: (hover: MapHover | null) => void;
-  onZoomChange: (state: ZoomState) => void;
+  onZoomChange?: (state: ZoomState) => void;
   ref?: Ref<MapCanvasHandle>;
 };
 
 const ZOOM_RANGE = 4;
 const EPSILON = 0.01;
+const NO_OUTLINES: readonly BorderFeature[] = [];
 const collection = (features: readonly unknown[]) => ({ type: "FeatureCollection" as const, features: [...features] });
 
 export function MapCanvas(props: MapCanvasProps) {
-  const { features, featureKey, fills, outlines, selectedId, cells, fallbackBounds, label, ref } = props;
+  const { features, featureKey, fills, outlines = NO_OUTLINES, selectedId, cells, fallbackBounds, label, ref } = props;
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const startZoom = useRef(0);
@@ -59,23 +77,26 @@ export function MapCanvas(props: MapCanvasProps) {
   const colorsRef = useRef<MapColors | null>(null);
   // 안내 문구는 지도를 만들 때 한 번만 쓴다(언어가 바뀌면 주소가 바뀌어 지도를 새로 만든다)
   const [gestureHelp] = useState(props.gestureHelp);
+  const [regional] = useState(props.variant === "regional");
 
   const reportZoom = useEffectEvent((map: MapLibreMap) => {
     const zoom = map.getZoom();
-    props.onZoomChange({
+    props.onZoomChange?.({
       canZoomIn: zoom < map.getMaxZoom() - EPSILON,
       canZoomOut: zoom > startZoom.current + EPSILON,
       atStart: Math.abs(zoom - startZoom.current) < EPSILON,
     });
   });
   const hover = useEffectEvent((map: MapLibreMap, e: MapMouseEvent) => {
-    // 처음 크기에서는 점이 투명(연기 번짐)이라 올림을 받지 않는다. 점이 나타나기 시작하는 확대 단계와 맞춘다(`applyPointZoom`)
-    const pointsShown = map.getZoom() >= startZoom.current + POINTS_FROM;
+    // 나라 지도의 처음 크기에서는 점이 투명(연기 번짐)이라 올림을 받지 않는다. 점이 나타나기 시작하는 확대 단계와 맞춘다(`applyPointZoom`)
+    const pointsShown = regional || map.getZoom() >= startZoom.current + POINTS_FROM;
     const point = pointsShown ? map.queryRenderedFeatures(e.point, { layers: [LAYER.points] })[0] : undefined;
     const region = map.queryRenderedFeatures(e.point, { layers: [LAYER.fill] })[0];
     const index = point?.properties.index;
     const id = region?.properties.id;
-    map.getCanvas().style.cursor = typeof id === "string" ? "pointer" : "";
+    // 누를 수 있는 구역에만 손가락 커서(누름 콜백이 있고, 지금 선택한 지역이 아닐 때)
+    const clickable = typeof id === "string" && props.onRegionClick !== undefined && id !== selectedId;
+    map.getCanvas().style.cursor = clickable ? "pointer" : "";
     const box = map.getContainer();
     const at = { x: e.point.x, y: e.point.y, width: box.clientWidth, height: box.clientHeight };
     if (typeof index === "number") props.onHover({ kind: "point", index, ...at });
@@ -84,7 +105,7 @@ export function MapCanvas(props: MapCanvasProps) {
   });
   const click = useEffectEvent((map: MapLibreMap, e: MapMouseEvent) => {
     const id = map.queryRenderedFeatures(e.point, { layers: [LAYER.fill] })[0]?.properties.id;
-    if (typeof id === "string") props.onRegionClick(id);
+    if (typeof id === "string") props.onRegionClick?.(id);
   });
   const leave = useEffectEvent(() => props.onHover(null));
 
@@ -101,7 +122,8 @@ export function MapCanvas(props: MapCanvasProps) {
     map.setMaxZoom(startZoom.current + ZOOM_RANGE);
     // 끌어서 나라가 지도 칸 밖으로 나가지 않게, 처음 맞춘 화면 범위 안으로 묶는다
     map.setMaxBounds(map.getBounds());
-    if (colorsRef.current !== null) applyPointZoom(map, colorsRef.current, startZoom.current);
+    if (regional) applyStaticPoints(map);
+    else if (colorsRef.current !== null) applyPointZoom(map, colorsRef.current, startZoom.current);
     reportZoom(map);
   });
 
@@ -120,17 +142,24 @@ export function MapCanvas(props: MapCanvasProps) {
   useEffect(() => {
     const el = container.current;
     if (el === null) return;
-    // 지도 위 Ctrl+휠·트랙패드 핀치는 페이지가 아니라 지도를 확대한다. 그냥 휠은 페이지 스크롤로 남기고 안내만 띄운다
+    // 나라 지도: 지도 위 Ctrl+휠·트랙패드 핀치는 페이지가 아니라 지도를 확대한다. 그냥 휠은 페이지 스크롤로 남기고 안내만 띄운다.
+    // 지역 지도: 확대·끌기를 모두 끈다(올림·누름 이벤트는 그대로 온다). 휠은 페이지 스크롤이라 안내도 없다
+    const zoomable = !regional;
     const map = new MapLibreMap({
       container: el,
       style: emptyStyle(),
       attributionControl: false,
-      cooperativeGestures: true,
-      locale: {
-        "CooperativeGesturesHandler.WindowsHelpText": gestureHelp.windows,
-        "CooperativeGesturesHandler.MacHelpText": gestureHelp.mac,
-        "CooperativeGesturesHandler.MobileHelpText": gestureHelp.mobile,
-      },
+      cooperativeGestures: zoomable && gestureHelp !== undefined,
+      ...(gestureHelp !== undefined && {
+        locale: {
+          "CooperativeGesturesHandler.WindowsHelpText": gestureHelp.windows,
+          "CooperativeGesturesHandler.MacHelpText": gestureHelp.mac,
+          "CooperativeGesturesHandler.MobileHelpText": gestureHelp.mobile,
+        },
+      }),
+      dragPan: zoomable,
+      scrollZoom: zoomable,
+      touchZoomRotate: zoomable,
       doubleClickZoom: false,
       boxZoom: false,
       dragRotate: false,
@@ -139,7 +168,7 @@ export function MapCanvas(props: MapCanvasProps) {
       keyboard: false,
       renderWorldCopies: false,
     });
-    map.touchZoomRotate.disableRotation();
+    if (zoomable) map.touchZoomRotate.disableRotation();
     map.on("load", () => {
       // 키로 할 수 있는 일이 없으니 캔버스는 초점을 받지 않고, 뜻은 바깥 칸의 `aria-label`이 전한다
       const canvas = map.getCanvas();
@@ -156,9 +185,12 @@ export function MapCanvas(props: MapCanvasProps) {
     map.on("click", (e) => click(map, e));
     map.on("resize", () => resized(map));
     // Safari 트랙패드 핀치는 휠이 아니라 gesture 이벤트라 페이지 확대를 따로 막는다
+    // 확대하지 않는 지역 지도에서는 막지 않는다(지도도 페이지도 확대되지 않게 되므로)
     const blockPageZoom = (e: Event) => e.preventDefault();
-    el.addEventListener("gesturestart", blockPageZoom);
-    el.addEventListener("gesturechange", blockPageZoom);
+    if (zoomable) {
+      el.addEventListener("gesturestart", blockPageZoom);
+      el.addEventListener("gesturechange", blockPageZoom);
+    }
     mapRef.current = map;
     return () => {
       el.removeEventListener("gesturestart", blockPageZoom);
@@ -166,7 +198,7 @@ export function MapCanvas(props: MapCanvasProps) {
       map.remove();
       mapRef.current = null;
     };
-  }, [gestureHelp]);
+  }, [gestureHelp, regional]);
 
 
   // 보이는 구역이 바뀔 때만 도형을 넣고 맞춘다

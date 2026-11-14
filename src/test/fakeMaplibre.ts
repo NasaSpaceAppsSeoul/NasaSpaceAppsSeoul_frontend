@@ -21,9 +21,12 @@ export class FakeMap {
   maxZoom = 22;
   touchZoomRotate = { disableRotation: () => undefined };
   private container: HTMLElement;
+  /** 만들 때 받은 설정(확대·끌기를 껐는지 확인용) */
+  options: Record<string, unknown>;
 
-  constructor(options: { container: HTMLElement }) {
+  constructor(options: { container: HTMLElement } & Record<string, unknown>) {
     this.container = options.container;
+    this.options = options;
     fakeMaps.push(this);
     setTimeout(() => this.emit("load", {}), 0);
   }
