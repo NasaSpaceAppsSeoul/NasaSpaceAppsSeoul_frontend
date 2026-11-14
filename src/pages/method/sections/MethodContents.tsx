@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MethodToc } from "../../../components/method/MethodToc";
+import { MethodToc, type TocBack } from "../../../components/method/MethodToc";
 import { useActiveSection } from "../../../hooks/useActiveSection";
 import { useMethodMessages } from "../../../i18n/method";
 import { BuiltSection } from "./BuiltSection";
@@ -34,15 +34,15 @@ const SECTIONS = [
 
 const SECTION_IDS = SECTIONS.map((section) => section.id);
 
-/** `end`: 오른쪽 칸 맨 아래 끝 줄(페이지가 주소를 만들어 넘긴다) */
-export function MethodContents({ end }: { end: ReactNode }) {
+/** `end`: 오른쪽 칸 맨 아래 끝 줄, `back`: 목차 위 돌아가기 링크(둘 다 페이지가 주소를 만들어 넘긴다) */
+export function MethodContents({ end, back }: { end: ReactNode; back: TocBack }) {
   const t = useMethodMessages();
   const { track, active } = useActiveSection(SECTION_IDS);
   const toc = SECTIONS.map(({ id, key }) => ({ id, index: t[key].index, label: t[key].toc }));
 
   return (
     <div className="grid grid-cols-[13.75rem_minmax(0,1fr)] gap-18 pt-10">
-      <MethodToc label={t.tocLabel} items={toc} active={active} />
+      <MethodToc label={t.tocLabel} items={toc} active={active} back={back} />
       <div ref={track} className="min-w-0">
         {SECTIONS.map(({ id, Body }) => (
           <Body key={id} id={id} />

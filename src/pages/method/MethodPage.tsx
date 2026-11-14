@@ -1,5 +1,6 @@
 import { MethodEnd } from "../../components/method/MethodEnd";
 import { MethodHero } from "../../components/method/MethodHero";
+import { useScrolledPast } from "../../hooks/useScrolledPast";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 import { useLocale } from "../../i18n";
 import { useMethodMessages } from "../../i18n/method";
@@ -16,12 +17,16 @@ export function MethodPage() {
   const t = useMethodMessages();
   const locale = useLocale();
   const reveal = useScrollReveal();
+  // 머리의 돌아가기 링크가 화면 위로 나가면 목차 위에 같은 링크를 내린다(사용자 B안)
+  const { watch, past } = useScrolledPast();
+  const backHref = localizePath("/", locale);
 
   return (
     <main ref={reveal} className="flex flex-col pb-30">
       <MethodHero
-        backHref={localizePath("/", locale)}
+        backHref={backHref}
         back={t.back}
+        watchBack={watch}
         eyebrow={t.eyebrow}
         title={t.title}
         lead={t.lead}
@@ -29,6 +34,7 @@ export function MethodPage() {
         statsLabel={t.statsLabel}
       />
       <MethodContents
+        back={{ href: backHref, label: t.back, shown: past }}
         end={
           <MethodEnd
             sourcesTitle={t.end.sourcesTitle}

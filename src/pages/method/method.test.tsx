@@ -8,7 +8,7 @@ import { renderRoute } from "../../test/render";
  * 기법 페이지(`/method`). 절: 머리, 01~10, 끝 줄(`plans/method-page.md` 12절).
  * 목차의 "지금 보는 절"은 IntersectionObserver를 쓰는데 jsdom에는 없어 손으로 부를 수 있는 가짜를 넣는다.
  */
-type Callback = (entries: { isIntersecting: boolean; target: Element }[]) => void;
+type Callback = (entries: { isIntersecting: boolean; target: Element; boundingClientRect?: DOMRect }[]) => void;
 const observers: { callback: Callback; observed: Set<Element> }[] = [];
 
 class FakeObserver {
@@ -58,7 +58,10 @@ describe("기법 페이지", () => {
     ]);
     const nav = screen.getByRole("navigation", { name: "주 메뉴" });
     expect(within(nav).getByRole("link", { name: "소개" }).getAttribute("aria-current")).toBe("page");
-    expect(screen.getByRole("link", { name: "← 소개로 돌아가기" }).getAttribute("href")).toBe("/");
+    // 머리의 링크와 목차 위 자리(머리 링크가 화면 위로 나가기 전에는 숨김)
+    const backs = screen.getAllByRole("link", { name: "← 소개로 돌아가기" });
+    expect(backs.map((a) => a.getAttribute("href"))).toEqual(["/", "/"]);
+    expect(backs[1]?.hasAttribute("inert")).toBe(true);
   });
 
   it("02 데이터: 위성 기간 그림의 읽는 이름과 지역별 공식 기록 표", async () => {
@@ -98,6 +101,33 @@ describe("기법 페이지", () => {
     expect(within(toc).getByRole("link", { name: "02데이터" }).getAttribute("aria-current")).toBe("location");
     expect(within(toc).getByRole("link", { name: "01질문" }).getAttribute("aria-current")).toBeNull();
     expect(screen.getByRole("link", { name: "EN" }).getAttribute("href")).toBe("/en/method#data");
+  });
+
+  it("머리의 돌아가기 링크가 화면 위로 나가면 목차 위 링크가 나타나고, 다시 보이면 숨는다(화면 아래는 해당 없음)", async () => {
+    vi.stubGlobal("IntersectionObserver", FakeObserver);
+    renderRoute("/method");
+    await title();
+    const [hero, pinned] = screen.getAllByRole("link", { name: "← 소개로 돌아가기" });
+    const holder = hero?.parentElement;
+    const watchers = observers.filter((o) => holder !== null && holder !== undefined && o.observed.has(holder));
+    // 다시 그려도 관찰자가 늘지 않는다(라우터 Link가 아닌 감싼 칸에 달았다)
+    expect(watchers).toHaveLength(1);
+    const watcher = watchers[0];
+    if (hero === undefined || pinned === undefined || watcher === undefined) throw new Error("돌아가기 링크 관찰자를 찾지 못함");
+    expect(pinned.hasAttribute("inert")).toBe(true);
+    act(() => watcher.callback([{ isIntersecting: false, target: hero, boundingClientRect: new DOMRect(0, -40, 100, 20) }]));
+    expect(observers.filter((o) => holder !== null && holder !== undefined && o.observed.has(holder))).toHaveLength(1);
+    expect(pinned.hasAttribute("inert")).toBe(false);
+    // 한 번에 두 항목이 오면 마지막(최근) 상태를 쓴다
+    act(() =>
+      watcher.callback([
+        { isIntersecting: false, target: hero, boundingClientRect: new DOMRect(0, -40, 100, 20) },
+        { isIntersecting: true, target: hero, boundingClientRect: new DOMRect(0, 120, 100, 20) },
+      ]),
+    );
+    expect(pinned.hasAttribute("inert")).toBe(true);
+    act(() => watcher.callback([{ isIntersecting: false, target: hero, boundingClientRect: new DOMRect(0, 2000, 100, 20) }]));
+    expect(pinned.hasAttribute("inert")).toBe(true);
   });
 
   it("머리로 다시 올라가면 언어 전환 링크는 해시 없이 맨 위로, 페이지를 떠나면 다시 주소의 해시를 쓴다", async () => {
@@ -260,7 +290,8 @@ describe("기법 페이지 09·10·끝", () => {
     expect(screen.getByRole("link", { name: "Explore dashboard →" }).getAttribute("href")).toBe("/en/dashboard");
     expect(screen.getByRole("link", { name: "Back to top ↑" }).getAttribute("href")).toBe("/en/method");
     const toc = screen.getByRole("navigation", { name: "Contents" });
-    expect(within(toc).getAllByRole("link")).toHaveLength(10);
+    // 절 링크 10개(맨 위 돌아가기 링크 자리는 목록 밖)
+    expect(within(within(toc).getByRole("list")).getAllByRole("link")).toHaveLength(10);
     cleanup();
 
     renderRoute("/method#built");

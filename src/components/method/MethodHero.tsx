@@ -11,6 +11,8 @@ export type HeroStat = { id: string; value: { before: string; accent: string; af
 type MethodHeroProps = {
   backHref: string;
   back: string;
+  /** 돌아가기 링크가 화면 위로 나갔는지 지켜보는 콜백(나가면 목차 위에 같은 링크가 내려온다, `MethodToc`) */
+  watchBack?: (node: HTMLElement | null) => (() => void) | undefined;
   eyebrow: string;
   title: string;
   lead: string;
@@ -18,16 +20,19 @@ type MethodHeroProps = {
   statsLabel: string;
 };
 
-export function MethodHero({ backHref, back, eyebrow, title, lead, stats, statsLabel }: MethodHeroProps) {
+export function MethodHero({ backHref, back, watchBack, eyebrow, title, lead, stats, statsLabel }: MethodHeroProps) {
   return (
     <header className="flex flex-col pt-24 pb-14 break-keep">
       <div data-reveal className="flex flex-col items-start">
-        <Link
-          to={backHref}
-          className="mb-9 text-[0.9375rem] text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-selection"
-        >
-          {back}
-        </Link>
+        {/* 관찰자는 `Link`가 아니라 감싼 칸에 단다(`hooks/useScrolledPast` 주석) */}
+        <span ref={watchBack} className="mb-9 inline-block text-[0.9375rem]">
+          <Link
+            to={backHref}
+            className="text-[0.9375rem] text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-selection"
+          >
+            {back}
+          </Link>
+        </span>
         <p className="flex items-center gap-2.5 font-mono text-[0.8125rem] text-muted uppercase [&:lang(en)]:tracking-[0.14em]">
           <span aria-hidden="true" className="size-1.75 rounded-full bg-fire" />
           {eyebrow}
