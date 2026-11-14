@@ -512,7 +512,18 @@ export const ko = {
     map: {
       eyebrow: "화재 칸과 감지 위치",
       title: "이번 달 어디서 불이 감지됐을까요?",
-      pending: "지도는 준비 중입니다.",
+      /** 받침에 맞는 조사(`lib/format` `andParticle`). 한글로 끝나지 않는 이름은 조사 없이 */
+      lead: (name: string, particle: "와" | "과" | null, month: string) =>
+        particle === null ? `${name} · 주변 지역 · ${month}` : `${name}${particle} 주변 지역 · ${month}`,
+      leadAlone: (name: string, month: string) => `${name} · ${month}`,
+      /** 제목이 물음표로 끝나 마침표를 붙이지 않는다 */
+      canvasLabel: (title: string, regions: number, cells: number) => `${title} 지역 ${regions}곳, 감지된 칸 ${cells}개.`,
+      /** `/insight`의 점은 선택 지역 안의 것만 온다(G-insight 카드 7) */
+      pointsOnly: (name: string) => `점은 ${name} 안에서 감지된 칸만 표시합니다.`,
+      noPoints: (name: string) => `이번 달 ${name} 안에 표시할 감지 지점이 없습니다.`,
+      pointsFailed: "감지 지점을 불러오지 못했습니다.",
+      valueFailed: "이 지역의 값을 불러오지 못했습니다.",
+      partFailed: "일부 지도 정보를 불러오지 못했습니다.",
     },
     neighbors: {
       eyebrow: "주변 지역",
