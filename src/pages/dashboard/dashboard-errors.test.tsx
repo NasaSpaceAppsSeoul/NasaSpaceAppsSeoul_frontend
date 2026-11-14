@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mockGet } from "../../api/mock";
 import { korMeta } from "../../api/mock/kor";
 import { renderRoute } from "../../test/render";
 
@@ -52,6 +53,25 @@ describe("대시보드 에러 화면", () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "다시 시도" })).toBeTruthy();
+  });
+
+  it("지역 시계열이 비어 있으면 히트맵은 자리 표시 대신 안내 문구", async () => {
+    const korSeries = await mockGet("/KOR/series/KOR");
+    const regions = await mockGet("/KOR/regions");
+    const judgement = await mockGet(`/KOR/judgement/${encodeURIComponent("경북")}?month=2025-03`);
+    const baseline = await mockGet(`/KOR/baseline/${encodeURIComponent("경북")}`);
+    fetchMock.mockImplementation(async (input) => {
+      const url = decodeURIComponent(String(input));
+      if (url.endsWith("/KOR/meta")) return json(korMeta);
+      if (url.endsWith("/KOR/regions")) return json(regions);
+      if (url.endsWith("/KOR/series/KOR")) return json(korSeries);
+      if (url.endsWith("/KOR/series/경북")) return json({ id: "경북", level: "prov", months: [] });
+      if (url.includes("/KOR/judgement/경북")) return json(judgement);
+      if (url.endsWith("/KOR/baseline/경북")) return json(baseline);
+      return json({ code: "NOT_FOUND", message: url }, 404);
+    });
+    renderRoute(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
+    expect(await screen.findByText("이 지역의 월별 자료가 없습니다.")).toBeTruthy();
   });
 
   it("/regions와 시계열이 둘 다 실패하면 다시 시도 한 번에 둘 다 다시 받는다", async () => {

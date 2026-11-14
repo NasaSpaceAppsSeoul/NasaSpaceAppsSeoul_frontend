@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import type { Meta, RegionSummary } from "../../api/types";
 import { Button } from "../../components/Button";
 import { SectionError } from "../../components/SectionError";
+import { apiMode } from "../../api/client";
 import { useRegions } from "../../hooks/useRegions";
 import { useSeries } from "../../hooks/useSeries";
 import { useLocale, useMessages } from "../../i18n";
@@ -16,6 +17,7 @@ import type { ControlsDialog, DashboardNavigate, DashboardScope } from "./scope"
 import { ControlsDialogs } from "./sections/ControlsDialogs";
 import { ControlsSection } from "./sections/ControlsSection";
 import { HeadSection } from "./sections/HeadSection";
+import { HeatmapSection } from "./sections/HeatmapSection";
 import { JudgementSection } from "./sections/JudgementSection";
 
 type DashboardBodyProps = { country: Country; regionId: string | undefined; monthParam: string | undefined; meta: Meta };
@@ -128,6 +130,8 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
           <JudgementSection scope={scope} navigate={navigate} openDialog={setDialog} />
         </div>
       </div>
+      {/* 지역이 바뀌면 다시 그려 표시 연도를 기본으로 되돌린다 */}
+      <HeatmapSection key={region.id} scope={scope} navigate={navigate} openDialog={setDialog} mockMode={apiMode() === "mock"} />
       {dialogs}
     </main>
   );
