@@ -1,0 +1,49 @@
+import type { ButtonHTMLAttributes } from "react";
+import { Link, type LinkProps } from "react-router-dom";
+
+/*
+ * 버튼 (components/sheet/02-controls-a·b).
+ * 밝은 것·어두운 것·파란 것 × 큰 것(48)·작은 것(40). 기본·호버·눌림·포커스(파란 테두리)·비활성은 CSS 상태로 그린다.
+ */
+
+export type ButtonVariant = "light" | "dark" | "blue";
+export type ButtonSize = "lg" | "sm";
+
+const BASE =
+  "inline-flex items-center justify-center gap-2 rounded-control border font-medium whitespace-nowrap " +
+  "transition-colors focus-visible:border-selection focus-visible:outline-1 focus-visible:outline-selection " +
+  "disabled:cursor-not-allowed aria-disabled:cursor-not-allowed";
+
+const VARIANT: Record<ButtonVariant, string> = {
+  light:
+    "border-border bg-surface text-ink hover:bg-page active:bg-border/40 " +
+    "disabled:bg-surface disabled:text-muted aria-disabled:bg-surface aria-disabled:text-muted",
+  dark:
+    "border-inverse bg-inverse text-surface hover:bg-inverse-hover active:bg-inverse-hover " +
+    "disabled:border-page disabled:bg-page disabled:text-muted aria-disabled:border-page aria-disabled:bg-page aria-disabled:text-muted",
+  blue:
+    "border-action bg-action text-surface hover:bg-selection active:bg-selection " +
+    "disabled:border-page disabled:bg-page disabled:text-muted aria-disabled:border-page aria-disabled:bg-page aria-disabled:text-muted",
+};
+
+const SIZE: Record<ButtonSize, string> = {
+  lg: "h-12 px-6 text-base",
+  sm: "h-10 px-4 text-sm",
+};
+
+export function buttonClass(variant: ButtonVariant = "light", size: ButtonSize = "sm", extra = ""): string {
+  return `${BASE} ${VARIANT[variant]} ${SIZE[size]} ${extra}`.trim();
+}
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: ButtonSize };
+
+export function Button({ variant, size, className = "", type = "button", ...rest }: ButtonProps) {
+  return <button type={type} className={buttonClass(variant, size, className)} {...rest} />;
+}
+
+type ButtonLinkProps = LinkProps & { variant?: ButtonVariant; size?: ButtonSize };
+
+/** 이동은 링크로 한다. 모양만 버튼이다. */
+export function ButtonLink({ variant, size, className = "", ...rest }: ButtonLinkProps) {
+  return <Link className={buttonClass(variant, size, className)} {...rest} />;
+}
