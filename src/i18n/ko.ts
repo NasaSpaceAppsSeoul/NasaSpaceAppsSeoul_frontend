@@ -140,7 +140,6 @@ export const ko = {
     unit: "화재 감지일은 약 1 km 격자에서 하루 동안 불이 한 번 이상 감지되면 1로 셉니다. 화재 건수나 피해 면적이 아닙니다.",
     processed: "데이터 처리일",
   },
-  mockBanner: "목 데이터로 표시 중",
   common: {
     retry: "다시 시도",
     close: "닫기",

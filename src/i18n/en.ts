@@ -133,7 +133,6 @@ export const en: Messages = {
     unit: "A fire grid-day is one approximately 1 km cell with fire detected on one day. It is not a fire incident count or burned area.",
     processed: "Data processed",
   },
-  mockBanner: "Showing mock data",
   common: {
     retry: "Try again",
     close: "Close",
