@@ -145,3 +145,12 @@ describe("ServerDownNotice", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 });
+
+describe("lighten (지역 그라데이션 경계 쪽 색)", () => {
+  it("단계 색을 흰색과 섞는다", async () => {
+    const { lighten } = await import("./map/layers");
+    expect(lighten("#c95226", 0)).toBe("rgb(201,82,38)");
+    expect(lighten("#c95226", 1)).toBe("rgb(255,255,255)");
+    expect(lighten("#c95226", 0.3)).toBe("rgb(217,134,103)");
+  });
+});

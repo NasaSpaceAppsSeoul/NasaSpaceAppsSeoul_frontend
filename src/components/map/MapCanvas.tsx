@@ -3,6 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useEffectEvent, useImperativeHandle, useRef, useState, type Ref } from "react";
 import type { GeoFeature } from "../../api/types";
+import { redrawGlow, type GlowLevel, type GlowRegion, type GlowState } from "./regionGlow";
 import { boundsOf, type AgeClass, type BorderFeature, type Bounds, type FillState } from "../../lib/map";
 import {
   LAYER,
@@ -13,6 +14,7 @@ import {
   applyPointZoom,
   applyStaticPoints,
   emptyStyle,
+  lighten,
   readMapColors,
   type MapColors,
 } from "./layers";
@@ -75,6 +77,8 @@ type MapCanvasProps = {
 };
 
 const ZOOM_RANGE = 4;
+/** 지역 그라데이션 경계 쪽 밝기(단계 색에 섞는 흰색 비율) */
+const EDGE_LIGHTEN = 0.3;
 
 function paddingFor(map: MapLibreMap, padding: FitPadding | undefined): number | Padding {
   if (typeof padding !== "function") return padding ?? 16;
@@ -93,6 +97,8 @@ export function MapCanvas(props: MapCanvasProps) {
   const startBounds = useRef<Bounds | null>(null);
   const [ready, setReady] = useState(false);
   const colorsRef = useRef<MapColors | null>(null);
+  // 지역 그라데이션: 번갈아 쓰는 캔버스 두 장과 단계마다 그렸다 지우는 작업 캔버스. 지도를 만들 때 한 번 만든다
+  const glowRef = useRef<GlowState | null>(null);
   // 안내 문구는 지도를 만들 때 한 번만 쓴다(언어가 바뀌면 쓰는 쪽의 `key`로 지도를 새로 만든다, `gestureHelp` 설명)
   const [gestureHelp] = useState(props.gestureHelp);
   const [regional] = useState(props.variant === "regional");
@@ -156,6 +162,20 @@ export function MapCanvas(props: MapCanvasProps) {
     reportZoom(map);
   });
 
+  /** 단계(1~4)가 있는 지역만 그라데이션을 그린다. 경계 쪽 색은 단계 색에 흰색 30%(50%는 너무 밝다, 2026-11-15 사용자) */
+  const paintGlow = useEffectEvent((map: MapLibreMap) => {
+    const glow = glowRef.current;
+    const colors = colorsRef.current;
+    if (glow === null || colors === null) return;
+    const regions: GlowRegion[] = [];
+    for (const f of features) {
+      const state = fills.get(f.properties.id);
+      if (state === 1 || state === 2 || state === 3 || state === 4) regions.push({ geometry: f.geometry, level: state });
+    }
+    const light = (level: GlowLevel) => lighten(colors.bins[level], EDGE_LIGHTEN);
+    redrawGlow(map, glow, regions, { 1: light(1), 2: light(2), 3: light(3), 4: light(4) }, startZoom.current);
+  });
+
   // 생성과 정리
   useEffect(() => {
     const el = container.current;
@@ -193,10 +213,19 @@ export function MapCanvas(props: MapCanvasProps) {
       canvas.setAttribute("aria-hidden", "true");
       const colors = readMapColors();
       colorsRef.current = colors;
-      addLayers(map, colors);
+      const glow: GlowState = {
+        canvases: [document.createElement("canvas"), document.createElement("canvas")],
+        scratch: document.createElement("canvas"),
+        front: 0,
+      };
+      glowRef.current = glow;
+      addLayers(map, colors, glow.canvases);
       setReady(true);
     });
     map.on("zoomend", () => reportZoom(map));
+    // 지역 그라데이션: 움직이는 동안은 그림이 지도에 붙어 따라가고(화면보다 넓게 그려 경계가 안 보인다),
+    // 옮기기·확대가 끝나면 그 화면에 맞춰 다시 그려 이전 그림과 서서히 맞바꾼다
+    map.on("moveend", () => paintGlow(map));
     map.on("mousemove", (e) => hover(map, e));
     map.on("mouseout", () => leave());
     map.on("click", (e) => click(map, e));
@@ -229,6 +258,8 @@ export function MapCanvas(props: MapCanvasProps) {
     const map = mapRef.current;
     if (!ready || map === null) return;
     for (const [id, state] of fills) map.setFeatureState({ source: SOURCE.regions, id }, { bin: state === "none" ? NONE_BIN : state });
+    // 달이 바뀌어 단계가 바뀌면 그라데이션도 다시(도형을 새로 넣을 때는 맞춤 뒤 `moveend`가 다시 그린다)
+    paintGlow(map);
   }, [ready, featureKey, fills]);
 
   useEffect(() => {

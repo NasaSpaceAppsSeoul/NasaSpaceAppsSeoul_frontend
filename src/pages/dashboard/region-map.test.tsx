@@ -44,8 +44,10 @@ describe("지역 지도 (5장)", () => {
     expect(map.options).toMatchObject({ dragPan: true, scrollZoom: true, cooperativeGestures: true });
     await waitFor(() => expect(map.paint.get("points.circle-opacity")).toBe(0.95));
     expect(map.paint.get("points-heat.heatmap-opacity")).toBe(0);
-    // 처음 맞춘 확대값(가짜 지도의 `fitBounds`는 늘 5)에서 3.5, +4에서 6
-    expect(map.paint.get("points.circle-radius")).toEqual(["interpolate", ["linear"], ["zoom"], 5, 3.5, 9, 6]);
+    // 처음 맞춘 확대값(가짜 지도의 `fitBounds`는 늘 5)에서 4.5, +4에서 7. 점 뒤 빛번짐은 11 → 17(2026-11-15 다듬기)
+    expect(map.paint.get("points.circle-radius")).toEqual(["interpolate", ["linear"], ["zoom"], 5, 4.5, 9, 7]);
+    expect(map.paint.get("points-halo.circle-radius")).toEqual(["interpolate", ["linear"], ["zoom"], 5, 11, 9, 17]);
+    expect(map.paint.get("points-halo.circle-opacity")).toBe(0.3);
     expect(screen.queryByText(/확대하면 점으로 보입니다/)).toBeNull();
     expect(screen.getByText("+ / − 확대·축소 · 점에 올려 확인")).toBeTruthy();
     expect(map.filters.get("selected-line")).toEqual(["==", ["get", "id"], ""]);

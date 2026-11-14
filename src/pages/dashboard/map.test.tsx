@@ -49,6 +49,11 @@ describe("나라 지도 (4장)", () => {
     // 나라 지도는 Ctrl·⌘+휠·끌기 확대, 처음엔 번짐(지역 지도의 고정 모양과 다르다)
     expect(map.options).toMatchObject({ cooperativeGestures: true, dragPan: true, scrollZoom: true });
     expect(map.paint.get("points.circle-opacity")).not.toBe(0.95);
+    // 점 뒤 빛번짐도 처음 크기에서는 투명(점이 나타날 때 함께), 연기 번짐은 앰버 계열(2026-11-15 다듬기)
+    expect(map.paint.get("points-halo.circle-opacity")).toEqual(["interpolate", ["linear"], ["zoom"], 6, 0, 6.5, 0.35]);
+    // 지역 그라데이션 캔버스 소스 두 장(번갈아 그리고 서서히 맞바꾼다)이 들어갔다(그림은 진짜 브라우저에서만 그린다)
+    expect(map.getSource("region-glow-canvas-a")).toBeDefined();
+    expect(map.getSource("region-glow-canvas-b")).toBeDefined();
     // 끌기 범위는 처음 맞춘 화면으로 묶인다
     expect(map.maxBounds).not.toBeNull();
     // 키로 할 일이 없는 캔버스는 초점을 받지 않는다

@@ -1,4 +1,5 @@
 import type { ExpressionSpecification, Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
+import { GLOW_FADE_MS, GLOW_LAYERS } from "./regionGlow";
 
 /*
  * MapLibre 스타일·층·빗금 그림. 색은 `styles/index.css` 토큰에서 읽는다(스킬 react-architecture).
@@ -14,6 +15,8 @@ export const LAYER = {
   selected: "selected-line",
   /** 처음 크기에서 감지 위치를 연기처럼 번지게 그리는 층 */
   heat: "points-heat",
+  /** 점 뒤 같은 색 빛번짐 */
+  halo: "points-halo",
   points: "points",
 } as const;
 const HATCH_IMAGE = "hatch";
@@ -76,8 +79,17 @@ function hatchImage(colors: MapColors): { width: number; height: number; data: U
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 
-/** 소스와 층을 아래에서 위 순서로 더한다: 면 → 빗금 → 시·군·구 선 → 시·도 선 → 선택 선 → 점 */
-export function addLayers(map: MapLibreMap, colors: MapColors): void {
+/** `#rrggbb`를 흰색과 섞는다(t = 흰색 비율). 지역 그라데이션의 경계 쪽 색 */
+export function lighten(hex: string, t: number): string {
+  const [r, g, b] = rgb(hex).map((v) => Math.round(v + (255 - v) * t));
+  return `rgb(${r},${g},${b})`;
+}
+
+/**
+ * 소스와 층을 아래에서 위 순서로 더한다: 면 → 빗금 → 지역 그라데이션(캔버스, `regionGlow.ts`) → 시·군·구 선 → 시·도 선
+ * → 선택 선 → 점 빛번짐 → 점.
+ */
+export function addLayers(map: MapLibreMap, colors: MapColors, glowCanvases: readonly [HTMLCanvasElement, HTMLCanvasElement]): void {
   map.addImage(HATCH_IMAGE, hatchImage(colors));
   map.addSource(SOURCE.regions, { type: "geojson", data: EMPTY, promoteId: "id" });
   map.addSource(SOURCE.outlines, { type: "geojson", data: EMPTY });
@@ -99,6 +111,17 @@ export function addLayers(map: MapLibreMap, colors: MapColors): void {
     source: SOURCE.regions,
     paint: { "fill-pattern": HATCH_IMAGE, "fill-opacity": ["case", ["==", bin, NONE_BIN], 1, 0] },
   });
+  // 지역 그라데이션: 캔버스 두 장을 번갈아 쓴다(쉬던 쪽에 새로 그리고 서서히 맞바꾼다, `regionGlow.ts`).
+  // 소스는 지도를 만들 때 한 번 넣고, 그림은 `redrawGlow`가 화면이 멈출 때마다 다시 그린다. 처음에는 둘 다 투명
+  GLOW_LAYERS.forEach(({ source, layer }, i) => {
+    map.addSource(source, { type: "canvas", canvas: glowCanvases[i] ?? glowCanvases[0], coordinates: [[0, 1], [1, 1], [1, 0], [0, 0]], animate: false });
+    map.addLayer({
+      id: layer,
+      type: "raster",
+      source,
+      paint: { "raster-opacity": 0, "raster-opacity-transition": { duration: GLOW_FADE_MS, delay: 0 }, "raster-fade-duration": 0 },
+    });
+  });
   map.addLayer({
     id: LAYER.line,
     type: "line",
@@ -116,7 +139,8 @@ export function addLayers(map: MapLibreMap, colors: MapColors): void {
     type: "line",
     source: SOURCE.regions,
     filter: ["==", ["get", "id"], ""],
-    paint: { "line-color": colors.selection, "line-width": 2.5 },
+    // 은은하게(2026-11-15 사용자: 너무 쨍함 → 굵기 2.5 → 1.5, 살짝 흐림. 70%는 잘 안 보여 85%)
+    paint: { "line-color": colors.selection, "line-width": 1.5, "line-opacity": 0.85, "line-blur": 0.5 },
   });
   map.addLayer({
     id: LAYER.heat,
@@ -124,14 +148,22 @@ export function addLayers(map: MapLibreMap, colors: MapColors): void {
     source: SOURCE.points,
     paint: { "heatmap-opacity": 0 },
   });
+  const dotColor: ExpressionSpecification = ["match", ["get", "age"], 0, colors.dots[0], 1, colors.dots[1], 2, colors.dots[2], colors.dots[3]];
+  // 점 뒤 같은 색 빛번짐(우주 배경의 별처럼). 크기·투명도는 점과 함께 `applyPointZoom`·`applyStaticPoints`가 정한다
+  map.addLayer({
+    id: LAYER.halo,
+    type: "circle",
+    source: SOURCE.points,
+    paint: { "circle-color": dotColor, "circle-blur": 1, "circle-opacity": 0 },
+  });
   map.addLayer({
     id: LAYER.points,
     type: "circle",
     source: SOURCE.points,
     paint: {
-      "circle-color": ["match", ["get", "age"], 0, colors.dots[0], 1, colors.dots[1], 2, colors.dots[2], colors.dots[3]],
+      "circle-color": dotColor,
       "circle-stroke-color": colors.line,
-      "circle-stroke-width": 0.6,
+      "circle-stroke-width": 0.5,
     },
   });
 }
@@ -142,7 +174,8 @@ export function addLayers(map: MapLibreMap, colors: MapColors): void {
  * - 1 ~ 1.5단계 확대 사이에 번짐이 사라지고 작은 점(경과일 4색, 옅은 테두리)이 나타난다. 점은 확대할수록 커진다.
  * 확대 단계는 지도마다 다르므로 처음 맞춘 확대값(`startZoom`)을 기준으로 정한다. 맞출 때마다 다시 부른다.
  * 테두리는 지도 선 색을 낮은 불투명도로 쓴다(첫 감지일 점이 흰색이라 흰 테두리는 밝은 면 위에서 사라진다).
- * 번짐은 글자색(어두운 테마에서 밝음)이라 어두운 면 위에서 옅은 연기처럼 보인다.
+ * 번짐은 +2일 점 색(앰버)이라 우주 테마의 불빛처럼 보인다(2026-11-15 사용자: 흰 연기는 회색 면 위에서 탁해 보였다).
+ * 점 뒤에는 같은 색 빛번짐(`LAYER.halo`)을 점의 2.6배 크기로 옅게 깐다.
  */
 /** 처음 맞춘 확대값에서 몇 단계 더 확대하면 점이 나타나기 시작하는지 */
 export const POINTS_FROM = 1;
@@ -152,11 +185,14 @@ export function applyPointZoom(map: MapLibreMap, colors: MapColors, startZoom: n
     const pairs = stops.flatMap((v, i) => (i % 2 === 0 ? [startZoom + v] : [v]));
     return ["interpolate", ["linear"], ["zoom"], ...pairs] as ExpressionSpecification;
   };
-  const [r, g, b] = rgb(colors.ink);
+  const [r, g, b] = rgb(colors.dots[2]);
   const smoke = (a: number) => `rgba(${r},${g},${b},${a})`;
-  map.setPaintProperty(LAYER.points, "circle-radius", z([0, 2, 4, 5]));
+  // 점 크기(2026-11-15 사용자: 너무 작다 → 키움)
+  map.setPaintProperty(LAYER.points, "circle-radius", z([0, 2.5, 4, 6]));
   map.setPaintProperty(LAYER.points, "circle-opacity", z([POINTS_FROM, 0, POINTS_FROM + 0.5, 0.95]));
-  map.setPaintProperty(LAYER.points, "circle-stroke-opacity", z([POINTS_FROM, 0, POINTS_FROM + 0.5, 0.35]));
+  map.setPaintProperty(LAYER.points, "circle-stroke-opacity", z([POINTS_FROM, 0, POINTS_FROM + 0.5, 0.3]));
+  map.setPaintProperty(LAYER.halo, "circle-radius", z([0, 6, 4, 15]));
+  map.setPaintProperty(LAYER.halo, "circle-opacity", z([POINTS_FROM, 0, POINTS_FROM + 0.5, 0.35]));
   map.setPaintProperty(LAYER.heat, "heatmap-color", [
     "interpolate",
     ["linear"],
@@ -184,7 +220,11 @@ export function applyPointZoom(map: MapLibreMap, colors: MapColors, startZoom: n
  */
 export function applyStaticPoints(map: MapLibreMap, startZoom: number): void {
   map.setPaintProperty(LAYER.heat, "heatmap-opacity", 0);
-  map.setPaintProperty(LAYER.points, "circle-radius", ["interpolate", ["linear"], ["zoom"], startZoom, 3.5, startZoom + 4, 6]);
+  // 점 크기(2026-11-15 사용자: 너무 작다 → 키움)
+  map.setPaintProperty(LAYER.points, "circle-radius", ["interpolate", ["linear"], ["zoom"], startZoom, 4.5, startZoom + 4, 7]);
   map.setPaintProperty(LAYER.points, "circle-opacity", 0.95);
   map.setPaintProperty(LAYER.points, "circle-stroke-opacity", 0.55);
+  // 점 뒤 빛번짐(점의 약 2.6배). 점이 몰린 곳은 빛이 겹쳐 밝아진다
+  map.setPaintProperty(LAYER.halo, "circle-radius", ["interpolate", ["linear"], ["zoom"], startZoom, 11, startZoom + 4, 17]);
+  map.setPaintProperty(LAYER.halo, "circle-opacity", 0.3);
 }
