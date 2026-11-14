@@ -1,7 +1,10 @@
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
 
 afterEach(cleanup);
+
+// jsdom에는 WebGL이 없다. 지도 래퍼는 가짜 지도로 확인한다(`fakeMaplibre.ts`)
+vi.mock("maplibre-gl", async () => ({ Map: (await import("./fakeMaplibre")).FakeMap, setWorkerUrl: () => undefined }));
 
 /*
  * jsdom 29의 `<dialog>`에는 `open` 속성만 있고 `showModal()`·`close()`가 없다.

@@ -272,6 +272,47 @@ export const en: Messages = {
       viirsSub: "From 2012, when S-NPP observations began",
     },
   },
+  map: {
+    title: (month: string) => `${month} · Fire cells and detection locations`,
+    sub: "Fill shows monthly fire cells. Dots show detected locations and first-detection dates.",
+    modes: { cells: "Fire cells & points", usual: "Vs usual" },
+    views: { map: "Map", list: "List" },
+    soon: "Coming soon",
+    zoom: { in: "Zoom in", out: "Zoom out", reset: "Reset view" },
+    hint: "Zoom + / − · hover dots",
+    legend: {
+      fillTitle: "Fill · fire cells this month",
+      below: (to: string) => `Under ${to}`,
+      between: (from: string, to: string) => `${from}–${to}`,
+      above: (from: string) => `${from}+`,
+      noValue: "No value",
+      rangeNote: "Each range includes the lower value and excludes the upper.",
+      fillNote: "Each ~1 km cell is counted once per month. Different from fire events and grid-days.",
+      dotTitle: "Dots · days since first detection",
+      ages: ["First day", "+1 day", "+2 days", "+3 days+"],
+      dotNote: "Dots mark detected cells. Color = days from the first detection among the areas shown.",
+      dotZoomNote: "At full view, detections appear as a soft haze; zoom in to see individual dots.",
+      selected: "Selected district · blue outline",
+    },
+    notes: {
+      sample: (count: string, shown: string) => `Showing ${shown} of ${count} detections`,
+      pre2012: (sensor: string) =>
+        `Before February 2012 there are no district values, so only detection points (${sensor}) are shown.`,
+      outOfRange: "No detection-point data for this month.",
+    },
+    tooltip: {
+      cells: (value: string) => `${value} fire cells`,
+      noValue: "No value",
+      firstDetected: "First detected in this cell",
+    },
+    gestureHelp: {
+      windows: "Use Ctrl + scroll to zoom the map",
+      mac: "Use ⌘ + scroll or pinch to zoom the map",
+      mobile: "Use two fingers to move the map",
+    },
+    canvasLabel: (title: string, regions: number, cells: number) =>
+      `${title}. ${regions} areas, ${cells} detected cells. You can also change the region with the selectors above.`,
+  },
   insight: {
     back: "Back to this region and month →",
     toDashboard: "Open dashboard",

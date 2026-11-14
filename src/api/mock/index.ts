@@ -18,6 +18,7 @@ import { mockInsight } from "./insight-route";
 import { isLevel } from "./guards";
 import { kor } from "./kor";
 import { mockLanding } from "./landing";
+import { mockMap } from "./map-route";
 import { mockJudgement, mockSeries } from "./series-route";
 import type { CountryMock } from "./types";
 
@@ -104,6 +105,7 @@ function route(table: MockTable, path: string): unknown {
   if (resource === "series" && id !== undefined) return mockSeries(country, mock, id, url.searchParams);
   if (resource === "judgement" && id !== undefined) return mockJudgement(country, mock, id, url.searchParams);
   if (resource === "baseline" && id !== undefined) return mockBaseline(country, mock, id);
+  if (resource === "map" && id === undefined) return mockMap(country, mock, url.searchParams);
   if (resource === "insight" && id !== undefined) return mockInsight(country, mock, id, url.searchParams);
   throw notImplemented(path);
 }

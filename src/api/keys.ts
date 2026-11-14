@@ -1,3 +1,4 @@
+import type { MapParams } from "./spatial";
 import type { SeriesRange } from "./timeseries";
 import type { Country, GeoParams } from "./types";
 
@@ -18,6 +19,9 @@ export const keys = {
   judgement: (country: Country | undefined, id: string | undefined, month: string | undefined) =>
     [country, "judgement", id, { month }] as const,
   baseline: (country: Country | undefined, id: string | undefined) => [country, "baseline", id] as const,
+  /** `parent`가 없으면 `null`로 맞춘다(지금은 늘 나라 전체, 5-7). */
+  map: (country: Country | undefined, month: string | undefined, { parent }: MapParams = {}) =>
+    [country, "map", { month, parent: parent || null }] as const,
   insight: (country: Country | undefined, id: string | undefined, month: string | undefined) =>
     [country, "insight", id, { month }] as const,
 };
