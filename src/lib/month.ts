@@ -16,6 +16,13 @@ export function parseMonthParam(raw: string | null): MonthParam {
  * 아래 함수는 모두 형식이 맞는 `YYYY-MM`을 받는다. 같은 형식이라 문자열 비교가 곧 날짜 비교다.
  */
 
+/** 시·군·구 값이 시작되는 달(S-NPP 관측 시작). 그 전 달의 `/top`은 빈 목록이다(스킬 `burnline-api` 15번, `decisions.md` 6-3) */
+export const DISTRICT_DATA_START = "2012-02";
+
+export function beforeDistrictData(month: string): boolean {
+  return month < DISTRICT_DATA_START;
+}
+
 export type MonthRange = { first: string; last: string };
 
 export function monthYear(month: string): number {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { dashboardPath } from "./dashboardPath";
 import { andParticle, formatFireDays, formatMonth, formatRatio } from "./format";
 import { judgementKind, judgementView, type JudgementLike } from "./judgementView";
-import { clampMonth, isInRange, monthRange, shiftMonth } from "./month";
+import { beforeDistrictData, clampMonth, isInRange, monthRange, shiftMonth } from "./month";
 import {
   byValueThenName,
   indexRegions,
@@ -18,6 +18,11 @@ import {
 } from "./region";
 
 describe("달 계산", () => {
+  it("시·군·구 값은 2012-02부터(그 전 달은 목록이 비어 있다)", () => {
+    expect(beforeDistrictData("2012-01")).toBe(true);
+    expect(beforeDistrictData("2012-02")).toBe(false);
+  });
+
   it("앞뒤로 옮기고 해를 넘긴다", () => {
     expect(shiftMonth("2026-01", -1)).toBe("2025-12");
     expect(shiftMonth("2025-12", 1)).toBe("2026-01");
