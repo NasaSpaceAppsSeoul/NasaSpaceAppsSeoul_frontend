@@ -313,6 +313,18 @@ export const ko = {
     },
     canvasLabel: (title: string, regions: number, cells: number) =>
       `${title}. 지역 ${regions}곳, 감지된 칸 ${cells}개. 지역 이동은 위의 선택 줄로도 할 수 있습니다.`,
+    // 시·도·시·군·구 지도(5장, screens/kr/dashboard-province·district). 7장 월간 인사이트도 같은 범례를 쓴다
+    regional: {
+      eyebrow: "지역 지도",
+      provinceTitle: (province: string, lv2: string) => `${province}의 ${lv2}`,
+      /** 받침에 맞는 조사(`lib/format` `andParticle`). 한글로 끝나지 않는 이름은 조사 없이 */
+      districtTitle: (name: string, particle: "와" | "과" | null) =>
+        particle === null ? `${name} · 주변 지역` : `${name}${particle} 주변 지역`,
+      sub: "지역색: 이번 달 화재 칸 수 · 점: 감지된 칸의 위치와 날짜",
+      neighborsFailed: "주변 지역을 불러오지 못해 이 지역만 표시합니다.",
+      /** 지역 지도는 나라 전체 `/map`을 거르므로 표본 숫자도 나라 전체 기준이다(5-7) */
+      sample: (nation: string, count: string, shown: string) => `${nation} 전체 감지 ${count}개 중 ${shown}개만 받아 일부만 보입니다.`,
+    },
   },
   // 월간 인사이트(7장). 디자인의 "데모·합성·예시·가상" 문구는 빼고, 사실관계는 백엔드 기준으로 고쳤다(`plans/insight.md` 4절)
   insight: {

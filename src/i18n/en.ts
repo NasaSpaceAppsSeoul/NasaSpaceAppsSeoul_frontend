@@ -312,6 +312,15 @@ export const en: Messages = {
     },
     canvasLabel: (title: string, regions: number, cells: number) =>
       `${title}. ${regions} areas, ${cells} detected cells. You can also change the region with the selectors above.`,
+    regional: {
+      eyebrow: "REGIONAL MAP",
+      provinceTitle: (province: string, lv2: string) => `${lv2} in ${province}`,
+      districtTitle: (name: string) => `${name} and nearby areas`,
+      sub: "Fill: fire cells this month · Dots: location and date of detected cells",
+      neighborsFailed: "Couldn't load nearby areas, so only this area is shown.",
+      sample: (nation: string, count: string, shown: string) =>
+        `Only ${shown} of ${count} detections across ${nation} were loaded, so some points are not shown.`,
+    },
   },
   insight: {
     back: "Back to this region and month →",

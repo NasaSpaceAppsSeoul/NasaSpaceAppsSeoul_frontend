@@ -42,6 +42,9 @@ describe("나라 지도 (4장)", () => {
     await waitFor(() => expect(map.featureStates.get(UISEONG)).toEqual({ bin: 4 }));
     expect(map.featureStates.get(ULLEUNG)).toEqual({ bin: -1 });
     expect(map.fitCalls.length).toBe(1);
+    // 나라 지도는 Ctrl·⌘+휠·끌기 확대, 처음엔 번짐(지역 지도의 고정 모양과 다르다)
+    expect(map.options).toMatchObject({ cooperativeGestures: true, dragPan: true, scrollZoom: true });
+    expect(map.paint.get("points.circle-opacity")).not.toBe(0.95);
     // 끌기 범위는 처음 맞춘 화면으로 묶인다
     expect(map.maxBounds).not.toBeNull();
     // 키로 할 일이 없는 캔버스는 초점을 받지 않는다
@@ -121,12 +124,6 @@ describe("나라 지도 (4장)", () => {
     fireEvent.click(screen.getByRole("button", { name: "확대" }));
     await waitFor(() => expect(zoomOut).toHaveProperty("disabled", false));
     expect(screen.getByRole("button", { name: "처음 크기로" })).toHaveProperty("disabled", false);
-  });
-
-  it("시·도·시·군·구 화면에는 아직 지도가 없다(5장)", async () => {
-    renderRoute(`/dashboard/KOR/${UISEONG}?month=2025-03`);
-    expect(await screen.findByRole("heading", { level: 1 })).toBeTruthy();
-    expect(screen.queryByRole("img", { name: /화재 칸과 감지 위치/ })).toBeNull();
   });
 
   it("/geo가 실패하면 지도 카드 안에 에러와 다시 시도, 표본이면 안내", async () => {
