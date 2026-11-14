@@ -39,7 +39,7 @@ export function ShareDialog({ open, onClose, label, url, state, onCopy }: ShareD
             <Button data-autofocus onClick={onCopy}>
               {t.copy}
             </Button>
-            <p role="status" className={`text-sm ${state === "failed" ? "text-heat-6" : "text-muted"}`}>
+            <p role="status" className={`text-sm ${state === "failed" ? "text-tone-red-ink" : "text-muted"}`}>
               {state === "copied" ? t.copied : state === "failed" ? t.failed : ""}
             </p>
           </div>

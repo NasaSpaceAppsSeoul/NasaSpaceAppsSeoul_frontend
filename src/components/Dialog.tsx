@@ -68,8 +68,6 @@ export function Dialog({ open, onClose, title, description, children, placement 
   return (
     <dialog
       ref={openModal}
-      // 어두운 화면(첫 화면)에서도 대화상자는 밝은 판이다(디자인 대화상자 13장, `plans/about-revise.md` 10절 ⑤)
-      data-theme="light"
       aria-labelledby={titleId}
       aria-describedby={description !== undefined ? descriptionId : undefined}
       // Esc를 누르면 브라우저가 `cancel`을 보낸다. 직접 닫지 않고 부모가 상태를 바꾸게 한다
@@ -94,8 +92,12 @@ export function Dialog({ open, onClose, title, description, children, placement 
         pressedOnBackdrop.current = false;
         releasedOnBackdrop.current = false;
       }}
-      // 스크롤은 안쪽에서만 생기게 해 대화상자 자신(바깥으로 판정됨)의 스크롤바를 누르는 일이 없게 한다
-      className={`${PLACEMENT[placement]} flex-col w-full max-w-xl overflow-hidden open:flex rounded-card bg-surface p-0 text-ink backdrop:bg-inverse/40`}
+      // 스크롤은 안쪽에서만 생기게 해 대화상자 자신(바깥으로 판정됨)의 스크롤바를 누르는 일이 없게 한다.
+      // 모양은 시안 v9 `.db-modal`: 어두운 유리 판(흐림 20px) + 어둡게 흐린 뒤 막(6px)
+      className={
+        `${PLACEMENT[placement]} flex-col w-full max-w-xl overflow-hidden open:flex rounded-card border border-dialog-line ` +
+        "bg-dialog p-0 text-ink shadow-[0_24px_80px_#0005] backdrop-blur-[20px] backdrop:bg-scrim backdrop:backdrop-blur-[6px]"
+      }
     >
       <div className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto p-6">
         <header className="flex items-center justify-between gap-4">

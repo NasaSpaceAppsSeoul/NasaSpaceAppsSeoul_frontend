@@ -24,6 +24,8 @@ export type MapColors = {
   bins: [string, string, string, string, string];
   dots: [string, string, string, string];
   ink: string;
+  /** 경계선·점 테두리(시안 v9 지도 선 `--color-map-line`) */
+  line: string;
   selection: string;
   hatchLine: string;
   hatchBase: string;
@@ -39,6 +41,7 @@ export function readMapColors(): MapColors {
     bins: [read("--color-map-0"), read("--color-map-1"), read("--color-map-2"), read("--color-map-3"), read("--color-map-4")],
     dots: [read("--color-dot-0"), read("--color-dot-1"), read("--color-dot-2"), read("--color-dot-3")],
     ink: read("--color-ink"),
+    line: read("--color-map-line"),
     selection: read("--color-selection"),
     hatchLine: read("--color-heat-hatch"),
     hatchBase: read("--color-border"),
@@ -100,13 +103,13 @@ export function addLayers(map: MapLibreMap, colors: MapColors): void {
     id: LAYER.line,
     type: "line",
     source: SOURCE.regions,
-    paint: { "line-color": colors.ink, "line-opacity": 0.6, "line-width": 0.6 },
+    paint: { "line-color": colors.line, "line-opacity": 0.6, "line-width": 0.6 },
   });
   map.addLayer({
     id: LAYER.outline,
     type: "line",
     source: SOURCE.outlines,
-    paint: { "line-color": colors.ink, "line-opacity": 0.85, "line-width": 1.6 },
+    paint: { "line-color": colors.line, "line-opacity": 0.85, "line-width": 1.6 },
   });
   map.addLayer({
     id: LAYER.selected,
@@ -127,7 +130,7 @@ export function addLayers(map: MapLibreMap, colors: MapColors): void {
     source: SOURCE.points,
     paint: {
       "circle-color": ["match", ["get", "age"], 0, colors.dots[0], 1, colors.dots[1], 2, colors.dots[2], colors.dots[3]],
-      "circle-stroke-color": colors.ink,
+      "circle-stroke-color": colors.line,
       "circle-stroke-width": 0.6,
     },
   });
@@ -138,7 +141,8 @@ export function addLayers(map: MapLibreMap, colors: MapColors): void {
  * - 처음 크기: 점 대신 감지 위치를 연기처럼 번지게(진한 글자색 반투명 밀도) 그린다.
  * - 1 ~ 1.5단계 확대 사이에 번짐이 사라지고 작은 점(경과일 4색, 옅은 테두리)이 나타난다. 점은 확대할수록 커진다.
  * 확대 단계는 지도마다 다르므로 처음 맞춘 확대값(`startZoom`)을 기준으로 정한다. 맞출 때마다 다시 부른다.
- * 테두리는 진한 글자색을 낮은 불투명도로 쓴다(첫 감지일 점이 흰색이라 흰 테두리는 밝은 면 위에서 사라진다).
+ * 테두리는 지도 선 색을 낮은 불투명도로 쓴다(첫 감지일 점이 흰색이라 흰 테두리는 밝은 면 위에서 사라진다).
+ * 번짐은 글자색(어두운 테마에서 밝음)이라 어두운 면 위에서 옅은 연기처럼 보인다.
  */
 /** 처음 맞춘 확대값에서 몇 단계 더 확대하면 점이 나타나기 시작하는지 */
 export const POINTS_FROM = 1;

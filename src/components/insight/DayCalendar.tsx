@@ -43,8 +43,9 @@ export function DayCalendar({ leading, cells, weekdays, valueText, label, peakTe
           key={cell.day}
           role="img"
           aria-label={label(cell)}
-          className={`flex min-h-24 flex-col gap-1 rounded-cell p-2 text-xs text-ink ${
-            cell.future ? "border border-dashed border-border bg-surface text-muted" : DAY_CLASS[cell.level]
+          // 달력 색은 모두 밝은 쪽(시안 v9 팔레트)이라 칸 안 글자는 어두운 surface로 쓴다
+          className={`flex min-h-24 flex-col gap-1 rounded-cell p-2 text-xs ${
+            cell.future ? "border border-dashed border-border bg-surface text-muted" : `${DAY_CLASS[cell.level]} text-surface`
           } ${cell.inCluster ? "border-b-4 border-b-action" : ""}`.trim()}
         >
           <span className="font-semibold">{cell.day}</span>
