@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockGet } from "../../api/mock/index";
 import { renderRoute } from "../../test/render";
+import { COUNTRIES } from "../../lib/country";
 
 /*
  * 소개 화면. 앞부분은 목, 뒷부분은 live 모드 + `fetch` 바꾸기로 서버 에러를 흉내 낸다.
@@ -45,13 +46,13 @@ describe("소개 화면 (목)", () => {
     expect(screen.queryByRole("button", { name: "지역 둘러보기" })).toBeNull();
   });
 
-  it("검색 대화상자 첫 화면: 나라 3개, 대한민국 아래 시·도 17곳(소속 표시), 고르면 그 대시보드", async () => {
+  it("검색 대화상자 첫 화면: 나라 6개(`COUNTRIES`), 대한민국 아래 시·도 17곳(소속 표시), 고르면 그 대시보드", async () => {
     const { router } = renderRoute("/");
     const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
     await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
     fireEvent.click(search);
     const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
-    expect(dialog.getAllByText(/^나라 대시보드 · 2026년 1\d월까지 자료$/)).toHaveLength(3);
+    expect(dialog.getAllByText(/^나라 대시보드 · 2026년 1\d월까지 자료$/)).toHaveLength(COUNTRIES.length);
     const provinces = dialog.getByRole("list", { name: "대한민국" });
     expect(within(provinces).getAllByText("시·도 · 대한민국")).toHaveLength(17);
 
@@ -88,7 +89,7 @@ describe("소개 화면 (목)", () => {
     await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/dashboard\/KOR\/\w+/));
   });
 
-  it("나라 버튼은 그 나라 대시보드 링크다(목은 세 나라 모두 준비됨)", async () => {
+  it("나라 버튼은 그 나라 대시보드 링크다(목은 모든 지역이 준비됨)", async () => {
     renderRoute("/");
     const nav = within(await screen.findByRole("navigation", { name: "나라별 대시보드" }));
     expect(nav.getByRole("link", { name: "대한민국 →" }).getAttribute("href")).toBe("/dashboard/KOR");
