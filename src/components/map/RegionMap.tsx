@@ -54,6 +54,8 @@ type RegionMapProps = {
   /** 기본 `stacked`. `panel`이면 `header`가 지도 위 왼쪽 판에 뜨고, `notice`는 그 판 아래에 붙는다 */
   layout?: "stacked" | "panel";
   header?: ReactNode;
+  /** `panel`일 때 지도 왼쪽 아래 출처 줄 */
+  attribution?: string;
 };
 
 export function RegionMap(props: RegionMapProps) {
@@ -125,6 +127,7 @@ export function RegionMap(props: RegionMapProps) {
         legend={<MapLegend bins={bins} showSelected={selectedShown} notes={notes} orientation="vertical" showZoomNote={false} />}
         legendLabel={t.legend.toggle}
         hint={t.hint}
+        attribution={props.attribution}
         tooltip={tooltip !== null && <MapTooltip {...tooltip} />}
         dimmed={dimmed}
       />

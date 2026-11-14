@@ -422,6 +422,11 @@ export const en: Messages = {
       fillTitle: "Fill · fire cells this month",
       below: (to: string) => `Under ${to}`,
       between: (from: string, to: string) => `${from}–${to}`,
+    attribution: {
+      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
+      time: { "UTC+9": "local date (UTC+9)", solar: "local solar date" },
+      line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
+    },
       above: (from: string) => `${from}+`,
       noValue: "No value",
       rangeNote: "Each range includes the lower value and excludes the upper.",

@@ -435,6 +435,13 @@ export const ko = {
       fillNote: "약 1 km 칸을 한 달에 한 번만 셉니다. 화재 건수·화재 감지일과 다릅니다.",
       dotTitle: "점 · 첫 감지일 이후 경과일",
       ages: ["첫 감지일", "+1일", "+2일", "+3일~"],
+    // 지도 왼쪽 아래 출처 줄(시안 v11 `.db-map-attribution`). 경계 출처 이름은 백엔드 `labels.boundary`에서 옮긴 나라별 고정 문구다
+    // (그 값은 한글 설명·라이선스가 섞여 영문 화면에 그대로 못 쓴다. 9장에서 실제 값과 대조), 날짜 기준은 `time_basis.code`로 고른다
+    attribution: {
+      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
+      time: { "UTC+9": "한국 표준시(UTC+9) 날짜 기준", solar: "경도 기준 태양시 날짜" },
+      line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
+    },
       dotNote: "점은 감지된 칸의 대표 위치입니다. 색은 지금 보이는 지역의 첫 감지일 기준입니다.",
       dotZoomNote: "전국 크기에서는 감지 위치가 연기처럼 번져 보이고, 확대하면 점으로 보입니다.",
       selected: "선택 지역 · 파란 테두리",

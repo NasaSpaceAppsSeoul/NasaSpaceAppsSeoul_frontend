@@ -144,6 +144,7 @@ export function MapSection({ scope, navigate }: MapSectionProps) {
       legend={<MapLegend bins={meta.labels.bins} showSelected={false} notes={notes} orientation="vertical" />}
       legendLabel={t.map.legend.toggle}
       hint={t.map.hint}
+      attribution={t.map.attribution.line(t.map.attribution.boundary[country], t.map.attribution.time[meta.time_basis.code])}
       tooltip={tooltip !== null && <MapTooltip {...tooltip} />}
     />
   );

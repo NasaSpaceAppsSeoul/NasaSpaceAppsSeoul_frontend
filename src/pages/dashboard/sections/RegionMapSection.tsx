@@ -114,6 +114,7 @@ export function RegionMapSection({ scope, navigate }: RegionMapSectionProps) {
   return (
     <RegionMap
       layout="panel"
+      attribution={t.map.attribution.line(t.map.attribution.boundary[country], t.map.attribution.time[meta.time_basis.code])}
       header={
         <div className="flex flex-col gap-1">
           <p className="mono-overline text-action">{t.map.regional.eyebrow}</p>
