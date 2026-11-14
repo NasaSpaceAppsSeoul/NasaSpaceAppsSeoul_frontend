@@ -95,10 +95,27 @@
   --color-tone-red-ink: #9f2d1a;
   --color-tone-yellow: #fff3d6;
   --color-tone-yellow-ink: #785016;
+
+  /* 색: 히트맵 칸 무늬 (components/sheet/04-calendar-legend.png에서 뽑음) */
+  --color-heat-dot: #7f6643; /* 센서 환산값 점무늬 */
+  --color-heat-hatch: #7d7d81; /* 관측 자료 없음 빗금 선, 바탕은 border */
+  --color-heat-partial: #9a5400; /* 집계 중 갈색 점선 */
+  --color-heat-future: #94949e; /* 아직 집계 전 회색 점선 */
 }
 
 @layer base {
   body {
     @apply bg-page font-sans text-base text-ink antialiased;
   }
+}
+
+/* 히트맵 칸 무늬. 크기 숫자는 디자인 조각에 맞춘 것이다 */
+@utility heat-dots {
+  background-image: radial-gradient(var(--color-heat-dot) 0.8px, transparent 1.2px);
+  background-size: 6px 6px;
+}
+
+@utility heat-hatch {
+  background-color: var(--color-border);
+  background-image: repeating-linear-gradient(135deg, var(--color-heat-hatch) 0 1px, transparent 1px 5px);
 }

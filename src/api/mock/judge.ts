@@ -80,7 +80,7 @@ export function profileOf(country: Country, region: RegionSummary, all: readonly
 }
 
 /** numpy 기본(선형 보간) 퍼센타일. `sorted`는 오름차순. */
-function percentile(sorted: readonly number[], q: number): number {
+export function percentile(sorted: readonly number[], q: number): number {
   const pos = q * (sorted.length - 1);
   const lo = Math.floor(pos);
   const a = sorted[lo] ?? 0;
@@ -97,7 +97,7 @@ function median(sorted: readonly number[]): number {
 const statsCache = new Map<string, MonthStats[]>();
 
 /** 1~12월 각각의 평년·범위(비교 기간의 같은 달 값). 지역별로 캐시한다. */
-function monthStats(country: Country, profile: Profile): MonthStats[] {
+export function monthStats(country: Country, profile: Profile): MonthStats[] {
   const key = `${country}/${profile.region.id}`;
   const hit = statsCache.get(key);
   if (hit !== undefined) return hit;

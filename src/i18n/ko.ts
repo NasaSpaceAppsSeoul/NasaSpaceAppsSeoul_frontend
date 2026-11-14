@@ -226,6 +226,53 @@ export const ko = {
     },
     latestMonth: "최신 달로 이동",
   },
+  // 히트맵(3장). 센서 환산값·품질·범위·집계 중·단위는 `dashboard.card`의 문구를 다시 쓴다
+  heatmap: {
+    title: (name: string) => `${name} · 연도별·월별 화재 달력`,
+    sub: (unit: string, fromYear: number, toLabel: string) => `월별 ${unit} · ${fromYear}–${toLabel}`,
+    raw: "보정 전",
+    harmonized: "보정 후",
+    yearButton: (from: number, to: number) => `${from}–${to}`,
+    csv: "월별 데이터 CSV ↓",
+    png: "달력 PNG ↓",
+    csvMock: "목 모드에서는 내려받을 수 없습니다",
+    monthHead: (m: number) => `${m}월`,
+    yearHead: "연도",
+    empty: "이 지역의 월별 자료가 없습니다.",
+    gridLabel: "연도별·월별 화재 달력. 방향키로 칸을 옮기고 Enter로 그 달을 엽니다.",
+    divider: {
+      snpp: "2012년 2월 · S-NPP 관측 시작 (이전은 MODIS 기록을 NOAA-20 기준으로 환산)",
+      noaa20: "2018년 4월 · NOAA-20 관측 시작 · 이후는 환산 없음",
+    },
+    legend: {
+      below: (to: string) => `${to} 미만`,
+      between: (from: string, to: string) => `${from}–${to}`,
+      above: (from: string) => `${from} 이상`,
+      note: (unit: string) => `${unit} · 칸에 마우스를 올리면 정확한 값을 볼 수 있습니다`,
+    },
+    // 칸 상태 설명 6칸 (04-calendar-legend). 환산 문구는 NOAA-20 기준(4-3a)
+    states: {
+      zero: { title: "감지 없음", body: "관측했지만 불이 감지되지 않음" },
+      converted: { title: "센서 환산값", body: "이전 위성 기록을 NOAA-20 기준으로 맞춘 값" },
+      noData: { title: "관측 자료 없음", body: "자료가 없어 값을 판단할 수 없음" },
+      partial: { title: "집계 중", body: "일부 날짜만 반영 · 갈색 점선" },
+      selected: { title: "선택한 달", body: "파란 테두리 · 데이터 상태와 별개" },
+      future: { title: "아직 집계 전", body: "자료 마지막 달 이후 · 회색 점선" },
+    },
+    tooltip: {
+      estimated: "추정값",
+      noData: "관측 자료가 없어 값이 없습니다.",
+      future: "아직 집계 전입니다.",
+      blank: "이 단위의 자료가 시작되기 전입니다.",
+    },
+    yearDialog: {
+      title: "표시 연도",
+      description: "달력에 보여 줄 해를 고르세요.",
+      all: (from: number, to: number) => `${from}–${to} 전체`,
+      viirs: (to: number) => `2012–${to} VIIRS 시기`,
+      viirsSub: "S-NPP 관측이 시작된 2012년부터",
+    },
+  },
 };
 
 export type Messages = typeof ko;

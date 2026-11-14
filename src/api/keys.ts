@@ -17,4 +17,5 @@ export const keys = {
     [country, "series", id, { from: from || null, to: to || null }] as const,
   judgement: (country: Country | undefined, id: string | undefined, month: string | undefined) =>
     [country, "judgement", id, { month }] as const,
+  baseline: (country: Country | undefined, id: string | undefined) => [country, "baseline", id] as const,
 };
