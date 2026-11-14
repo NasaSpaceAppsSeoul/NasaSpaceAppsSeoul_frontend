@@ -372,27 +372,45 @@ export const ko = {
   },
   // 히트맵(3장). 센서 환산값·품질·범위·집계 중·단위는 `dashboard.card`의 문구를 다시 쓴다
   heatmap: {
-    title: (name: string) => `${name} · 연도별·월별 화재 달력`,
-    sub: (unit: string, fromYear: number, toLabel: string) => `월별 ${unit} · ${fromYear}–${toLabel}`,
+    // 시안 v11 달력(`FireCalendar.tsx`) 배치. 한글은 시안에 없어 새로 씀. 머리말 번호(03)는 다른 카드에 번호가 없어 뺐다
+    overline: "더 긴 기록",
+    title: "연도별·월별 화재 달력",
+    sub: (fromYear: number, toYear: number, name: string) => `${fromYear}–${toYear} · ${name} · 한 달에 점 하나. 올리면 값, 누르면 그 달로 이동합니다.`,
     raw: "보정 전",
     harmonized: "보정 후",
-    yearButton: (from: number, to: number) => `${from}–${to}`,
-    csv: "월별 데이터 CSV ↓",
-    png: "달력 PNG ↓",
+    years: { label: "표시 연도", all: "전체 해", viirs: "2012년부터" },
+    csv: "월별 CSV",
+    png: "달력 PNG",
     csvMock: "목 모드에서는 내려받을 수 없습니다",
+    monthCorner: "달",
     monthHead: (m: number) => `${m}월`,
     empty: "이 지역의 월별 자료가 없습니다.",
     gridLabel: "연도별·월별 화재 달력. 방향키로 칸을 옮기고 Enter로 그 달을 엽니다.",
+    caption: "해 → · 달 ↓ · 같은 기준으로 비교",
+    // 격자 아래 오른쪽 센서 전환 요약(세로 점선과 짝). 보이는 전환만 잇는다
     divider: {
-      snpp: "2012년 2월 · S-NPP 관측 시작 (이전은 MODIS 기록을 NOAA-20 기준으로 환산)",
-      noaa20: "2018년 4월 · NOAA-20 관측 시작 · 이후는 환산 없음",
+      snpp: "2012년 2월 S-NPP",
+      noaa20: "2018년 4월 NOAA-20",
     },
+    dividerTail: "점무늬는 NOAA-20 기준 환산값",
     legend: {
       below: (to: string) => `${to} 미만`,
       between: (from: string, to: string) => `${from}–${to}`,
       above: (from: string) => `${from} 이상`,
-      note: (unit: string) => `${unit} · 칸에 마우스를 올리면 정확한 값을 볼 수 있습니다`,
+      title: (unit: string) => `${unit} · 옅음 → 짙음`,
     },
+    // 격자 아래 선택한 달 줄(시안 v11 `.db-calendar-selection`)
+    selection: {
+      label: "선택한 달",
+      detail: (value: string, unit: string, basis: string, collecting: boolean) =>
+        `${value} ${unit} · ${basis}${collecting ? " · 집계 중" : ""}`,
+    },
+    // 카드 맨 아래 각주(시안 v11 `.db-panel-footnote`). 색 경계는 백엔드 `heat_bins`(0이 아닌 월값의 50·75·90 백분위),
+    // 집계 중 문장은 `/meta` `data_end`가 달 중간일 때만
+    footnote: (collecting: { month: string; day: number; date: string } | null) =>
+      "NASA FIRMS · 0, 그리고 0이 아닌 월값의 50·75·90 백분위로 색을 나눕니다. " +
+      (collecting === null ? "" : `${collecting.month}은 ${collecting.day}일까지 집계 중입니다. `) +
+      "빠진 기록은 0이 아닙니다.",
     // 칸 상태 설명 6칸 (04-calendar-legend). 환산 문구는 NOAA-20 기준(4-3a)
     states: {
       zero: { title: "감지 없음", body: "관측했지만 불이 감지되지 않음" },
@@ -408,13 +426,6 @@ export const ko = {
       future: "아직 집계 전입니다.",
       blank: "이 단위의 자료가 시작되기 전입니다.",
     },
-    yearDialog: {
-      title: "표시 연도",
-      description: "달력에 보여 줄 해를 고르세요.",
-      all: (from: number, to: number) => `${from}–${to} 전체`,
-      viirs: (to: number) => `2012–${to} VIIRS 시기`,
-      viirsSub: "S-NPP 관측이 시작된 2012년부터",
-    },
   },
   // 지도(4장, components/sheet/06-maps-*). 데모 문구는 뺐고, 점 색 기준·범례 구간은 백엔드 뜻으로 고쳐 썼다(5-2, 8절 질문 1)
   map: {
@@ -424,6 +435,13 @@ export const ko = {
     soon: "준비 중",
     zoom: { in: "확대", out: "축소", reset: "처음 크기로" },
     hint: "+ / − 확대·축소 · 점에 올려 확인",
+    // 지도 왼쪽 아래 출처 줄(시안 v11 `.db-map-attribution`). 경계 출처 이름은 백엔드 `labels.boundary`에서 옮긴 나라별 고정 문구다
+    // (그 값은 한글 설명·라이선스가 섞여 영문 화면에 그대로 못 쓴다. 9장에서 실제 값과 대조), 날짜 기준은 `time_basis.code`로 고른다
+    attribution: {
+      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
+      time: { "UTC+9": "한국 표준시(UTC+9) 날짜 기준", solar: "경도 기준 태양시 날짜" },
+      line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
+    },
     legend: {
       toggle: "범례",
       fillTitle: "색 · 이번 달 화재 칸 수",
@@ -435,13 +453,6 @@ export const ko = {
       fillNote: "약 1 km 칸을 한 달에 한 번만 셉니다. 화재 건수·화재 감지일과 다릅니다.",
       dotTitle: "점 · 첫 감지일 이후 경과일",
       ages: ["첫 감지일", "+1일", "+2일", "+3일~"],
-    // 지도 왼쪽 아래 출처 줄(시안 v11 `.db-map-attribution`). 경계 출처 이름은 백엔드 `labels.boundary`에서 옮긴 나라별 고정 문구다
-    // (그 값은 한글 설명·라이선스가 섞여 영문 화면에 그대로 못 쓴다. 9장에서 실제 값과 대조), 날짜 기준은 `time_basis.code`로 고른다
-    attribution: {
-      boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
-      time: { "UTC+9": "한국 표준시(UTC+9) 날짜 기준", solar: "경도 기준 태양시 날짜" },
-      line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
-    },
       dotNote: "점은 감지된 칸의 대표 위치입니다. 색은 지금 보이는 지역의 첫 감지일 기준입니다.",
       dotZoomNote: "전국 크기에서는 감지 위치가 연기처럼 번져 보이고, 확대하면 점으로 보입니다.",
       selected: "선택 지역 · 파란 테두리",

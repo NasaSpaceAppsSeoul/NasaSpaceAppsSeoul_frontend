@@ -367,27 +367,39 @@ export const en: Messages = {
     latestMonth: "Go to the latest month",
   },
   heatmap: {
-    title: (name: string) => `${name} · Fire calendar by year and month`,
-    sub: (unit: string, fromYear: number, toLabel: string) => `Monthly ${unit} · ${fromYear}–${toLabel}`,
+    overline: "The longer record",
+    title: "Year-by-month fire calendar",
+    sub: (fromYear: number, toYear: number, name: string) => `${fromYear}–${toYear} · ${name} · one dot per month. Hover for values; select to explore.`,
     raw: "Raw",
     harmonized: "Harmonized",
-    yearButton: (from: number, to: number) => `${from}–${to}`,
-    csv: "Monthly data CSV ↓",
-    png: "Calendar PNG ↓",
+    years: { label: "Shown years", all: "All years", viirs: "2012 onwards" },
+    csv: "Monthly CSV",
+    png: "Calendar PNG",
     csvMock: "Downloads are not available with mock data",
+    monthCorner: "Month",
     monthHead: (m: number) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1] ?? String(m),
     empty: "There is no monthly data for this region.",
     gridLabel: "Fire calendar by year and month. Use the arrow keys to move between cells and Enter to open that month.",
+    caption: "Years → · Months ↓ · Common comparison basis",
     divider: {
-      snpp: "February 2012 · S-NPP observations begin (earlier MODIS records adjusted to the NOAA-20 basis)",
-      noaa20: "April 2018 · NOAA-20 observations begin · no adjustment afterwards",
+      snpp: "Feb 2012 S-NPP",
+      noaa20: "Apr 2018 NOAA-20",
     },
+    dividerTail: "dotted values are converted to the NOAA-20 basis",
     legend: {
       below: (to: string) => `under ${to}`,
       between: (from: string, to: string) => `${from}–${to}`,
       above: (from: string) => `${from}+`,
-      note: (unit: string) => `${unit} · hover over a cell to read the exact value`,
+      title: (unit: string) => `${unit} · pale → deep`,
     },
+    selection: {
+      label: "Selected month",
+      detail: (value: string, unit: string, basis: string, collecting: boolean) =>
+        `${value} ${unit} · ${basis}${collecting ? " · still counting" : ""}`,
+    },
+    footnote: (collecting: { month: string; day: number; date: string } | null) =>
+      "NASA FIRMS · zero plus nonzero monthly P50/P75/P90 color breaks. " +
+      (collecting === null ? "Missing history is not zero." : `${collecting.month} is collecting through ${collecting.date}; missing history is not zero.`),
     states: {
       zero: { title: "No detections", body: "Observed, but no fire detected" },
       converted: { title: "Sensor-adjusted", body: "Earlier satellite records adjusted to the NOAA-20 basis" },
@@ -402,13 +414,6 @@ export const en: Messages = {
       future: "Not counted yet.",
       blank: "Before data for this unit begins.",
     },
-    yearDialog: {
-      title: "Shown years",
-      description: "Choose which years the calendar shows.",
-      all: (from: number, to: number) => `${from}–${to} all years`,
-      viirs: (to: number) => `2012–${to} VIIRS period`,
-      viirsSub: "From 2012, when S-NPP observations began",
-    },
   },
   map: {
     title: (month: string) => `${month} · Fire cells and detection locations`,
@@ -417,16 +422,16 @@ export const en: Messages = {
     soon: "Coming soon",
     zoom: { in: "Zoom in", out: "Zoom out", reset: "Reset view" },
     hint: "Zoom + / − · hover dots",
-    legend: {
-      toggle: "Legend",
-      fillTitle: "Fill · fire cells this month",
-      below: (to: string) => `Under ${to}`,
-      between: (from: string, to: string) => `${from}–${to}`,
     attribution: {
       boundary: { KOR: "geoBoundaries", CAL: "geoBoundaries USA", BC: "BC Data Catalogue" },
       time: { "UTC+9": "local date (UTC+9)", solar: "local solar date" },
       line: (boundary: string, time: string) => `NASA FIRMS · ${boundary} · ${time}`,
     },
+    legend: {
+      toggle: "Legend",
+      fillTitle: "Fill · fire cells this month",
+      below: (to: string) => `Under ${to}`,
+      between: (from: string, to: string) => `${from}–${to}`,
       above: (from: string) => `${from}+`,
       noValue: "No value",
       rangeNote: "Each range includes the lower value and excludes the upper.",

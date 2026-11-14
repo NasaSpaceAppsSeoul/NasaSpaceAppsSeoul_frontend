@@ -72,3 +72,13 @@ export function ResetIcon({ className = "size-4" }: IconProps) {
     </svg>
   );
 }
+
+/** 내려받기(아래 화살표 + 받침, 시안 v11 달력 `Icon name="download"`) */
+export function DownloadIcon({ className = "size-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" className={className}>
+      <path d="M8 2.5v7.5M4.75 7l3.25 3.25L11.25 7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2.5 11v2.5h11V11" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
