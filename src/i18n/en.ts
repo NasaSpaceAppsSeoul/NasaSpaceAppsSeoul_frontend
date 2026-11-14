@@ -69,4 +69,94 @@ export const en: Messages = {
     normal: "Usual range",
     below: "Below usual",
   },
+  countries: {
+    KOR: "Republic of Korea",
+    CAL: "California",
+    BC: "British Columbia",
+  },
+  levelNames: {
+    KOR: { lv1: "Province", lv2: "District" },
+    CAL: { lv1: "State", lv2: "County" },
+    BC: { lv1: "Province", lv2: "Regional district" },
+  },
+  dashboard: {
+    unit: "fire grid-days",
+    natTitle: (month: string) => `How did ${month} compare with usual?`,
+    natSub: (country: string, lv2: string, dataEnd: string) => `${country} · ${lv2} · data through ${dataEnd}`,
+    stage: (level: string) => `${level} / Region view`,
+    regionTitle: (name: string, month: string) => `${name} · ${month}`,
+    controls: {
+      all: (level: string) => {
+        const lower = level.toLowerCase();
+        return `All ${lower.endsWith("y") ? `${lower.slice(0, -1)}ies` : `${lower}s`}`;
+      },
+      pickProvinceFirst: (lv1: string) => `Choose a ${lv1.toLowerCase()} first`,
+      search: "Search by name",
+      searchPlaceholder: "Search a country, province, city or county",
+      month: "Reference month",
+    },
+    stepper: {
+      label: "Month",
+      latest: "Latest",
+      previous: "Previous month",
+      next: "Next month",
+    },
+    breadcrumb: "Current location",
+    dialogs: {
+      pickTitle: (level: string) => `Choose ${level.toLowerCase()}`,
+      pickDescription: (level: string) => `Choose the ${level.toLowerCase()} to show on the dashboard.`,
+      wholeCountry: (country: string) => `All of ${country}`,
+      searchTitle: "Search a region",
+      searchDescription: "Find a country, province, city or county by name.",
+      countriesHeading: "Countries",
+      noResults: "No matching regions.",
+      truncated: "Many results. Type more to narrow them down.",
+      monthTitle: "Choose reference month",
+      monthDescription: (first: string, last: string) => `You can choose from ${first} to ${last}.`,
+      previousYear: "Previous year",
+      nextYear: "Next year",
+      year: (year: number) => String(year),
+    },
+    card: {
+      heading: (name: string, month: string) => `${name} · ${month}`,
+      title: (month: string) => `Fire grid-days in ${month}`,
+      noValue: "No value",
+      preDistrict: "This unit has no values before February 2012.",
+      noRecord: "No detection record",
+      partial: "Still counting",
+      partialSentence: "This month is still being counted. The comparison appears once counting is done.",
+      zero: "No detections this month",
+      sparse: "Fire is usually rare here",
+      zeroBaseline: "A month that usually has almost none.",
+      refLine: (name: string) => `Based on ${name}`,
+      rank: (n: number, rank: number) => `rank ${rank} of ${n} years`,
+      rankWithPeriod: (start: number, end: number, n: number, rank: number) => `rank ${rank} of ${n} years (${start}–${end})`,
+      ratio: (monthName: string, median: string, ratio: string) =>
+        `${ratio} times the usual ${monthName} median of ${median}.`,
+      rankSentence: (rankText: string) => `Among the same month, ${rankText}.`,
+      band: (low: string, high: string) => `Range ${low}–${high}`,
+      quality: { high: "High quality", medium: "Medium quality", low: "Low quality" },
+      sufficient: "Enough data",
+      nrt: "Near real time",
+      converted: "Sensor-adjusted",
+      ytd: (months: string, sum: string) => `${months} total ${sum} fire grid-days`,
+      detectionDays: "Days with detections",
+    },
+    cumulative: {
+      title: (year: number, monthOfYear: number, monthName: string) =>
+        monthOfYear === 1 ? `Total for January ${year}` : `Total from January to ${monthName} ${year}`,
+      usual: (months: string, usual: string) => `Usual ${months} about ${usual}`,
+      convertedRange: "Adjusted range",
+      unitNote: "A fire detected in one approximately 1 km cell on one day counts as 1. It is not a fire incident count or burned area.",
+    },
+    monthsSpan: (to: number) => {
+      const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return to === 1 ? "Jan" : `Jan–${names[to - 1] ?? to}`;
+    },
+    regionMissing: {
+      title: "Region not found",
+      body: "The region in this address is not in this country's list. Please choose a region again.",
+    },
+    latestMonth: "Go to the latest month",
+  },
 };
