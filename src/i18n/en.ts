@@ -205,13 +205,14 @@ export const en: Messages = {
     CHL: "Chile",
     NSW: "New South Wales",
   },
-  // 백엔드에 영문 단계 이름이 없다. GRC·CHL은 서버 `/regions`의 구역 수로 단계를 대조한다(9장)
+  // 백엔드에 영문 단계 이름이 없다. GRC·CHL 상위 단계는 선택 줄 첫 칸 제목 "Region"과 겹치지 않게
+  // "Admin region"으로 쓴다(9장, 2026-11-15)
   levelNames: {
     KOR: { lv1: "Province", lv2: "District" },
     CAL: { lv1: "State", lv2: "County" },
     BC: { lv1: "Province", lv2: "Regional district" },
-    GRC: { lv1: "Region", lv2: "Municipality" },
-    CHL: { lv1: "Region", lv2: "Municipality" },
+    GRC: { lv1: "Admin region", lv2: "Municipality" },
+    CHL: { lv1: "Admin region", lv2: "Municipality" },
     NSW: { lv1: "State", lv2: "Local government area" },
   },
   dashboard: {
@@ -300,7 +301,8 @@ export const en: Messages = {
         const lower = level.toLowerCase();
         return `All ${lower.endsWith("y") ? `${lower.slice(0, -1)}ies` : `${lower}s`}`;
       },
-      pickProvinceFirst: (lv1: string) => `Choose a ${lv1.toLowerCase()} first`,
+      // 단계 이름이 모음으로 시작하면 "an"(GRC·CHL "Admin region")
+      pickProvinceFirst: (lv1: string) => `Choose ${/^[aeiou]/i.test(lv1) ? "an" : "a"} ${lv1.toLowerCase()} first`,
       search: "Region",
       // 보이는 이름표 "Region"이 읽히는 이름에 그대로 들어가게(음성 조작)
       searchHint: "Region search, now:",

@@ -258,6 +258,18 @@ describe("숫자 카드 분기 (3절, 7가지 순서)", () => {
     expect(judgementView({ ...base, ytd_sum: null }, null, 1).ytd).toBeNull();
   });
 
+  it("상위 단계 먼저 고르기 문구: 조사(을/를)·관사(a/an)가 단계 이름에 맞는다", () => {
+    expect(ko.dashboard.controls.pickProvinceFirst("시·도")).toBe("시·도를 먼저 선택하세요");
+    expect(ko.dashboard.controls.pickProvinceFirst("광역")).toBe("광역을 먼저 선택하세요");
+    expect(ko.dashboard.controls.pickProvinceFirst("주")).toBe("주를 먼저 선택하세요");
+    expect(en.dashboard.controls.pickProvinceFirst("Province")).toBe("Choose a province first");
+    expect(en.dashboard.controls.pickProvinceFirst("Admin region")).toBe("Choose an admin region first");
+    expect(ko.dashboard.dialogs.pickDescription("광역")).toBe("대시보드에서 볼 광역을 고르세요.");
+    expect(ko.dashboard.dialogs.pickDescription("시군")).toBe("대시보드에서 볼 시군을 고르세요.");
+    expect(ko.dashboard.dialogs.pickDescription("지방정부")).toBe("대시보드에서 볼 지방정부를 고르세요.");
+    expect(en.dashboard.controls.all("Admin region")).toBe("All admin regions");
+  });
+
   it("누적 문구: 한 달·같은 해·해 넘김, 달 구간(ko/en)", () => {
     const from = { year: 2025, name: "7월" };
     expect(ko.dashboard.cumulative.title(from, { year: 2025, name: "7월" }, true)).toBe("2025년 7월 누적");
