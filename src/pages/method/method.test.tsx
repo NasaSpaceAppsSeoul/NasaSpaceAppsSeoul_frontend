@@ -43,7 +43,7 @@ describe("기법 페이지", () => {
     expect((await title()).textContent).toBe("25년의 불을 하나의 자로.");
     const stats = within(screen.getByRole("list", { name: "요약 숫자" })).getAllByRole("listitem");
     expect(stats).toHaveLength(3);
-    expect(stats[2]?.textContent).toContain("날짜를 30일 옮기면 3–54%");
+    expect(stats[2]?.textContent).toContain("날짜를 30일 옮기면 3–59%");
     expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual([
       "우리가 답하는 질문",
       "데이터",
@@ -228,7 +228,11 @@ describe("기법 페이지 05·06", () => {
   it("05: 결과 표 5줄, 크기별 감지율 다섯 단계(공용 이름 표로 옮김), BC 탭", async () => {
     renderRoute("/method");
     const section = within(await screen.findByRole("region", { name: "보정이 맞는지 어떻게 아나" }));
-    expect(section.getByRole("table", { name: "지역별 검증 결과" }).querySelectorAll("tbody tr")).toHaveLength(5);
+    const results = section.getByRole("table", { name: "지역별 검증 결과" });
+    expect(results.querySelectorAll("tbody tr")).toHaveLength(5);
+    // 여섯 지역 열(2026-11-15 서버 대조). 그리스는 공식 기록이 없어 그 칸을 밝힌다
+    expect(results.querySelectorAll("thead th")).toHaveLength(7);
+    expect(within(results).getByText("공식 기록 준비 중")).toBeTruthy();
     const values = await section.findByRole("table", { name: "한국 산불 크기별 위성 감지율과 우연 기준" });
     expect(within(values).getAllByRole("rowheader").map((h) => h.textContent)).toEqual([
       "0.1 ha 미만",
@@ -258,11 +262,11 @@ describe("기법 페이지 05·06", () => {
 });
 
 describe("기법 페이지 07·08", () => {
-  it("07: 빌리는 순서 세 단계, 현황 표 네 줄, 기준 표는 사용한 30% 줄을 강조", async () => {
+  it("07: 빌리는 순서 세 단계, 현황 표 아홉 줄(여섯 지역), 기준 표는 사용한 30% 줄을 강조", async () => {
     renderRoute("/method");
     const section = within(await screen.findByRole("region", { name: "불이 드문 구역" }));
     expect(within(section.getByRole("list", { name: "판정을 빌리는 순서" })).getAllByRole("listitem")).toHaveLength(3);
-    expect(section.getByRole("table", { name: "구역 성격 현황" }).querySelectorAll("tbody tr")).toHaveLength(4);
+    expect(section.getByRole("table", { name: "구역 성격 현황" }).querySelectorAll("tbody tr")).toHaveLength(9);
     const used = section.getByRole("rowheader", { name: "30%(사용)" }).closest("tr");
     expect(used?.className).toContain("bg-tone-orange");
   });

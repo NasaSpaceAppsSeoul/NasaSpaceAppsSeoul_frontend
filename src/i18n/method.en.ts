@@ -15,7 +15,7 @@ export const methodEn: MethodMessages = {
       id: "break",
       value: { before: "≈ ", accent: "1.00×", after: "" },
       sub:
-        "Jump at the 2012 sensor switch after harmonization: 0.99–1.02× in every region (2.06–2.61× before). " +
+        "Jump at the 2012 sensor switch after harmonization: 0.99–1.03× in every region (2.0–3.0× before). " +
         "Ratio after vs before 2012, measured against the MODIS-only record",
     },
     {
@@ -25,9 +25,10 @@ export const methodEn: MethodMessages = {
     },
     {
       id: "detection",
-      value: { before: "", accent: "86–93%", after: "" },
+      value: { before: "", accent: "86–97%", after: "" },
       sub:
-        "Share of official fires over 100 ha seen by satellite within 2 days. Shifting the dates by 30 days gives 3–54%, " +
+        "Share of official fires over 100 ha seen by satellite within 2 days (the five regions with official records; Chile 200 ha and over). " +
+        "Shifting the dates by 30 days gives 3–59%, " +
         "so the gap is what to read",
     },
   ],
@@ -59,7 +60,7 @@ export const methodEn: MethodMessages = {
         title: "Why it's hard",
         body: [
           "When the sensors switched from MODIS to VIIRS in 2012, the same fires began to be detected far more often. " +
-            "Joining the raw values makes the years after 2012 look 2.06–2.61× more fiery. Fire did not increase; the " +
+            "Joining the raw values makes the years after 2012 look 2.0–3.0× more fiery. Fire did not increase; the " +
             "satellites changed to ones with higher resolution.",
           "2012 was not the only switch. Aqua joined in 2002, the record moved to NOAA-20 in 2018, and new S-NPP data " +
             "stopped in November 2026. Satellites will keep being replaced, so the record needed a procedure that joins " +
@@ -367,7 +368,7 @@ export const methodEn: MethodMessages = {
       caption: "Correction methods considered and not used, with reasons",
       head: ["Alternative", "Why not"],
       rows: [
-        { key: "raw", cells: ["Join raw values", "A 2.06–2.61× step appears in 2012"] },
+        { key: "raw", cells: ["Join raw values", "A 2.0–3.0× step appears in 2012"] },
         { key: "modis", cells: ["Scale down to MODIS", "A retiring sensor, and the newest month becomes an estimate"] },
         { key: "annual", cells: ["One annual ratio", "Ratios differ several-fold by season"] },
         {
@@ -406,19 +407,30 @@ export const methodEn: MethodMessages = {
       "the satellites, and hiding one year at a time. Ranges and the cases that did not fit are reported alongside each number.",
     resultTable: {
       caption: "Validation results by region",
-      head: ["Test", "South Korea", "California", "BC"],
+      head: ["Test", "South Korea", "California", "BC", "Greece", "Chile", "NSW"],
       rows: [
         {
           key: "satellite",
-          cells: ["2012 break between satellites, before → after [95% range]", "2.61 → 0.99 [0.92–1.05]", "2.06 → 1.02 [0.98–1.06]", "2.38 → 1.00 [0.97–1.03]"],
+          cells: [
+            "2012 break between satellites, before → after [95% range]",
+            "2.6 → 0.99 [0.92–1.05]",
+            "2.0 → 1.02 [0.98–1.06]",
+            "2.4 → 1.00 [0.97–1.03]",
+            "2.8 → 1.01 [0.98–1.04]",
+            "2.8 → 1.02 [0.99–1.06]",
+            "3.0 → 1.03 [0.98–1.08]",
+          ],
         },
-        { key: "loyo", cells: ["Leave-one-year-out annual error (MODIS → S-NPP)", "14.9%", "6.8%", "8.6%"] },
-        { key: "official", cells: ["2012 break against official fire counts, before → after", "2.67 → 1.04", "2.54 → 1.25", "4.99 → 2.14 · inconclusive"] },
+        { key: "loyo", cells: ["Leave-one-year-out annual error (MODIS → S-NPP)", "14.9%", "6.8%", "8.6%", "—", "—", "—"] },
+        {
+          key: "official",
+          cells: ["2012 break against official fire counts, before → after", "2.67 → 1.04", "2.54 → 1.25", "4.99 → 2.14 · inconclusive", "Official records pending", "2.38 → 0.96 (records of 200 ha and over)", "2.92 → 1.05"],
+        },
         {
           key: "rank",
-          cells: ["Rank correlation of annual fire cells with official records (counts / burned area, 2012–2025)", "0.69 / 0.54", "0.40 / 0.93", "0.58 / 0.92"],
+          cells: ["Rank correlation of annual fire cells with official records (counts / burned area, 2012–2025)", "0.69 / 0.54", "0.40 / 0.93", "0.58 / 0.92", "—", "—", "—"],
         },
-        { key: "large", cells: ["Rank correlation of burned area and fire cells, fires over 100 ha", "0.75", "0.58", "0.38"] },
+        { key: "large", cells: ["Rank correlation of burned area and fire cells, fires over 100 ha", "0.75", "0.58", "0.38", "—", "—", "—"] },
       ],
     },
     figure: {
@@ -494,7 +506,7 @@ export const methodEn: MethodMessages = {
         "detection rate with the share of burning, and a team review judged it a sanity check at best. So only order and change are " +
         "compared, not magnitudes.",
       "Year-level tests have only 23–25 samples and cannot rule out a small step of around ±20%.",
-      "California and BC have frequent fires over large areas, so the chance level is high (45–54%). Read the gap to chance, not the detection rate alone.",
+      "California, BC and NSW have frequent fires over large areas, so the chance level is high (45–59%). Read the gap to chance, not the detection rate alone.",
       "For fires over 100 ha, the rank correlation between burned area and fire cells is only 0.38 in BC. Fire cells under-represent megafire area.",
     ],
   },
@@ -632,6 +644,11 @@ export const methodEn: MethodMessages = {
         { key: "kor-prov", cells: ["South Korea provinces (17)", "9", "8", "—"] },
         { key: "cal", cells: ["California counties (58)", "55", "3", "0"] },
         { key: "bc", cells: ["BC regional districts (28)", "28", "0", "0"] },
+        { key: "grc-dist", cells: ["Greece municipalities (325)", "61", "233", "31"] },
+        { key: "grc-prov", cells: ["Greece regions (14)", "13", "1", "—"] },
+        { key: "chl-dist", cells: ["Chile municipalities (345)", "186", "155", "4"] },
+        { key: "chl-prov", cells: ["Chile regions (16)", "16", "0", "—"] },
+        { key: "nsw", cells: ["NSW local government areas (129)", "95", "25", "9"] },
       ],
     },
     sufficient: [
@@ -724,7 +741,7 @@ export const methodEn: MethodMessages = {
           key: "risk",
           cells: [
             "Risk season",
-            "Add monthly shares from the largest down until 50% is passed. South Korea Feb–Apr (64%), California Aug–Oct (60%), BC Jul–Aug (51%)",
+            "Add monthly shares from the largest down until 50% is passed. South Korea Feb–Apr (64%), California Aug–Oct (60%), BC Jul–Aug (51%), Chile Mar–May (51%), NSW Apr·May·Aug·Sep·Dec (55%), Greece pending",
             "The data, not a calendar, sets each region's season",
           ],
         },
@@ -752,7 +769,7 @@ export const methodEn: MethodMessages = {
           key: "map",
           cells: [
             "Map area colours (5)",
-            "District value that month, split at 0 and three fixed per-region bounds (South Korea 3·10·30, California 3·8·18, BC 2·8·47). Grey before February 2012",
+            "District value that month, split at 0 and three fixed per-region bounds (South Korea 3·10·30, California 3·8·18, BC 2·8·47, Greece 1·2·3, Chile 1·2·5, NSW 3·10·31). Grey before February 2012",
             "Within a region the same colour means the same amount in every month",
           ],
         },
