@@ -39,6 +39,29 @@ export function regionName(region: NamedRegion, index: RegionIndex, locale: Loca
   return `${provinceName} ${own}`;
 }
 
+/**
+ * 인접 지역 목록의 이름. 같은 시·도의 이웃은 이름만("안동시"), 다른 시·도면 "대구 군위군"(디자인 `dashboard-district`).
+ * 시·도 비교는 색인으로 한다(`/top`의 맞닿은 지역 목록에는 `province`가 없다). 색인에 없으면 받은 이름 그대로.
+ */
+export function neighborName(id: string, fallback: string, self: NamedRegion, index: RegionIndex, locale: Locale): string {
+  const region = index.get(id);
+  if (region === undefined) return fallback;
+  return region.province === self.province ? ownName(region, locale) : regionName(region, index, locale);
+}
+
+/** 값 큰 순, `null`은 맨 뒤(G-7 9), 같으면 이름순. 서버의 동률 순서가 정해져 있지 않아(E-4 8) 다시 그려도 순서가 같게 한다. */
+export function byValueThenName<T extends { id: string }>(
+  valueOf: (item: T) => number | null,
+  compareNames: (a: string, b: string) => number,
+): (a: T, b: T) => number {
+  return (a, b) => {
+    const va = valueOf(a);
+    const vb = valueOf(b);
+    if (va === null || vb === null) return va === vb ? compareNames(a.id, b.id) : va === null ? 1 : -1;
+    return vb - va || compareNames(a.id, b.id);
+  };
+}
+
 /** 이름만 아는 지역(빌린 판정의 `ref` 등). `/regions`에 있으면 그 행으로, 없으면 받은 이름 그대로. */
 export function regionNameById(id: string, fallback: string, index: RegionIndex, locale: Locale): string {
   const region = index.get(id);
