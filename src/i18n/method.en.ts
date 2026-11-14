@@ -736,7 +736,14 @@ export const methodEn: MethodMessages = {
           key: "ratio",
           cells: ["× normal", "This month ÷ normal. Own-judgment areas only. \"A month that usually has almost none\" when normal is 0", "Small normals inflate ratios"],
         },
-        { key: "ytd", cells: ["Year to date", "Sum from January to the chosen month; its ratio to those months' normals for own-judgment areas only", "The year's course, not one month"] },
+        {
+          key: "ytd",
+          cells: [
+            "Season to date",
+            "Sum from the first month of the season (January in the north, July in Chile and NSW) to the chosen month. The usual total is the median of past years' totals over the same months (the sum of monthly normals if fewer than 3 such years); the usual total and the ratio to it are for own-judgment areas only",
+            "The season's course, not one month",
+          ],
+        },
         {
           key: "heat",
           cells: ["Heatmap colours (5)", "0 cells = step 1; the rest split at the 50th, 75th and 90th percentiles of the area's non-zero months", "Fixed bins collapse some areas into one colour"],
