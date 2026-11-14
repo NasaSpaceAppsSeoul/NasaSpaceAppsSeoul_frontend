@@ -278,6 +278,16 @@ export const en: Messages = {
     natSub: (country: string, lv2: string, dataEnd: string) => `${country} · ${lv2} · data through ${dataEnd}`,
     stage: (level: string) => `${level} / Region view`,
     regionTitle: (name: string, month: string) => `${name} · ${month}`,
+    intro: "Choose a country. Narrow to a place. Compare its record with its history.",
+    dataNotice: {
+      label: "FIRMS record",
+      reference: "NOAA-20 reference",
+      text: (date: string | null, collectingMonth: string | null) =>
+        (date === null ? "" : `Data snapshot · ${date}. `) +
+        (collectingMonth === null
+          ? "Recent NRT values are provisional."
+          : `${collectingMonth} is still collecting; recent NRT values are provisional.`),
+    },
     controls: {
       all: (level: string) => {
         const lower = level.toLowerCase();

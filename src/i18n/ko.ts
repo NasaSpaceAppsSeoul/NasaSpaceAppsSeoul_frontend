@@ -285,6 +285,17 @@ export const ko = {
     natSub: (country: string, lv2: string, dataEnd: string) => `${country} · ${lv2} · ${dataEnd}까지 자료`,
     stage: (level: string) => `${level} / 지역 보기`,
     regionTitle: (name: string, month: string) => `${name} · ${month}`,
+    intro: "나라를 고르고, 지역을 좁히고, 그곳의 기록을 지난 기록과 비교해 보세요.",
+    // 머리 아래 자료 카드(시안 v11 `.db-data-notice`). 날짜는 `/meta` `data_end`, 그 달이 끝나지 않았으면 수집 중 문장
+    dataNotice: {
+      label: "FIRMS 기록",
+      reference: "NOAA-20 기준",
+      text: (date: string | null, collectingMonth: string | null) =>
+        (date === null ? "" : `자료 기준일 · ${date}. `) +
+        (collectingMonth === null
+          ? "최근 준실시간(NRT) 값은 잠정치입니다."
+          : `${collectingMonth}은 아직 수집 중이며, 최근 준실시간(NRT) 값은 잠정치입니다.`),
+    },
     controls: {
       all: (level: string) => `전체 ${level}`,
       pickProvinceFirst: (lv1: string) => `${lv1}를 먼저 선택하세요`,
