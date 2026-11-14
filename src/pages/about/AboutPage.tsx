@@ -1,5 +1,6 @@
 import { CorrectionSection } from "./sections/CorrectionSection";
 import { HeroSection } from "./sections/HeroSection";
+import { HowItWorksSection } from "./sections/HowItWorksSection";
 
 /*
  * 소개 화면 (screens/kr/about.png). 구역 배치만 한다. 데이터는 구역이 각자 부른다.
@@ -10,6 +11,7 @@ export function AboutPage() {
     <main className="flex flex-col gap-8 pt-2 pb-4">
       <HeroSection />
       <CorrectionSection />
+      <HowItWorksSection />
     </main>
   );
 }
