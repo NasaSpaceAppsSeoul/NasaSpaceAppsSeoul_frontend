@@ -3,7 +3,9 @@ import { cacheMode } from "./cacheMode";
 import { parseCountry } from "./country";
 import { errorKind } from "./errorKind";
 import { parseMonthParam } from "./month";
-import { routeInfo } from "./route";
+import { starField } from "./cosmic";
+import { revealImmediately } from "./reveal";
+import { routeInfo, routeTheme } from "./route";
 
 describe("parseCountry", () => {
   it("대문자 세 나라만 받는다", () => {
@@ -79,5 +81,37 @@ describe("routeInfo", () => {
     expect(routeInfo("/dashboard")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/dashboard/kor")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/nope")).toEqual({ section: null, country: undefined });
+  });
+});
+
+describe("revealImmediately (스크롤 등장)", () => {
+  it("움직임 줄이기·관찰자 없음·인쇄 중이면 숨기지 않고 바로 보인다", () => {
+    const base = { reducedMotion: false, hasObserver: true, print: false };
+    expect(revealImmediately(base)).toBe(false);
+    expect(revealImmediately({ ...base, reducedMotion: true })).toBe(true);
+    expect(revealImmediately({ ...base, hasObserver: false })).toBe(true);
+    expect(revealImmediately({ ...base, print: true })).toBe(true);
+  });
+});
+
+describe("starField (우주 배경 별)", () => {
+  it("108개, 고정된 식이라 매번 같고 viewBox 안에 있다", () => {
+    const stars = starField();
+    expect(stars).toHaveLength(108);
+    expect(starField()).toEqual(stars);
+    expect(stars.every((s) => s.x >= 0 && s.x < 1600 && s.y >= 0 && s.y < 1000)).toBe(true);
+    // 19번째마다 큰 별, 9번째마다 따뜻한 색
+    expect(stars[0]).toMatchObject({ r: 1.15, warm: true });
+    expect(stars.filter((s) => s.warm)).toHaveLength(12);
+  });
+});
+
+describe("routeTheme", () => {
+  it("소개 구역만 어둡고, 대시보드·인사이트·없는 주소는 밝은 기본이다", () => {
+    expect(routeTheme("/")).toBe("dark");
+    expect(routeTheme("/en")).toBe("dark");
+    expect(routeTheme("/dashboard/KOR")).toBeUndefined();
+    expect(routeTheme("/en/insight/KOR/abc")).toBeUndefined();
+    expect(routeTheme("/nope")).toBeUndefined();
   });
 });

@@ -14,12 +14,12 @@ function heading() {
 describe("routes", () => {
   it("/는 한글 소개 화면이다", async () => {
     renderAt("/");
-    expect((await heading()).textContent).toBe("우리 지역의 화재 활동,\n평소와 얼마나 다를까요?");
+    expect((await heading()).textContent).toBe("더 길게 보는\n화재 기록.");
   });
 
   it("/en은 영어 소개 화면이다", async () => {
     renderAt("/en");
-    expect((await heading()).textContent).toBe("How unusual is fire activity\nin your region?");
+    expect((await heading()).textContent).toBe("A longer view\nof fire.");
   });
 
   it("대문자 /EN은 라우터도 lib/locale도 영어로 보지 않는다", async () => {
@@ -104,6 +104,18 @@ describe("주소 값 검사 (decisions 1-5)", () => {
   });
 });
 
+describe("우주 배경", () => {
+  it("어두운 화면(지금은 첫 화면)에만 그리고, 대시보드에는 아직 없다", async () => {
+    renderAt("/");
+    await heading();
+    expect(document.querySelector(".cosmic-backdrop")?.getAttribute("aria-hidden")).toBe("true");
+    cleanup();
+    renderAt("/dashboard/KOR");
+    await heading();
+    expect(document.querySelector(".cosmic-backdrop")).toBeNull();
+  });
+});
+
 describe("머리글", () => {
   it("언어 전환 링크는 같은 화면의 다른 언어 주소이고 달과 해시를 들고 간다", async () => {
     renderAt("/dashboard/KOR?month=2025-03#calendar");
@@ -138,11 +150,11 @@ describe("머리글", () => {
   });
 });
 
-describe("목 모드 표시 줄과 푸터", () => {
-  it("목 모드에서 표시 줄을 띄우고, 푸터에 /meta의 출처와 처리일을 넣는다", async () => {
+describe("푸터", () => {
+  it("푸터에 /meta의 출처와 처리일을 넣고, 목 모드 표시 줄은 없다(2026-11-14 사용자가 뺌)", async () => {
     renderAt("/dashboard/CAL");
     await heading();
-    expect(screen.getByRole("note").textContent).toBe("목 데이터로 표시 중");
+    expect(screen.queryByRole("note")).toBeNull();
     expect(await screen.findByText("출처: NASA FIRMS · geoBoundaries USA (미국 인구조사국, 퍼블릭 도메인) · CAL FIRE")).toBeTruthy();
     expect(screen.getByText("데이터 처리일 2026-11-11")).toBeTruthy();
   });

@@ -9,6 +9,17 @@ vi.mock("maplibre-gl", async () => ({ Map: (await import("./fakeMaplibre")).Fake
 // jsdom에는 캔버스가 없다. 차트 래퍼는 가짜 차트로 받은 옵션을 확인한다(`fakeEcharts.ts`)
 vi.mock("echarts/core", async () => await import("./fakeEcharts"));
 
+// jsdom에는 WebGL이 없다. 첫 화면 지구(`EarthPanel`이 lazy로 부르는 모듈)는 이름표만 있는 가짜로 바꾼다
+vi.mock("../components/about/EarthScene", async () => {
+  const { createElement } = await import("react");
+  return { EarthScene: () => createElement("figure", { "data-testid": "earth-scene" }) };
+});
+
+// jsdom은 `window.scrollTo`를 구현하지 않고 경고만 남긴다. 라우터 스크롤 복원(`ScrollRestoration`)이 부른다
+window.scrollTo = () => undefined;
+// jsdom 요소에는 `scrollIntoView`가 없다. 첫 화면 "스크롤해서 읽기"가 부른다
+if (typeof Element.prototype.scrollIntoView !== "function") Element.prototype.scrollIntoView = () => undefined;
+
 /*
  * jsdom 29의 `<dialog>`에는 `open` 속성만 있고 `showModal()`·`close()`가 없다.
  * 브라우저와 같은 결과(열림 표시, 닫힐 때 `close` 이벤트)만 흉내 낸다. Esc는 테스트가 `cancel` 이벤트를 직접 보낸다.

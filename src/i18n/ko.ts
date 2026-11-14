@@ -21,22 +21,93 @@ export const ko = {
   // 소개 화면 (screens/kr/about.png). 데모·합성 문구는 뺐고(1-10), 사실관계는 백엔드 기준으로 고쳐 썼다(4-3a, 4-9)
   about: {
     hero: {
-      eyebrow: "NASA FIRMS로 읽는 지역별 화재 기록",
-      // 제목은 앞·강조·뒤 세 조각. 줄바꿈은 문구 안의 "\n"
-      titleLead: "우리 지역의 화재 활동,\n",
-      titleAccent: "평소와 얼마나",
-      titleTail: " 다를까요?",
-      lead: "같은 달의 지난 기록과 비교해 화재 활동의 크기와 계절 패턴을 살펴보세요.",
-      browse: "지역 둘러보기",
+      eyebrow: "MODIS + VIIRS 화재 기록",
+      // 줄바꿈은 문구 안의 "\n"
+      title: "더 길게 보는\n화재 기록.",
+      lead: "대한민국의 화재 기록을 나라 전체부터 시·군·구까지 살펴보고, 매달을 지난 기록과 비교해 보세요.",
+      howItWorks: "작동 방식 보기",
+      scrollCue: "스크롤해서 읽기",
+      // 검색 줄 오른쪽 밝은 칸(장식, 줄 전체가 검색 버튼). 예전 "지역 둘러보기"는 검색에 합쳤다(about-revise 11절)
+      find: "지역 찾기",
+      // 예시 줄: 앞말 + 지역 링크(받기 전에는 `examples` 글 그대로)
+      examplesLead: "예:",
       examples: "예: 경북 의성 · 강원 고성 · 대구 중구",
+      examplesLabel: "예시 지역",
       countriesLabel: "나라별 대시보드",
       countryLink: (country: string) => `${country} →`,
       countryNotReady: (country: string) => `${country} · 준비 중`,
-      browseTitle: "지역 선택",
-      browseDescription: "대시보드에서 볼 나라나 시·도를 고르세요.",
       countryRowSub: "나라 대시보드",
-      provinceRowSub: (lv1: string) => `${lv1} 대시보드`,
       dataEnd: (date: string) => `${date}까지 자료`,
+    },
+    // 01 이어진 기록 (Make "01 / CONNECTED RECORDS" 번역, about-revise 8절 3). 값은 2011년 연간(10절 ①)
+    connected: {
+      index: "01 / 이어진 기록",
+      title: "센서는 달라도\n기록은 하나로.",
+      lead: "새 센서는 더 작은 불까지 잡아냅니다. 기록을 같은 기준에 맞춰야 센서가 바뀐 효과와 기록된 화재 활동의 변화를 나눠 볼 수 있습니다.",
+      diagramLabel: "MODIS와 VIIRS 관측 기록을 공통 비교 기준에 맞춰 하나의 화재 달력으로 잇는 그림",
+      modis: "MODIS",
+      modisSub: "이전 관측",
+      viirs: "VIIRS",
+      viirsSub: "새 관측",
+      alignKey: "기록 맞추기",
+      alignTitle: "공통 기준",
+      calendarKey: "이어진 기록",
+      calendarTitle: "화재 달력",
+      readoutTitle: (country: string, year: number) => `${country} · ${year}년`,
+      // 새 시안 "Same month · different observation bases". 우리 값은 같은 해(연간)라 "같은 해"
+      readoutSub: "같은 해 · 서로 다른 관측 기준",
+      raw: "원시값",
+      rawDescription: "위성이 남긴 원래 기록",
+      harmonized: "보정값",
+      harmonizedDescription: "공통 비교 기준",
+      // 두 값은 기준이 다르다(H-landing H-3): 칸(0.01°)·하루는 같고, 보정 전은 MODIS 감지 그대로, 보정 후는 NOAA-20 기준 환산
+      rawUnit: "화재 감지일(MODIS 감지 그대로, 연간)",
+      harmonizedUnit: "화재 감지일(연간)",
+      noValue: "값 없음",
+      note: (year: number) => `${year}년은 MODIS로만 관측한 마지막 해입니다. 보정값은 NOAA-20 VIIRS 기준으로 환산한 값입니다.`,
+    },
+    // 02 지역 맥락 (새 시안 v9 "02 / LOCAL CONTEXT" 번역). 값은 `/series/KOR` 그 해 1월~마지막 달(about-revise 9-5)
+    context: {
+      index: "02 / 지역 맥락",
+      title: "한 달만 보지 말고\n흐름을 보세요.",
+      lead: "달마다의 흐름을 살펴보고, 대시보드에서 같은 달을 해마다 비교해 보세요.",
+      chartKey: "보정 화재 감지일",
+      chartTitle: (country: string, range: string) => `${country} · ${range}`,
+      /** "2026년 1–10월", 한 달이면 "2026년 1월". `lastName`은 `formatMonthName`("10월"/"October") */
+      range: (year: number, lastName: string, single: boolean) => (single ? `${year}년 ${lastName}` : `${year}년 1–${lastName}`),
+      axisUnit: "화재 감지일",
+      chartLabel: (title: string) => `${title} 월별 막대 그래프`,
+      bar: (month: string, value: string) => `${month}, ${value} 화재 감지일, 보정값 기준`,
+      barNoValue: (month: string) => `${month}, 값 없음`,
+      inProgress: "집계 중",
+      nrt: "준실시간",
+      noValue: "값 없음",
+      basis: "보정값 기준",
+      unit: "화재 감지일",
+      selected: "선택한 달",
+      total: (range: string) => `${range} 합계`,
+      empty: "그 해의 월별 값이 없습니다.",
+      // 범례: 점선 달이 있을 때만(C-judgement: partial = 집계 중인 달, nrt = 확정 자료가 끝난 뒤의 준실시간 달)
+      legendFinal: "확정",
+      legendInProgress: "집계 중·준실시간(바뀔 수 있음)",
+      legendHelpLabel: "점선과 실선의 뜻",
+      legendHelp:
+        "점선 막대는 값이 아직 확정되지 않은 달입니다. 그 달이 아직 끝나지 않았거나(집계 중), 확정 자료가 나오기 전의 빠른 처리 자료(준실시간)라서 나중에 값이 달라질 수 있습니다. 실선 막대는 확정된 값입니다.",
+    },
+    // 03 신뢰와 한계 (새 시안 v9 "03 / TRUST & LIMITS" 번역). 단위 설명은 공용 푸터 문구(`footer.unit`)와 같은 사실
+    limits: {
+      index: "03 / 신뢰와 한계",
+      title: "기록을 읽고\n한계를 알기.",
+      body: "위성 기록은 불을 놓칠 수 있습니다. 화재 감지일 하나는 약 1 km 칸에서 하루 동안 불이 감지된 것을 셉니다. 화재 건수나 피해 면적이 아닙니다.",
+      guidance: "변화를 해석하기 전에 관측 기준(센서)과 자료 범위를 확인하세요.",
+      dashboard: "대시보드 보기",
+    },
+    // 히어로 3D 지구 (Make 원문 번역). 위성은 개념도라 출처 줄에 "개념도"를 남긴다(about-revise 10절 ③)
+    earth: {
+      label: "서로 다른 궤도로 3차원 지구를 천천히 도는 개념상의 관측 위성 두 대",
+      loading: "지구 표면 불러오는 중",
+      unavailable: "지구 표면을 불러오지 못했습니다",
+      caption: "지표: NASA Earth Observatory · Blue Marble Next Generation · 개념도",
     },
     correction: {
       eyebrow: "하나로 이어진 기록",
@@ -105,7 +176,6 @@ export const ko = {
     unit: "화재 감지일은 약 1 km 격자에서 하루 동안 불이 한 번 이상 감지되면 1로 셉니다. 화재 건수나 피해 면적이 아닙니다.",
     processed: "데이터 처리일",
   },
-  mockBanner: "목 데이터로 표시 중",
   common: {
     retry: "다시 시도",
     close: "닫기",
@@ -248,6 +318,8 @@ export const ko = {
       countriesHeading: "나라",
       noResults: "맞는 지역이 없습니다.",
       truncated: "결과가 많습니다. 검색어를 더 입력하세요.",
+      // 입력 전 계층 목록 끝 안내(about-revise 11절)
+      searchHint: "시·군·구와 카운티는 이름을 입력해 찾으세요.",
       monthTitle: "기준 월 선택",
       monthDescription: (first: string, last: string) => `${first}부터 ${last}까지 고를 수 있습니다.`,
       previousYear: "이전 해",

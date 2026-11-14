@@ -36,7 +36,8 @@ export function DashboardBody({ country, regionId, monthParam, meta }: Dashboard
   const current = regionId ?? null;
   const shareUrl = window.location.origin + dashboardPath(locale, country, current, monthParam ?? null);
   const go = (region: string | null, month: string | null, c: Country = country) =>
-    void routerNavigate(dashboardPath(locale, c, region, month));
+    // 같은 화면 안에서 고르는 이동이라 스크롤을 맨 위로 되돌리지 않는다(RootLayout `ScrollRestoration`)
+    void routerNavigate(dashboardPath(locale, c, region, month), { preventScrollReset: true });
   const navigate: DashboardNavigate = {
     toRegion: (id) => go(id, monthParam ?? null),
     toMonth: (month) => go(current, month),

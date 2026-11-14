@@ -19,6 +19,11 @@ describe("Dialog", () => {
     expect(dialog.getAttribute("aria-describedby")).toBe(screen.getByText("지역을 고르세요.").id);
   });
 
+  it("어두운 화면 위에서도 밝은 판으로 그린다(data-theme=light)", () => {
+    inLocale("ko", <Dialog open onClose={() => {}} title="시·도 선택" />);
+    expect(screen.getByRole("dialog").dataset.theme).toBe("light");
+  });
+
   it("닫혀 있으면 그리지 않는다", () => {
     inLocale("ko", <Dialog open={false} onClose={() => {}} title="시·도 선택" />);
     expect(screen.queryByRole("dialog")).toBeNull();

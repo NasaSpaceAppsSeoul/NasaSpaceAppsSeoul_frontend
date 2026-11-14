@@ -22,3 +22,14 @@ export function routeInfo(pathname: string): RouteInfo {
   }
   return { section: null, country: undefined };
 }
+
+/** 화면 바탕 테마. 밝은 것이 기본이라 값이 없다 */
+export type RouteTheme = "dark";
+
+/**
+ * 이 주소의 테마. 소개 구역(첫 화면, 8-2부터 기법 페이지)만 어둡다(`plans/about-revise.md` 9-1).
+ * 대시보드·인사이트·없는 주소는 밝은 기본이라 `undefined`.
+ */
+export function routeTheme(pathname: string): RouteTheme | undefined {
+  return routeInfo(pathname).section === "about" ? "dark" : undefined;
+}

@@ -38,9 +38,23 @@ type DialogProps = {
   title: ReactNode;
   description?: ReactNode;
   children?: ReactNode;
+  /**
+   * 화면 안 위치. 기본은 세로 가운데. 내용 길이가 바뀌는 대화상자(검색 결과)는 `top`으로 위쪽에 붙여
+   * 높이가 바뀌어도 위 가장자리가 움직이지 않고 아래로만 늘고 줄게 한다(2026-11-14 사용자 확인).
+   */
+  placement?: "center" | "top";
 };
 
-export function Dialog({ open, onClose, title, description, children }: DialogProps) {
+/*
+ * `top`: 위 여백 8vh에 붙이고, 아래 여백을 같게 남겨 화면을 넘지 않게 한다(84vh = 100 - 8 - 8).
+ * 기본(`m-auto`)은 브라우저 기본 최대 높이를 쓴다.
+ */
+const PLACEMENT = {
+  center: "m-auto",
+  top: "mx-auto mt-[8vh] mb-auto max-h-[84vh]",
+} as const;
+
+export function Dialog({ open, onClose, title, description, children, placement = "center" }: DialogProps) {
   const t = useMessages();
   const titleId = useId();
   const descriptionId = useId();
@@ -54,6 +68,8 @@ export function Dialog({ open, onClose, title, description, children }: DialogPr
   return (
     <dialog
       ref={openModal}
+      // 어두운 화면(첫 화면)에서도 대화상자는 밝은 판이다(디자인 대화상자 13장, `plans/about-revise.md` 10절 ⑤)
+      data-theme="light"
       aria-labelledby={titleId}
       aria-describedby={description !== undefined ? descriptionId : undefined}
       // Esc를 누르면 브라우저가 `cancel`을 보낸다. 직접 닫지 않고 부모가 상태를 바꾸게 한다
@@ -79,7 +95,7 @@ export function Dialog({ open, onClose, title, description, children }: DialogPr
         releasedOnBackdrop.current = false;
       }}
       // 스크롤은 안쪽에서만 생기게 해 대화상자 자신(바깥으로 판정됨)의 스크롤바를 누르는 일이 없게 한다
-      className="m-auto flex-col w-full max-w-xl overflow-hidden open:flex rounded-card bg-surface p-0 text-ink backdrop:bg-inverse/40"
+      className={`${PLACEMENT[placement]} flex-col w-full max-w-xl overflow-hidden open:flex rounded-card bg-surface p-0 text-ink backdrop:bg-inverse/40`}
     >
       <div className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto p-6">
         <header className="flex items-center justify-between gap-4">

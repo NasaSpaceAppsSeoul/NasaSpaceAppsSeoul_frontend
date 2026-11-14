@@ -57,7 +57,7 @@ describe("서버를 흉내 낸 앱 틀 (live)", () => {
     await waitFor(() => expect(korMetaCalls()).toBe(2));
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(korMetaCalls()).toBe(2);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("우리 지역의 화재 활동,\n평소와 얼마나 다를까요?");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("더 길게 보는\n화재 기록.");
     expect(screen.getByText("Burnline · NASA Space Apps Challenge 2026")).toBeTruthy();
     expect(screen.queryByText(/^출처:/)).toBeNull();
     expect(screen.queryByRole("note")).toBeNull();

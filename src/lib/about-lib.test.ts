@@ -2,7 +2,80 @@ import { describe, expect, it } from "vitest";
 import { ko } from "../i18n/ko";
 import { en } from "../i18n/en";
 import { formatPercent } from "./format";
-import { annualBars, binLabel, clampRatio, detectRows, hasAnnualData, niceMax } from "./landing";
+import { annualBars, axisTicks, binLabel, clampRatio, detectRows, hasAnnualData, niceMax, readoutYear, ytdBars } from "./landing";
+
+describe("ytdBars (02 월별 막대)", () => {
+  const m = (month: string, value: number | null, status = "final") => ({ month, value, status });
+
+  it("시계열 마지막 달의 해 1월~그 달, 값 없는 달은 null, 집계 중·준실시간 표시, 합계는 값 있는 달만", () => {
+    const ytd = ytdBars([m("2025-12", 9), m("2026-01", 4), m("2026-02", null), m("2026-03", 47.25, "nrt"), m("2026-04", 3.3, "partial")]);
+    expect(ytd?.year).toBe(2026);
+    // 집계 중(partial)과 준실시간(nrt)은 따로 구분한다(C-judgement 98행)
+    expect(ytd?.bars.map((b) => [b.month, b.value, b.pending])).toEqual([
+      [1, 4, null],
+      [2, null, null],
+      [3, 47.25, "nrt"],
+      [4, 3.3, "partial"],
+    ]);
+    expect(ytd?.total).toBe(54.6);
+    // 집계 중이 하나라도 있으면 합계는 집계 중
+    expect(ytd?.totalPending).toBe("partial");
+  });
+
+  it("준실시간 달만 있으면 합계도 준실시간", () => {
+    expect(ytdBars([m("2026-01", 4), m("2026-02", 2, "nrt")])?.totalPending).toBe("nrt");
+  });
+
+  it("0은 값이 있는 달(막대·합계에 들어감), 값 없는 집계 중 달은 확정 전으로 보지 않는다", () => {
+    const ytd = ytdBars([m("2026-01", 0), m("2026-02", 5), m("2026-03", null, "partial")]);
+    expect(ytd?.bars.map((b) => [b.value, b.pending])).toEqual([
+      [0, null],
+      [5, null],
+      [null, null],
+    ]);
+    expect(ytd?.total).toBe(5);
+    expect(ytd?.totalPending).toBeNull();
+  });
+
+  it("마지막 달이 1월이면 1월 하나, 순서가 섞여 와도 마지막 달을 찾는다", () => {
+    expect(ytdBars([m("2026-01", 2, "partial"), m("2025-12", 9)])?.bars).toHaveLength(1);
+  });
+
+  it("그 해 값이 모두 없거나 비면 null", () => {
+    expect(ytdBars([])).toBeNull();
+    expect(ytdBars([m("2026-01", null), m("2026-02", null)])).toBeNull();
+  });
+});
+
+describe("axisTicks", () => {
+  it("깔끔한 간격으로 0부터 최댓값 이상까지", () => {
+    expect(axisTicks([4, 19, 47, 36])).toEqual([0, 10, 20, 30, 40, 50]);
+    // 간격이 1보다 작으면 2.5배를 쓰지 않는다(소수 한 자리 글자로 정확히 보이게)
+    expect(axisTicks([1.2])).toEqual([0, 0.5, 1, 1.5]);
+    expect(axisTicks([0.3])).toEqual([0, 0.1, 0.2, 0.3]);
+    expect(axisTicks([12])).toEqual([0, 2.5, 5, 7.5, 10, 12.5]);
+    expect(axisTicks([100])).toEqual([0, 20, 40, 60, 80, 100]);
+    expect(axisTicks([])).toEqual([0, 1]);
+    expect(axisTicks([0])).toEqual([0, 1]);
+  });
+});
+
+describe("readoutYear (01 비교 카드)", () => {
+  it("2011년(MODIS 마지막 해)의 보정 전·후를 꺼낸다", () => {
+    expect(readoutYear({ years: [2010, 2011, 2012], before: [1, 302, 9], after: [3, 734.5, 5] })).toEqual({
+      year: 2011,
+      before: 302,
+      after: 734.5,
+    });
+  });
+
+  it("그 해가 없거나 어느 한쪽이라도 0이면 값 없음(null)", () => {
+    expect(readoutYear({ years: [2012, 2013], before: [1, 2], after: [3, 4] })).toBeNull();
+    expect(readoutYear({ years: [2011], before: [0], after: [0] })).toBeNull();
+    expect(readoutYear({ years: [2011], before: [0], after: [2] })).toBeNull();
+    expect(readoutYear({ years: [2011], before: [302], after: [0] })).toBeNull();
+  });
+});
 
 describe("annualBars", () => {
   it("2012년부터 post, 그 전은 pre", () => {

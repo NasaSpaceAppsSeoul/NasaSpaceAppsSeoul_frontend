@@ -101,7 +101,8 @@ describe("주소와 지역", () => {
     fireEvent.click(screen.getByRole("button", { name: "지역 선택 열기" }));
     const dialog = await screen.findByRole("dialog", { name: "지역 검색" });
     fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "경북" } });
-    fireEvent.click(within(dialog).getByRole("button", { name: "경북" }));
+    // 이름 뒤에 소속 보조 줄("대한민국")이 쉼표로 끊겨 붙는다
+    fireEvent.click(within(dialog).getByRole("button", { name: /^경북, ?대한민국$/ }));
     await waitFor(() => expect(router.state.location.pathname).toBe(`/dashboard/KOR/${GB}`));
     expect(router.state.location.search).toBe("?month=2025-03");
   });
@@ -226,8 +227,23 @@ describe("선택 줄과 대화상자", () => {
     fireEvent.click(await screen.findByRole("button", { name: /지역 검색/ }));
     const dialog = await screen.findByRole("dialog", { name: "지역 검색" });
     fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "의성" } });
-    fireEvent.click(within(dialog).getByRole("button", { name: /경북 의성군/ }));
+    // 결과 줄은 자기 이름 + 보조 줄에 소속(about-revise 11절)
+    const row = within(dialog).getByRole("button", { name: /^의성군/ });
+    expect(within(row).getByText("경북 · 대한민국")).toBeTruthy();
+    fireEvent.click(row);
     await waitFor(() => expect(router.state.location.pathname).toBe(`/dashboard/KOR/${UISEONG}`));
+  });
+
+  it("검색어가 없으면 나라 아래에 지금 나라의 시·도를 들여 써서 보이고 입력 안내를 둔다", async () => {
+    const { router } = renderRoute("/dashboard/KOR?month=2025-03");
+    fireEvent.click(await screen.findByRole("button", { name: /지역 검색/ }));
+    const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
+    const provinces = dialog.getByRole("list", { name: "대한민국" });
+    expect(within(provinces).getAllByRole("button")).toHaveLength(17);
+    expect(within(provinces).getAllByText("시·도 · 대한민국")).toHaveLength(17);
+    expect(dialog.getByText("시·군·구와 카운티는 이름을 입력해 찾으세요.")).toBeTruthy();
+    fireEvent.click(within(provinces).getByRole("button", { name: /^경북/ }));
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/dashboard/KOR/${GB}`));
   });
 
   it("달 대화상자: 범위 밖 달은 비활성, 고르면 그 달로", async () => {

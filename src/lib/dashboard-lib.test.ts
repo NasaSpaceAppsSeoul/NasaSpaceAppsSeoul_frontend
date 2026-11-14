@@ -4,6 +4,7 @@ import { andParticle, formatFireDays, formatMonth, formatRatio } from "./format"
 import { judgementKind, judgementView, type JudgementLike } from "./judgementView";
 import { beforeDistrictData, clampMonth, isInRange, monthRange, shiftMonth } from "./month";
 import {
+  ancestorNames,
   byValueThenName,
   indexRegions,
   neighborName,
@@ -136,6 +137,17 @@ describe("지역 검색 (7-3)", () => {
     const result = searchRegions(many, "동", indexRegions(many));
     expect(result.items).toHaveLength(SEARCH_LIMIT);
     expect(result.truncated).toBe(true);
+  });
+});
+
+describe("검색 결과의 소속 경로 (about-revise 11절)", () => {
+  it("시·군·구는 시·도와 나라, 시·도와 시·도 없는 나라의 지역은 나라만, 나라는 없음", () => {
+    const index = indexRegions([KOR, GB, GW, US, GS1, BUTTE]);
+    expect(ancestorNames(US, index, "ko", "대한민국")).toEqual(["경북", "대한민국"]);
+    expect(ancestorNames(US, index, "en", "Republic of Korea")).toEqual(["North Gyeongsang", "Republic of Korea"]);
+    expect(ancestorNames(GB, index, "ko", "대한민국")).toEqual(["대한민국"]);
+    expect(ancestorNames(BUTTE, index, "ko", "캘리포니아")).toEqual(["캘리포니아"]);
+    expect(ancestorNames(KOR, index, "ko", "대한민국")).toEqual([]);
   });
 });
 

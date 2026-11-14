@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
  *   (`/top`의 `rank`가 아니다, `decisions.md` 6-1).
  * - `compact`(인접 지역): 디자인처럼 한 줄("안동시 · 9 화재 감지일"). 이웃이 6~8곳이어도 왼쪽 열이 지도 카드보다 길어지지 않게.
  * 줄 사이는 구분선으로 나눈다(두 목록을 같게. 디자인은 시·도 목록에 선이 없다).
+ * 같은 대시보드 안에서 지역만 바꾸는 이동이라 스크롤을 맨 위로 되돌리지 않는다(`preventScrollReset`).
  */
 export type RegionListRow = { id: string; name: string; sub: string | null; value: string; href: string };
 
@@ -28,7 +29,7 @@ export function RegionList({ rows, variant, unit }: RegionListProps) {
       {rows.map((row, i) => (
         <li key={row.id}>
           {ranked ? (
-            <Link to={row.href} className={`${ROW} py-3`}>
+            <Link to={row.href} preventScrollReset className={`${ROW} py-3`}>
               {/* 목록(`ol`)이 순번을 알리므로 네모 숫자는 읽지 않는다 */}
               <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-control-sm bg-inverse text-sm font-medium text-surface">
                 {i + 1}
@@ -43,7 +44,7 @@ export function RegionList({ rows, variant, unit }: RegionListProps) {
               </span>
             </Link>
           ) : (
-            <Link to={row.href} className={`${ROW} py-3 text-base`}>
+            <Link to={row.href} preventScrollReset className={`${ROW} py-3 text-base`}>
               <span className="min-w-0 truncate font-medium text-ink">{row.name}</span>
               <span aria-hidden="true" className="text-muted">
                 ·
