@@ -77,6 +77,7 @@ export function ChipFigure() {
     title,
     <>
       <SameMonthChart
+        key={country}
         bars={bars}
         band={band}
         label={f.label(name, target.month)}

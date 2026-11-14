@@ -46,6 +46,7 @@ export function AnnualFigure() {
     const bars = annualBars(landing.data.annual);
     body = hasAnnualData(bars) ? (
       <AnnualLineChart
+        key={country}
         bars={bars}
         label={f.label(t.countryTabs[country])}
         beforeLabel={f.before}

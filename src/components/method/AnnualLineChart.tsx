@@ -87,10 +87,11 @@ export function AnnualLineChart(props: AnnualLineChartProps) {
         <text x={breakX + 8} y={YT + 12} fontSize={12} className="fill-muted">
           {breakMark}
         </text>
-        <path d={path(before)} fill="none" strokeWidth={2} strokeLinejoin="round" className="stroke-muted" />
-        <path d={path(after)} fill="none" strokeWidth={2.5} strokeLinejoin="round" className="stroke-fire" />
+        {/* 선은 왼쪽부터 그려지고 점·끝 값은 조금 늦게 나타난다(`chart-draw`·`chart-fade`, 탭을 바꾸면 부르는 쪽이 `key`로 다시 붙임) */}
+        <path d={path(before)} pathLength={1} fill="none" strokeWidth={2} strokeLinejoin="round" className="chart-draw stroke-muted" />
+        <path d={path(after)} pathLength={1} fill="none" strokeWidth={2.5} strokeLinejoin="round" className="chart-draw stroke-fire" />
         {bars.map((bar) => (
-          <g key={bar.year}>
+          <g key={bar.year} className="chart-fade">
             {bar.before > 0 && (
               <circle cx={x(bar.year)} cy={y(bar.before)} r={3} className="fill-muted">
                 <title>{`${beforeLabel} · ${pointTitle(bar.year, format(bar.before))}`}</title>
@@ -104,12 +105,12 @@ export function AnnualLineChart(props: AnnualLineChartProps) {
           </g>
         ))}
         {last !== undefined && lastAfter !== null && (
-          <text x={x(last.year) + 10} y={y(lastAfter) + 4 + gap} fontSize={12.5} fontWeight={600} className="fill-ink">
+          <text x={x(last.year) + 10} y={y(lastAfter) + 4 + gap} fontSize={12.5} fontWeight={600} className="chart-fade fill-ink">
             {format(lastAfter)}
           </text>
         )}
         {last !== undefined && lastBefore !== null && (
-          <text x={x(last.year) + 10} y={y(lastBefore) + 4 - gap} fontSize={12.5} className="fill-muted">
+          <text x={x(last.year) + 10} y={y(lastBefore) + 4 - gap} fontSize={12.5} className="chart-fade fill-muted">
             {format(lastBefore)}
           </text>
         )}

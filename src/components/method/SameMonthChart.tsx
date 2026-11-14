@@ -79,7 +79,9 @@ export function SameMonthChart(props: SameMonthChartProps) {
             width={Math.max(1, width - 6)}
             height={Math.max(1, YB - y(bar.value))}
             rx={2}
-            className={BAR_CLASS[bar.chip]}
+            // 바닥부터 왼쪽 해부터 차례로 자란다(탭을 바꾸면 다시, `chart-grow-y`)
+            className={`chart-grow-y ${BAR_CLASS[bar.chip]}`}
+            style={{ animationDelay: `${i * 14}ms` }}
           >
             <title>{barTitle(bar.year, format(bar.value), chipName[bar.chip])}</title>
           </rect>
