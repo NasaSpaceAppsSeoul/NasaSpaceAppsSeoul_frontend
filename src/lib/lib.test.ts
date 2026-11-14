@@ -82,6 +82,11 @@ describe("routeInfo", () => {
     expect(routeInfo("/dashboard/kor")).toEqual({ section: "dashboard", country: undefined });
     expect(routeInfo("/nope")).toEqual({ section: null, country: undefined });
   });
+  it("기법 페이지는 소개의 하위라 소개가 켜진다(뒤에 칸이 더 붙으면 없는 주소)", () => {
+    expect(routeInfo("/method")).toEqual({ section: "about", country: undefined });
+    expect(routeInfo("/en/method")).toEqual({ section: "about", country: undefined });
+    expect(routeInfo("/method/x")).toEqual({ section: null, country: undefined });
+  });
 });
 
 describe("revealImmediately (스크롤 등장)", () => {
@@ -115,6 +120,14 @@ describe("routeDirection", () => {
     expect(routeDirection("/dashboard/KOR", "/")).toBe("back");
     expect(routeDirection("/", "/nope")).toBe("forward");
     expect(routeDirection("/nope", "/")).toBe("back");
+  });
+  it("기법 페이지는 첫 화면 다음, 대시보드 앞 깊이", () => {
+    expect(routeDirection("/", "/method")).toBe("forward");
+    expect(routeDirection("/method", "/")).toBe("back");
+    expect(routeDirection("/method", "/dashboard/KOR")).toBe("forward");
+    expect(routeDirection("/dashboard/KOR", "/method")).toBe("back");
+    expect(routeDirection("/method", "/en/method")).toBe("fade");
+    expect(routeDirection("/method", "/method")).toBeNull();
   });
   it("같은 페이지에서 언어만 바뀌면 겹쳐 바뀐다(fade)", () => {
     expect(routeDirection("/dashboard/KOR", "/en/dashboard/KOR")).toBe("fade");

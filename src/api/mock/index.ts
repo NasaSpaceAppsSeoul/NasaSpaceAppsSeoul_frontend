@@ -93,7 +93,7 @@ function route(table: MockTable, path: string): unknown {
     if (mock === undefined) throw new ApiError(404, "COUNTRY_NOT_READY", `country not ready: ${code}`);
     return mock.meta;
   }
-  // 한국만 목이 있다. 다른 나라는 맨 끝의 "mock: not implemented"로 간다
+  // 세 나라 모두 목이 있다(캘리포니아·BC는 기법 페이지 그림용, `api/mock/landing.ts`)
   const landing = resource === "landing" && id === undefined && mock !== undefined ? mockLanding(country) : null;
   if (landing !== null) return landing;
   if (resource === "regions" && id === undefined) return regions(mock, url.searchParams);
