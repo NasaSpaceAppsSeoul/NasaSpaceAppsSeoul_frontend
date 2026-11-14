@@ -16,7 +16,11 @@ const closedByCode = new WeakSet<HTMLDialogElement>();
 
 /** 모듈 수준 함수라 렌더마다 바뀌지 않는다. 그래서 다시 그려도 ref 콜백이 다시 불리지 않는다. */
 function openModal(node: HTMLDialogElement) {
-  if (!node.open) node.showModal();
+  if (!node.open) {
+    node.showModal();
+    // `showModal()`이 포커스를 첫 버튼(닫기)으로 옮기므로, 먼저 받을 칸이 있으면 그리로 옮긴다(예: 검색 입력)
+    node.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+  }
   return () => {
     if (!node.open) return;
     closedByCode.add(node);

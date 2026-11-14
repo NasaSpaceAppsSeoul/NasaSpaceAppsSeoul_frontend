@@ -30,13 +30,15 @@ describe("routes", () => {
   });
 
   it("나라 없이 대시보드로 오면 한국으로 보낸다", async () => {
+    // 주소에 달이 없으면 목 자료의 마지막 달(2026-11)을 주소에 써 넣는다(7-2)
     const ko = renderAt("/dashboard");
-    expect((await heading()).textContent).toBe("대시보드");
+    expect((await heading()).textContent).toBe("2026년 11월은 평소와 비교해 어땠을까요?");
     expect(ko.state.location.pathname).toBe("/dashboard/KOR");
+    expect(ko.state.location.search).toBe("?month=2026-11");
     cleanup();
 
     const en = renderAt("/en/dashboard");
-    expect((await heading()).textContent).toBe("Dashboard");
+    expect((await heading()).textContent).toBe("How did November 2026 compare with usual?");
     expect(en.state.location.pathname).toBe("/en/dashboard/KOR");
   });
 
@@ -49,8 +51,8 @@ describe("routes", () => {
   });
 
   it("한글 지역 ID가 붙은 대시보드 주소를 받는다", async () => {
-    const router = renderAt(`/dashboard/KOR/${encodeURIComponent("경북")}`);
-    expect((await heading()).textContent).toBe("대시보드");
+    const router = renderAt(`/dashboard/KOR/${encodeURIComponent("경북")}?month=2025-03`);
+    expect((await heading()).textContent).toBe("경북 · 2025년 3월");
     expect(router.state.matches.at(-1)?.params.regionId).toBe("경북");
   });
 
@@ -97,7 +99,7 @@ describe("주소 값 검사 (decisions 1-5)", () => {
 
   it("맞는 나라와 달은 화면을 그린다", async () => {
     renderAt("/dashboard/CAL?month=2025-03");
-    expect((await heading()).textContent).toBe("대시보드");
+    expect((await heading()).textContent).toBe("2025년 3월은 평소와 비교해 어땠을까요?");
   });
 });
 

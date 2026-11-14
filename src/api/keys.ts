@@ -1,3 +1,4 @@
+import type { SeriesRange } from "./timeseries";
 import type { Country, GeoParams } from "./types";
 
 /**
@@ -10,4 +11,9 @@ export const keys = {
   /** `level`의 기본값(`dist`)을 채워 `{}`와 `{ level: "dist" }`가 같은 응답을 두 번 받지 않게 한다. */
   geo: (country: Country | undefined, { level = "dist", parent }: GeoParams = {}) =>
     [country, "geo", { level, parent: parent || null }] as const,
+  /** 범위가 없으면 `null`로 맞춰 `{}`와 `{ from: undefined }`가 같은 키가 되게 한다. */
+  series: (country: Country | undefined, id: string | undefined, { from, to }: SeriesRange = {}) =>
+    [country, "series", id, { from: from || null, to: to || null }] as const,
+  judgement: (country: Country | undefined, id: string | undefined, month: string | undefined) =>
+    [country, "judgement", id, { month }] as const,
 };
