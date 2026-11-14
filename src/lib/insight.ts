@@ -1,5 +1,6 @@
 import { heatLevel, type HeatLevel } from "./heatmap";
 import { monthNumber, monthYear } from "./month";
+import { byValueThenName } from "./region";
 
 /*
  * 월간 인사이트 화면의 값 분기 (`docs/plans/insight.md` 2절, 분석 G-3·G-6·G-7).
@@ -325,10 +326,7 @@ export function neighborRows(
   inProgress: boolean,
   compareNames: (a: string, b: string) => number,
 ): NeighborRow[] {
-  const sorted = [...neighbors].sort((a, b) => {
-    if (a.v === null || b.v === null) return a.v === b.v ? compareNames(a.id, b.id) : a.v === null ? 1 : -1;
-    return b.v - a.v || compareNames(a.id, b.id);
-  });
+  const sorted = [...neighbors].sort(byValueThenName((n) => n.v, compareNames));
   return [
     { id: self.id, value: self.value, isSelf: true, basis: BASIS[self.region_type], rank: null },
     ...sorted.map((n): NeighborRow => ({

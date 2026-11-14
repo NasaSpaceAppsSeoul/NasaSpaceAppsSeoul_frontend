@@ -1,11 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { dashboardPath } from "./dashboardPath";
-import { formatFireDays, formatMonth, formatRatio } from "./format";
+import { andParticle, formatFireDays, formatMonth, formatRatio } from "./format";
 import { judgementKind, judgementView, type JudgementLike } from "./judgementView";
-import { clampMonth, isInRange, monthRange, shiftMonth } from "./month";
-import { indexRegions, ownName, parentOf, regionName, regionPath, searchRegions, SEARCH_LIMIT, sortByName, type NamedRegion } from "./region";
+import { beforeDistrictData, clampMonth, isInRange, monthRange, shiftMonth } from "./month";
+import {
+  byValueThenName,
+  indexRegions,
+  neighborName,
+  ownName,
+  parentOf,
+  regionName,
+  regionPath,
+  searchRegions,
+  SEARCH_LIMIT,
+  sortByName,
+  type NamedRegion,
+} from "./region";
 
 describe("달 계산", () => {
+  it("시·군·구 값은 2012-02부터(그 전 달은 목록이 비어 있다)", () => {
+    expect(beforeDistrictData("2012-01")).toBe(true);
+    expect(beforeDistrictData("2012-02")).toBe(false);
+  });
+
   it("앞뒤로 옮기고 해를 넘긴다", () => {
     expect(shiftMonth("2026-01", -1)).toBe("2025-12");
     expect(shiftMonth("2025-12", 1)).toBe("2026-01");
@@ -70,6 +87,34 @@ describe("지역 이름과 경로", () => {
     expect(parentOf(US, "KOR", false)).toBe("경북");
     expect(parentOf(BUTTE, "CAL", true)).toBe("CAL");
     expect(regionPath(US, "KOR", false, index).map((r) => r.id)).toEqual(["KOR", "경북", "U1"]);
+  });
+
+  it("인접 지역 이름: 같은 시·도면 이름만, 다른 시·도면 시·도를 붙인다(5장 11절 2)", () => {
+    const AD: NamedRegion = { id: "A1", label_ko: "안동시", name_en: "Andong-si", level: "dist", province: "경북" };
+    const idx = indexRegions([...korea, AD]);
+    expect(neighborName("A1", "안동시", US, idx, "ko")).toBe("안동시");
+    expect(neighborName("G1", "고성군", US, idx, "ko")).toBe("강원 고성군");
+    expect(neighborName("G1", "고성군", US, idx, "en")).toBe("Gangwon Goseong-gun");
+    expect(neighborName("NOPE", "받은 이름", US, idx, "ko")).toBe("받은 이름");
+  });
+
+  it("값 큰 순, null은 맨 뒤, 같으면 이름순", () => {
+    const rows = [
+      { id: "b", v: 3 },
+      { id: "a", v: 3 },
+      { id: "c", v: null },
+      { id: "d", v: 0 },
+      { id: "e", v: 9 },
+    ];
+    const byId = (a: string, b: string) => a.localeCompare(b);
+    expect([...rows].sort(byValueThenName((r) => r.v, byId)).map((r) => r.id)).toEqual(["e", "a", "b", "d", "c"]);
+  });
+
+  it("와/과: 받침으로, 한글로 끝나지 않으면 null", () => {
+    expect(andParticle("의성군")).toBe("과");
+    expect(andParticle("안동시")).toBe("와");
+    expect(andParticle("Butte")).toBeNull();
+    expect(andParticle("")).toBeNull();
   });
 
   it("가나다순으로 정렬한다", () => {

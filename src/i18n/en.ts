@@ -149,6 +149,77 @@ export const en: Messages = {
   },
   dashboard: {
     unit: "fire grid-days",
+    top: {
+      title: "Standing out from usual",
+      sub: (lv2: string) => `Ordered by how much each ${lv2.toLowerCase()} stands out against its own past records for the same month.`,
+      empty: "No detections this month.",
+      preDistrict: "District values are not available before February 2012.",
+    },
+    season: {
+      title: "Usual fire season",
+      sub: (share: string | null, period: string | null) =>
+        [share === null ? "Months when yearly activity usually concentrates" : `Months holding ${share} of usual yearly activity`, period]
+          .filter((s) => s !== null)
+          .join(" · "),
+      run: (from: number, to: number) => {
+        const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const a = m[from - 1] ?? String(from);
+        const b = m[to - 1] ?? String(to);
+        return from === to ? a : `${a}–${b}`;
+      },
+      count: (n: number) => (n === 1 ? "one month" : n === 2 ? "two months" : n === 3 ? "three months" : `${n} months`),
+      detail: (count: string, peak: number | null) => {
+        const m = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        return peak === null ? `Detections usually concentrate in ${count}` : `Detections usually concentrate in ${count} · peak in ${m[peak - 1] ?? peak}`;
+      },
+      note: "A pattern from past records, not a forecast.",
+      empty: "Not enough records to define a fire season.",
+      partial: "Couldn't load the peak month and comparison period.",
+    },
+    monthly: {
+      title: (year: number) => `Monthly activity in ${year}`,
+      sub: (period: string) =>
+        `Monthly fire grid-days · NOAA-20 basis (earlier satellite records converted to NOAA-20). Band: usual range, ${period}.`,
+      legendYear: (year: number, converted: boolean) => (converted ? `${year} · includes sensor-converted values` : `${year}`),
+      legendBand: (period: string) => `Usual range · ${period}`,
+      legendMedian: "Median (usual)",
+      pending: (from: number) => {
+        const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return from === 12 ? "Dec: not yet compiled" : `${m[from - 1] ?? from}–Dec: not yet compiled`;
+      },
+      tooltip: {
+        median: "Usual median",
+        band: "Usual range",
+        partial: "In progress",
+        converted: "Sensor-converted",
+        noValue: "No value",
+        future: "Not yet compiled",
+      },
+      empty: "No values to show for this year.",
+      tableCaption: (year: number) => `Monthly fire grid-days in ${year} and usual values`,
+      columns: { month: "Month", value: "Value", median: "Usual median", band: "Usual range" },
+    },
+    export: {
+      title: "Take this region and month with you.",
+      points: "Detection points CSV / GeoJSON",
+      share: "Copy link to this view",
+      footnote: (lv2: string) => `Choose a ${lv2.toLowerCase()} to open the monthly insight for the same month.`,
+    },
+    share: {
+      title: "Share this view",
+      description: "The link keeps the selected region and reference month.",
+      urlLabel: "Address",
+      copy: "Copy link",
+      copied: "Link copied.",
+      failed: "Couldn't copy. Copy the address above yourself.",
+      done: "Done",
+    },
+    neighbors: {
+      title: (monthName: string) => `Neighboring areas in ${monthName}`,
+      sub: "Same-month values for adjacent areas, in the same unit.",
+      empty: "No adjacent areas.",
+      preDistrict: "District values are not available before February 2012.",
+    },
     natTitle: (month: string) => `How did ${month} compare with usual?`,
     natSub: (country: string, lv2: string, dataEnd: string) => `${country} · ${lv2} · data through ${dataEnd}`,
     stage: (level: string) => `${level} / Region view`,
@@ -159,7 +230,9 @@ export const en: Messages = {
         return `All ${lower.endsWith("y") ? `${lower.slice(0, -1)}ies` : `${lower}s`}`;
       },
       pickProvinceFirst: (lv1: string) => `Choose a ${lv1.toLowerCase()} first`,
-      search: "Search by name",
+      search: "Region",
+      // 보이는 이름표 "Region"이 읽히는 이름에 그대로 들어가게(음성 조작)
+      searchHint: "Region search, now:",
       searchPlaceholder: "Search a country, province, city or county",
       month: "Reference month",
     },
@@ -188,6 +261,7 @@ export const en: Messages = {
     card: {
       heading: (name: string, month: string) => `${name} · ${month}`,
       title: (month: string) => `Fire grid-days in ${month}`,
+      openInsight: "Open monthly insight →",
       noValue: "No value",
       preDistrict: "This unit has no values before February 2012.",
       noRecord: "No detection record",
@@ -312,6 +386,15 @@ export const en: Messages = {
     },
     canvasLabel: (title: string, regions: number, cells: number) =>
       `${title}. ${regions} areas, ${cells} detected cells. You can also change the region with the selectors above.`,
+    regional: {
+      eyebrow: "REGIONAL MAP",
+      provinceTitle: (province: string, lv2: string) => `${lv2} in ${province}`,
+      districtTitle: (name: string) => `${name} and nearby areas`,
+      sub: "Fill: fire cells this month · Dots: location and date of detected cells",
+      neighborsFailed: "Couldn't load nearby areas, so only this area is shown.",
+      sample: (nation: string, count: string, shown: string) =>
+        `Only ${shown} of ${count} detections across ${nation} were loaded, so some points are not shown.`,
+    },
   },
   insight: {
     back: "Back to this region and month →",

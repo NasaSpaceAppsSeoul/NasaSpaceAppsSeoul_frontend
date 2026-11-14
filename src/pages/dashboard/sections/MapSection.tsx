@@ -13,23 +13,13 @@ import { useMap } from "../../../hooks/useMap";
 import { useLocale, useMessages } from "../../../i18n";
 import { errorKind } from "../../../lib/errorKind";
 import { formatCount, formatFireDays, formatMonth } from "../../../lib/format";
-import {
-  ageClass,
-  dayDate,
-  earliestDay,
-  fillStates,
-  filterPoints,
-  firstDayCells,
-  provinceBorders,
-  visibleRegionIds,
-  type BorderFeature,
-} from "../../../lib/map";
+import { agedCells, dayDate, fillStates, pickFeatures, provinceBorders, visibleRegionIds, type BorderFeature } from "../../../lib/map";
 import { regionNameById } from "../../../lib/region";
 import type { DashboardNavigate, DashboardScope } from "../scope";
 
 /*
  * 나라 대시보드의 지도 (4장, `decisions.md` 5절). `/geo`(한 번)와 나라 전체 `/map`(달마다, 5-7)으로 그린다.
- * 시·도·시·군·구 화면의 지도는 5장에서 붙인다(2026-11-14 사용자 결정, 안 A).
+ * 시·도·시·군·구 화면의 지도는 `RegionMapSection`(5장).
  * 시·도 경계선은 시·군·구 도형에서 만든다(`provinceBorders`, 2026-11-14 사용자 선택 안 B). 시·도 원본 경계(`/geo?level=prov`)는
  * 시·군·구와 원본이 달라 어긋나므로 쓰지 않는다.
  * 화면이 `key={region.id}`로 그려 지역이 바뀌면 확대 상태가 처음으로 돌아간다.
@@ -56,17 +46,11 @@ export function MapSection({ scope, navigate }: MapSectionProps) {
   const features = geo.data?.features ?? EMPTY;
   const visible = useMemo(() => {
     const ids = visibleRegionIds(features, region);
-    const set = new Set(ids);
-    return { ids, set, key: [...ids].sort().join(","), features: features.filter((f) => set.has(f.properties.id)) };
+    return { list: ids, ...pickFeatures(features, ids) };
   }, [features, region]);
-  const fills = useMemo(() => fillStates(visible.ids, map.data?.regions), [visible.ids, map.data]);
-  const cells = useMemo(() => {
-    // 나라 화면은 경계 밖·경계가 없는 구역의 점까지 모두 그린다(E-1 "전체 점")
-    const items = map.data?.points.items ?? [];
-    const kept = firstDayCells(region.level === "nat" ? items : filterPoints(items, visible.set, false));
-    const first = earliestDay(kept);
-    return kept.map((c) => ({ ...c, age: ageClass(c.firstDay, first ?? c.firstDay) }));
-  }, [map.data, visible.set, region.level]);
+  const fills = useMemo(() => fillStates(visible.list, map.data?.regions), [visible.list, map.data]);
+  // 나라 화면은 경계 밖·경계가 없는 구역의 점까지 모두 그린다(E-1 "전체 점")
+  const cells = useMemo(() => agedCells(map.data?.points.items ?? []), [map.data]);
   // 시·도 단계가 없는 나라(CAL·BC)는 시·도 경계선이 없다
   const single = meta.labels.single;
   const borders = useMemo(() => (single ? NO_BORDERS : [provinceBorders(visible.features)]), [single, visible.features]);
@@ -142,7 +126,7 @@ export function MapSection({ scope, navigate }: MapSectionProps) {
               selectedId={null}
               cells={cells}
               fallbackBounds={region.bbox}
-              label={t.map.canvasLabel(title, visible.ids.length, cells.length)}
+              label={t.map.canvasLabel(title, visible.list.length, cells.length)}
               onRegionClick={(id) => id !== region.id && navigate.toRegion(id)}
               onHover={(at) => setHover(at === null ? null : { at, data: map.data })}
               onZoomChange={setZoom}

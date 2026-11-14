@@ -11,7 +11,7 @@
  * 의성군 2025-03은 백엔드 `api-test/spec_test.py` 673~711줄 기대값으로 덮는다.
  *
  * 지어낸 값
- * - `annual`·`annual_all`·`longterm`·`risk_months`(비중 큰 달부터 합이 절반을 넘을 때까지)·이웃 목록(경계 상자가 겹치는 시·군·구).
+ * - `annual`·`annual_all`·`longterm`·`risk_months`(비중 큰 달부터 합이 절반을 넘을 때까지). 이웃 목록은 `/regions/{id}` 목과 같은 원천(`mock.detail`).
  * - 일부 실패 경우(10-5): 의성군 2024-03은 `spatial`, 의성군 2023-03은 `series`가 실패한 응답.
  * - 의성군 2025-03의 두 번째 공식 기록(면적 0)과 감지율, `daily`의 날짜별 나눔(합 384, 26일 108칸).
  */
@@ -26,7 +26,6 @@ import type { CountryMock } from "./types";
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 const STRIP_LAST_YEAR = 2025;
-const NEIGHBOR_LIMIT = 8;
 
 const round1 = (value: number) => Math.round(value * 10) / 10;
 
@@ -58,8 +57,8 @@ function topYears(strip: StripRow[], year: number): Insight["rank"]["top_years"]
   return selected !== undefined && !top.includes(selected) ? [...top, selected] : top;
 }
 
-/** 달별 합계(1~12월). `from` 달부터 2025-12까지 */
-function monthTotals(country: Country, region: RegionSummary, from: string): number[] {
+/** 달별 합계(1~12월). `from` 달부터 2025-12까지. `/regions/{id}` 목의 위험 시기도 쓴다 */
+export function monthTotals(country: Country, region: RegionSummary, from: string): number[] {
   const { months, values } = regionValues(country, region);
   const totals = Array.from({ length: 12 }, () => 0);
   months.forEach((month, i) => {
@@ -71,7 +70,7 @@ function monthTotals(country: Country, region: RegionSummary, from: string): num
 }
 
 /** 비중 큰 달부터 더해 절반을 넘을 때까지의 달(오름차순)과 그 비중 */
-function riskOf(totals: readonly number[]): { months: number[]; share: number | null } {
+export function riskOf(totals: readonly number[]): { months: number[]; share: number | null } {
   const sum = totals.reduce((a, b) => a + b, 0);
   if (sum <= 0) return { months: [], share: null };
   const order = totals.map((v, i) => ({ month: i + 1, v })).sort((a, b) => b.v - a.v);
@@ -104,14 +103,19 @@ function annualOf(strip: StripRow[], country: Country, region: RegionSummary): {
   };
 }
 
-function boxesTouch(a: RegionSummary, b: RegionSummary): boolean {
-  if (a.bbox === null || b.bbox === null) return false;
-  return a.bbox[0] <= b.bbox[2] && b.bbox[0] <= a.bbox[2] && a.bbox[1] <= b.bbox[3] && b.bbox[1] <= a.bbox[3];
-}
-
-/** 백엔드 정렬 그대로: 값 큰 순인데 `null`이 0칸보다 앞에 온다(G-7 9) */
-function neighborsOf(country: Country, region: RegionSummary, all: readonly RegionSummary[], index: number): Insight["neighbors"] {
-  const touching = all.filter((r) => r.level === "dist" && r.id !== region.id && boxesTouch(r, region)).slice(0, NEIGHBOR_LIMIT);
+/**
+ * 이웃은 `/regions/{id}`와 같은 원천(`mock.detail`, 한국은 파이프라인 이웃, 5장).
+ * 백엔드 정렬 그대로: 값 큰 순인데 `null`이 0칸보다 앞에 온다(G-7 9)
+ */
+function neighborsOf(
+  country: Country,
+  mock: CountryMock | undefined,
+  region: RegionSummary,
+  all: readonly RegionSummary[],
+  index: number,
+): Insight["neighbors"] {
+  const ids = new Set(mock?.detail(region.id)?.neighbors ?? []);
+  const touching = all.filter((r) => r.level === "dist" && ids.has(r.id));
   const key = (v: number | null) => (v === null ? -0.5 : v);
   return touching
     .map((r) => {
@@ -188,7 +192,7 @@ export function mockInsight(country: Country, mock: CountryMock | undefined, id:
   const j = judgement(country, region, all, index);
   const strip = stripOf(country, region, monthOfYear);
   const own = strip.find((row) => row.year === year);
-  const neighbors = neighborsOf(country, region, all, index);
+  const neighbors = neighborsOf(country, mock, region, all, index);
   const isUiseong202503 = country === "KOR" && region.id === UISEONG && month === "2025-03";
   const baseSpatial = spatialFor(country, region, month, j.value, all.find((r) => r.id === neighbors[0]?.id) ?? null);
   const spatial = isUiseong202503 ? uiseong202503(baseSpatial) : baseSpatial;
@@ -196,7 +200,12 @@ export function mockInsight(country: Country, mock: CountryMock | undefined, id:
   const refBasis = refRegion === undefined ? null : profileOf(country, refRegion, all).basis;
   const ownTotals = monthTotals(country, region, VIIRS_START);
   const refTotals = refRegion === undefined ? null : monthTotals(country, refRegion, refBasis === "harmonized_25y" ? FIRST_MONTH : VIIRS_START);
-  const risk = riskOf(refTotals ?? ownTotals);
+  // 백엔드는 위험 시기를 `/regions/{id}`와 같은 카탈로그 값에서 가져온다(`InsightService.java:131-132`).
+  // 원천(한국 파이프라인)에 있으면 그 값(소수 둘째 자리), 없으면(CAL·BC) 지어낸 값
+  const sourced = mock?.detail(region.id)?.risk;
+  const risk = sourced
+    ? { months: [...sourced.months], share: sourced.share === null ? null : Math.round(sourced.share * 100) / 100 }
+    : riskOf(refTotals ?? ownTotals);
   const annual = annualOf(strip, country, region);
   const ref: JudgementRef | null = j.ref;
   const prov = ref !== null && ref.id === region.province ? { ...ref } : provOf(country, region, all, index);

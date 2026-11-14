@@ -154,6 +154,71 @@ export const ko = {
   },
   dashboard: {
     unit: "화재 감지일",
+    // 시·도 목록 3곳(5장, `decisions.md` 6-1·6-3). 디자인 "3월 화재 감지일 순위"는 백엔드 정렬(그 지역 같은 달 순위 → 값)과 뜻이 달라 고쳐 씀
+    top: {
+      title: "평소보다 두드러진 곳",
+      sub: (lv2: string) => `각 ${lv2}의 지난 같은 달 기록과 비교해 두드러진 순서입니다.`,
+      empty: "이번 달 감지된 곳이 없습니다.",
+      preDistrict: "2012년 2월 이전은 시·군·구 값이 없습니다.",
+    },
+    // 나라 화면 평소 화재 집중 시기(5장, `/regions/{id}` risk_months). 디자인 "절반 이상이 집중되는 달"은 실제 비중(risk_share)으로 쓴다
+    season: {
+      title: "평소 화재 집중 시기",
+      sub: (share: string | null, period: string | null) =>
+        [share === null ? "평소 연간 활동이 집중되는 달" : `평소 연간 활동의 ${share}가 모이는 달`, period].filter((s) => s !== null).join(" · "),
+      run: (from: number, to: number) => (from === to ? `${from}월` : `${from}–${to}월`),
+      count: (n: number) => (["", "한 달", "두 달", "세 달", "네 달", "다섯 달", "여섯 달"][n] ?? `${n}개월`),
+      detail: (count: string, peak: number | null) =>
+        peak === null ? `평소 감지가 집중되는 ${count}` : `평소 감지가 집중되는 ${count} · ${peak}월이 정점`,
+      note: "과거 기록의 패턴이며 예측이 아닙니다.",
+      empty: "집중 시기를 정할 만큼 기록이 없습니다.",
+      partial: "정점과 비교 기간을 불러오지 못했습니다.",
+    },
+    // 나라 화면 월별 선 그래프(5장). 환산 문구는 NOAA-20 기준(4-3a), 띠는 보통 해 범위(가운데 50%가 아니다, 12절 ④)
+    monthly: {
+      title: (year: number) => `${year}년 월별 활동`,
+      sub: (period: string) => `월별 화재 감지일 · NOAA-20 기준(이전 위성 기록은 NOAA-20 기준으로 환산). 띠: ${period} 보통 해 범위.`,
+      legendYear: (year: number, converted: boolean) => (converted ? `${year} · 센서 환산값 포함` : `${year}`),
+      legendBand: (period: string) => `보통 해 범위 · ${period}`,
+      legendMedian: "중앙값(평소)",
+      pending: (from: number) => (from === 12 ? "12월: 아직 집계 전" : `${from}–12월: 아직 집계 전`),
+      tooltip: {
+        median: "평소 중앙값",
+        band: "보통 해 범위",
+        partial: "집계 중",
+        converted: "센서 환산값",
+        noValue: "값 없음",
+        future: "아직 집계 전",
+      },
+      empty: "이 해에는 표시할 값이 없습니다.",
+      tableCaption: (year: number) => `${year}년 월별 화재 감지일과 평소 값`,
+      columns: { month: "달", value: "값", median: "평소 중앙값", band: "보통 해 범위" },
+    },
+    // 자료 가져가기(5장, screens/kr/dashboard-national 맨 아래). 감지 지점 내려받기는 자리만(1-9)
+    export: {
+      title: "이 지역·월의 자료를 가져가세요.",
+      points: "감지 지점 CSV / GeoJSON",
+      share: "이 화면 링크 복사",
+      // 단계 이름은 나라마다(시·군·구, 카운티, 지역구. 모두 받침 없음)
+      footnote: (lv2: string) => `${lv2}를 선택하면 같은 달의 월간 인사이트를 확인할 수 있습니다.`,
+    },
+    // 이 화면 공유(overlays/kr/share-link). 디자인의 "프로토타입 미리보기·복사 지원 안 함"은 실제 동작으로 고쳐 씀
+    share: {
+      title: "이 화면 공유",
+      description: "링크에 선택 지역과 기준 월을 유지합니다.",
+      urlLabel: "주소",
+      copy: "링크 복사",
+      copied: "링크를 복사했습니다.",
+      failed: "복사하지 못했습니다. 위 주소를 직접 복사하세요.",
+      done: "완료",
+    },
+    // 시·군·구 화면의 인접 지역 목록(5장, 6-2). 값 큰 순, 0도 보인다
+    neighbors: {
+      title: (monthName: string) => `인접 지역의 ${monthName} 기록`,
+      sub: "맞닿은 지역의 같은 달 값입니다. 같은 단위로 비교합니다.",
+      empty: "맞닿은 지역이 없습니다.",
+      preDistrict: "2012년 2월 이전은 시·군·구 값이 없습니다.",
+    },
     natTitle: (month: string) => `${month}은 평소와 비교해 어땠을까요?`,
     natSub: (country: string, lv2: string, dataEnd: string) => `${country} · ${lv2} · ${dataEnd}까지 자료`,
     stage: (level: string) => `${level} / 지역 보기`,
@@ -161,7 +226,9 @@ export const ko = {
     controls: {
       all: (level: string) => `전체 ${level}`,
       pickProvinceFirst: (lv1: string) => `${lv1}를 먼저 선택하세요`,
-      search: "이름으로 검색",
+      // 선택 줄 첫 칸: 지금 위치를 보이고 누르면 검색(2026-11-14 사용자 결정)
+      search: "지역",
+      searchHint: "지역 검색, 지금:",
       searchPlaceholder: "국가·시·도·시·군·구 검색",
       month: "기준 월",
     },
@@ -190,6 +257,8 @@ export const ko = {
     card: {
       heading: (name: string, month: string) => `${name} · ${month}`,
       title: (month: string) => `${month} 한 달의 화재 감지일`,
+      // 시·군·구 숫자 카드 안 흰 큰 버튼(screens/kr/dashboard-district, 5장)
+      openInsight: "월간 인사이트 열기 →",
       noValue: "값 없음",
       preDistrict: "2012년 2월 이전은 이 단위의 값이 없습니다.",
       noRecord: "감지 기록이 없는 지역",
@@ -313,6 +382,18 @@ export const ko = {
     },
     canvasLabel: (title: string, regions: number, cells: number) =>
       `${title}. 지역 ${regions}곳, 감지된 칸 ${cells}개. 지역 이동은 위의 선택 줄로도 할 수 있습니다.`,
+    // 시·도·시·군·구 지도(5장, screens/kr/dashboard-province·district). 7장 월간 인사이트도 같은 범례를 쓴다
+    regional: {
+      eyebrow: "지역 지도",
+      provinceTitle: (province: string, lv2: string) => `${province}의 ${lv2}`,
+      /** 받침에 맞는 조사(`lib/format` `andParticle`). 한글로 끝나지 않는 이름은 조사 없이 */
+      districtTitle: (name: string, particle: "와" | "과" | null) =>
+        particle === null ? `${name} · 주변 지역` : `${name}${particle} 주변 지역`,
+      sub: "지역색: 이번 달 화재 칸 수 · 점: 감지된 칸의 위치와 날짜",
+      neighborsFailed: "주변 지역을 불러오지 못해 이 지역만 표시합니다.",
+      /** 지역 지도는 나라 전체 `/map`을 거르므로 표본 숫자도 나라 전체 기준이다(5-7) */
+      sample: (nation: string, count: string, shown: string) => `${nation} 전체 감지 ${count}개 중 ${shown}개만 받아 일부만 보입니다.`,
+    },
   },
   // 월간 인사이트(7장). 디자인의 "데모·합성·예시·가상" 문구는 빼고, 사실관계는 백엔드 기준으로 고쳤다(`plans/insight.md` 4절)
   insight: {

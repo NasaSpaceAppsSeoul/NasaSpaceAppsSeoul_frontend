@@ -6,6 +6,9 @@ afterEach(cleanup);
 // jsdom에는 WebGL이 없다. 지도 래퍼는 가짜 지도로 확인한다(`fakeMaplibre.ts`)
 vi.mock("maplibre-gl", async () => ({ Map: (await import("./fakeMaplibre")).FakeMap, setWorkerUrl: () => undefined }));
 
+// jsdom에는 캔버스가 없다. 차트 래퍼는 가짜 차트로 받은 옵션을 확인한다(`fakeEcharts.ts`)
+vi.mock("echarts/core", async () => await import("./fakeEcharts"));
+
 /*
  * jsdom 29의 `<dialog>`에는 `open` 속성만 있고 `showModal()`·`close()`가 없다.
  * 브라우저와 같은 결과(열림 표시, 닫힐 때 `close` 이벤트)만 흉내 낸다. Esc는 테스트가 `cancel` 이벤트를 직접 보낸다.

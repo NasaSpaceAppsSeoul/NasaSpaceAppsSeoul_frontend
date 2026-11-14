@@ -22,6 +22,9 @@ export const keys = {
   /** `parent`가 없으면 `null`로 맞춘다(지금은 늘 나라 전체, 5-7). */
   map: (country: Country | undefined, month: string | undefined, { parent }: MapParams = {}) =>
     [country, "map", { month, parent: parent || null }] as const,
+  regionDetail: (country: Country | undefined, id: string | undefined) => [country, "regionDetail", id] as const,
+  top: (country: Country | undefined, month: string | undefined, parent: string | undefined) =>
+    [country, "top", { month, parent: parent || null }] as const,
   insight: (country: Country | undefined, id: string | undefined, month: string | undefined) =>
     [country, "insight", id, { month }] as const,
 };

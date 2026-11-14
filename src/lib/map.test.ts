@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  agedCells,
+  pickFeatures,
   ageClass,
   binOf,
   boundsOf,
@@ -131,6 +133,33 @@ describe("provinceBorders (안 B, 건너편 확인)", () => {
     const a = rect("a", "경북", 0, 1);
     const b = { properties: { id: "b", province: "강원" }, geometry: { type: "Polygon" as const, coordinates: [[[1, 0], [2, 0], [2, 1], [1, 1], [1.0001, 0.5], [1, 0]] as [number, number][]] } };
     expect(provinceBorders([a, b]).geometry.coordinates.map(key)).toEqual(["1,0-1,1"]);
+  });
+});
+
+describe("agedCells, pickFeatures (5장 공용)", () => {
+  it("agedCells: 칸으로 합치고 보이는 칸 중 가장 이른 날 기준 경과일", () => {
+    const cells = agedCells([
+      [128.001, 36.001, 5, "a"],
+      [128.002, 36.002, 3, "a"],
+      [128.5, 36.5, 6, "b"],
+      [129.0, 37.0, 9],
+    ]);
+    expect(cells.map((c) => [c.firstDay, c.age])).toEqual([
+      [3, 0],
+      [6, 3],
+      [9, 3],
+    ]);
+    expect(cells[2]?.regionId).toBeNull();
+    expect(agedCells([])).toEqual([]);
+  });
+
+  it("pickFeatures: 원래 순서를 지키고 키는 정렬한 ID", () => {
+    const features = [feature("b", "p"), feature("a", "p"), feature("c", "p")];
+    const picked = pickFeatures(features, ["c", "b"]);
+    expect(picked.features.map((f) => f.properties.id)).toEqual(["b", "c"]);
+    expect(picked.key).toBe("b,c");
+    expect(pickFeatures(features, ["b", "c"]).key).toBe(picked.key);
+    expect(picked.ids.has("c")).toBe(true);
   });
 });
 

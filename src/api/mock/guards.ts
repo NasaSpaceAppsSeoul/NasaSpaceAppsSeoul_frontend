@@ -1,4 +1,4 @@
-import type { GeoFeature, GeoFeatureCollection, Level, RegionSummary, RegionType } from "../types";
+import type { GeoFeature, GeoFeatureCollection, JudgeUnit, Level, RegionSummary, RegionType } from "../types";
 
 /*
  * 목 JSON을 읽은 뒤 타입을 좁히는 검사. JSON import는 문자열 리터럴을 `string`으로 넓히므로
@@ -72,4 +72,32 @@ export function expectRegions(value: unknown, source: string): RegionSummary[] {
 export function expectFeatureCollection(value: unknown, source: string): GeoFeatureCollection {
   if (isFeatureCollection(value)) return value;
   throw new Error(`목 데이터 형식이 맞지 않습니다: ${source}`);
+}
+
+const JUDGE_UNITS: readonly string[] = ["self", "province", "nearby_province"] satisfies JudgeUnit[];
+
+function isMockDetail(value: unknown): value is MockDetailJson {
+  return (
+    isObject(value) &&
+    Array.isArray(value.neighbors) &&
+    value.neighbors.every((n) => typeof n === "string") &&
+    Array.isArray(value.risk_months) &&
+    value.risk_months.every((m) => typeof m === "number") &&
+    (value.risk_share === null || typeof value.risk_share === "number") &&
+    typeof value.risk_from === "string" &&
+    JUDGE_UNITS.includes(value.risk_from)
+  );
+}
+
+/** `kor-detail.json` 한 줄(`build-mock-kor.py --detail`) */
+export type MockDetailJson = { neighbors: string[]; risk_months: number[]; risk_share: number | null; risk_from: JudgeUnit };
+
+export function expectDetails(value: unknown, source: string): Map<string, MockDetailJson> {
+  if (!isObject(value)) throw new Error(`목 데이터 형식이 맞지 않습니다: ${source}`);
+  const out = new Map<string, MockDetailJson>();
+  for (const [id, row] of Object.entries(value)) {
+    if (!isMockDetail(row)) throw new Error(`목 데이터 형식이 맞지 않습니다: ${source} (${id})`);
+    out.set(id, row);
+  }
+  return out;
 }

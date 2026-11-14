@@ -62,6 +62,16 @@ export function formatMonthList(months: readonly number[], locale: Locale): stri
   return months.map((m) => formatMonthName(m, locale)).join(locale === "ko" ? "·" : ", ");
 }
 
+/**
+ * 한글 이름 뒤 "와/과": 받침이 있으면 "과"("의성군과"), 없으면 "와"("안동시와").
+ * 한글로 끝나지 않는 이름(CAL·BC 영문 이름)은 받침을 알 수 없어 `null`(부르는 쪽이 조사 없는 꼴을 쓴다).
+ */
+export function andParticle(name: string): "와" | "과" | null {
+  const code = name.trim().codePointAt(name.trim().length - 1);
+  if (code === undefined || code < 0xac00 || code > 0xd7a3) return null;
+  return (code - 0xac00) % 28 === 0 ? "와" : "과";
+}
+
 /** 기간: 같은 달이면 "3월 22–29일" / "Mar 22–29", 달이 다르면 "3월 30일–4월 2일" / "Mar 30–Apr 2" */
 export function formatDayRange(start: string, end: string, locale: Locale): string {
   if (start.slice(0, 7) !== end.slice(0, 7)) return `${formatDayDate(start, locale)}–${formatDayDate(end, locale)}`;

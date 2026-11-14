@@ -3,7 +3,7 @@ import { SearchField, SelectBox } from "../../../components/dashboard/SelectBox"
 import { useLocale, useMessages } from "../../../i18n";
 import { formatMonth } from "../../../lib/format";
 import type { Locale } from "../../../lib/locale";
-import { ownName, regionPath } from "../../../lib/region";
+import { ownName, regionName, regionPath } from "../../../lib/region";
 import type { ControlsDialog, DashboardNavigate, DashboardScope } from "../scope";
 
 /*
@@ -32,6 +32,8 @@ export function ControlsSection({ scope, navigate, openDialog }: ControlsSection
 
   const fields = (
     <div className={`grid gap-4 ${single ? "md:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-4"}`}>
+      {/* 검색 칸이 맨 앞, 글자는 지금 보고 있는 곳(2026-11-14 사용자 결정, decisions 7-7. 디자인은 세 번째 칸에 안내 문구) */}
+      <SearchField label={label(c.search)} value={currentPlace(scope, locale)} hint={c.searchHint} onOpen={() => openDialog("search")} />
       {!single && (
         <SelectBox
           label={label(levelNames.lv1)}
@@ -47,7 +49,6 @@ export function ControlsSection({ scope, navigate, openDialog }: ControlsSection
         disabled={districtLocked}
         onOpen={() => openDialog("district")}
       />
-      <SearchField label={label(c.search)} value={c.searchPlaceholder} onOpen={() => openDialog("search")} />
       <SelectBox label={label(c.month)} value={formatMonth(month, locale)} onOpen={() => openDialog("month")} />
     </div>
   );
@@ -64,6 +65,18 @@ export function ControlsSection({ scope, navigate, openDialog }: ControlsSection
       <Breadcrumb items={crumbs} />
     </section>
   );
+}
+
+/**
+ * 검색 칸에 보일 지금 위치: 나라 "대한민국", 시·도 "대한민국 · 경북", 시·군·구 "경북 의성군"(같은 이름 시·군·구가 있어 시·도를 붙인다).
+ * CAL·BC 카운티·지역구는 시·도가 없어 이름만("Butte").
+ */
+function currentPlace(scope: DashboardScope, locale: Locale): string {
+  const { region, index, country } = scope;
+  if (region.level === "dist") return regionName(region, index, locale);
+  const nation = index.get(country);
+  const nationName = nation !== undefined ? ownName(nation, locale) : country;
+  return region.level === "prov" ? `${nationName} · ${ownName(region, locale)}` : nationName;
 }
 
 /** 나라 → (시·도) → 지역. 나라 화면은 "전체 시·도 › 전체 시·군·구"까지 보여 준다(디자인). 앞 단계는 링크. */

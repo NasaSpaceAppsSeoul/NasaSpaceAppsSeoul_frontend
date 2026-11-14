@@ -57,8 +57,11 @@ export function SelectBox({ label, prefix, value, disabled = false, onOpen }: Fi
   );
 }
 
-/** 검색 칸 모양의 버튼. 누르면 검색 대화상자가 열리고 거기서 입력한다. */
-export function SearchField({ label, value, onOpen }: Omit<FieldProps, "prefix" | "disabled">) {
+/**
+ * 검색 칸 모양의 버튼. 누르면 검색 대화상자가 열리고 거기서 입력한다.
+ * `value`는 지금 보고 있는 곳("경북 의성군"), `hint`는 화면 읽기에만 들리는 앞 글("지역 검색, 지금:").
+ */
+export function SearchField({ label, value, hint, onOpen }: Omit<FieldProps, "prefix" | "disabled"> & { hint?: string }) {
   const labelId = useId();
   const valueId = useId();
   return (
@@ -66,7 +69,9 @@ export function SearchField({ label, value, onOpen }: Omit<FieldProps, "prefix" 
       <button
         type="button"
         aria-haspopup="dialog"
-        aria-labelledby={label !== undefined ? `${labelId} ${valueId}` : undefined}
+        // 안내(hint)가 있으면 "안내 + 값"을 이름으로(이름표 "지역"과 겹치지 않게). 없으면 "이름표 + 값"
+        aria-label={hint !== undefined ? `${hint} ${value}` : undefined}
+        aria-labelledby={hint === undefined && label !== undefined ? `${labelId} ${valueId}` : undefined}
         onClick={onOpen}
         className={FIELD}
       >

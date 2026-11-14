@@ -80,6 +80,30 @@ export function earliestDay(cells: readonly CellPoint[]): number | null {
   return cells.reduce<number | null>((min, c) => (min === null || c.firstDay < min ? c.firstDay : min), null);
 }
 
+export type AgedCell = CellPoint & { age: AgeClass };
+
+/**
+ * 점들을 칸으로 합치고(`firstDayCells`) 보이는 칸 중 가장 이른 날을 첫 감지일로 경과일 색을 붙인다(5-2).
+ * 대시보드 `/map`의 `[lon, lat, day, region_id]`와 7장 `/insight`의 `[lon, lat, day]` 모두 받는다.
+ */
+export function agedCells(items: readonly (readonly [number, number, number, (string | null)?])[]): AgedCell[] {
+  const kept = firstDayCells(items);
+  const first = earliestDay(kept);
+  return kept.map((c) => ({ ...c, age: ageClass(c.firstDay, first ?? c.firstDay) }));
+}
+
+/**
+ * 보이는 도형과 `MapCanvas`의 `featureKey`(정렬한 ID를 이은 값). 키가 같으면 지도가 도형을 다시 넣지 않는다.
+ * `ids` 순서와 상관없이 도형은 원래 순서를 지킨다.
+ */
+export function pickFeatures<F extends { properties: { id: string } }>(
+  features: readonly F[],
+  ids: readonly string[],
+): { features: F[]; key: string; ids: Set<string> } {
+  const set = new Set(ids);
+  return { features: features.filter((f) => set.has(f.properties.id)), key: [...set].sort().join(","), ids: set };
+}
+
 /** 첫 감지일 이후 경과일 → 점 색 4가지(0, +1, +2, +3일 이상) */
 export function ageClass(day: number, firstDay: number): AgeClass {
   const diff = day - firstDay;
