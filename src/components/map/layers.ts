@@ -22,9 +22,12 @@ export const LAYER = {
 const HATCH_IMAGE = "hatch";
 /** 칠할 상태를 feature-state `bin`에 둔다. `none`(값 없음)과 아직 모르는 구역은 -1 */
 export const NONE_BIN = -1;
+/** "평소 대비" 평가는 단계(0~4)와 겹치지 않는 번호로 둔다 */
+export const USUAL_BIN = { record: 10, above: 11, normal: 12, below: 13 } as const;
 
 export type MapColors = {
   bins: [string, string, string, string, string];
+  usual: Record<keyof typeof USUAL_BIN, string>;
   dots: [string, string, string, string];
   ink: string;
   /** 경계선·점 테두리(시안 v9 지도 선 `--color-map-line`) */
@@ -42,6 +45,12 @@ export function readMapColors(): MapColors {
   const read = (name: string) => style.getPropertyValue(name).trim() || FALLBACK;
   return {
     bins: [read("--color-map-0"), read("--color-map-1"), read("--color-map-2"), read("--color-map-3"), read("--color-map-4")],
+    usual: {
+      record: read("--color-usual-record"),
+      above: read("--color-usual-above"),
+      normal: read("--color-usual-normal"),
+      below: read("--color-usual-below"),
+    },
     dots: [read("--color-dot-0"), read("--color-dot-1"), read("--color-dot-2"), read("--color-dot-3")],
     ink: read("--color-ink"),
     line: read("--color-map-line"),
@@ -102,7 +111,12 @@ export function addLayers(map: MapLibreMap, colors: MapColors, glowCanvases: rea
     type: "fill",
     source: SOURCE.regions,
     paint: {
-      "fill-color": ["match", bin, 0, c0, 1, c1, 2, c2, 3, c3, 4, c4, colors.hatchBase],
+      "fill-color": [
+        "match", bin, 0, c0, 1, c1, 2, c2, 3, c3, 4, c4,
+        USUAL_BIN.record, colors.usual.record, USUAL_BIN.above, colors.usual.above,
+        USUAL_BIN.normal, colors.usual.normal, USUAL_BIN.below, colors.usual.below,
+        colors.hatchBase,
+      ],
     },
   });
   map.addLayer({

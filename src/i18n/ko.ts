@@ -444,7 +444,24 @@ export const ko = {
     title: (month: string) => `${month} · 화재 칸과 감지 위치`,
     sub: "지역색은 월간 화재 칸 수, 점은 감지 위치와 첫 감지일을 나타냅니다.",
     modes: { cells: "화재 칸·위치", usual: "평소 대비" },
-    soon: "준비 중",
+    // "평소 대비" 보기(9장). 평가는 백엔드 일괄 판정(`/judgement?month=`)의 자기 판정이고, 드문 구역은 빌려 쓴 판정을 올려서만 보인다
+    usual: {
+      title: (month: string) => `${month} · 평소 대비`,
+      sub: "지역색은 같은 달 지난 해들과 비교한 평가입니다. 기록이 적은 구역은 빗금입니다.",
+      legendTitle: "색 · 같은 달 평소와 비교",
+      none: "평가 없음",
+      noneNote: "빗금은 기록이 적어 자체 평가를 하지 않는 구역(빌려 쓴 평가는 올려서 확인)과 값이 없는 구역입니다.",
+      basisNote: "평소 범위는 같은 달 지난 해들의 15–85% 구간에 작은 수 보정을 더한 것입니다.",
+      partial: "이 달은 아직 집계 중입니다. 평가는 집계가 끝난 뒤 보여 줍니다.",
+      pre2012: "2012년 2월 이전은 시·군·구 값이 없어 평가하지 않습니다.",
+      failed: "평가를 불러오지 못했습니다.",
+      tooltip: {
+        ratio: (chip: string, ratio: string) => `${chip} · 평소의 ${ratio}배`,
+        borrowed: (name: string, chip: string) => `기록 부족 · ${name} 기준 ${chip}`,
+        none: "평가 없음",
+      },
+      canvasLabel: (title: string, regions: number) => `${title}. 지역 ${regions}곳. 지역 이동은 위의 선택 줄로도 할 수 있습니다.`,
+    },
     zoom: { in: "확대", out: "축소", reset: "처음 크기로" },
     hint: "+ / − 확대·축소 · 점에 올려 확인",
     // 지도 왼쪽 아래 출처 줄(시안 v11 `.db-map-attribution`). 경계 출처 이름은 백엔드 `labels.boundary`에서 옮긴 나라별 고정 문구다

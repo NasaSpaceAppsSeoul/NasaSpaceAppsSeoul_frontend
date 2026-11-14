@@ -56,6 +56,8 @@ type RegionMapProps = {
   header?: ReactNode;
   /** `panel`일 때 지도 왼쪽 아래 출처 줄 */
   attribution?: string;
+  /** 범례를 바꿔 끼운다(대시보드 "평소 대비" 보기, `MapUsualLegend`). 없으면 화재 칸 범례 */
+  legend?: ReactNode;
 };
 
 export function RegionMap(props: RegionMapProps) {
@@ -124,7 +126,7 @@ export function RegionMap(props: RegionMapProps) {
         }
         map={mapCanvas}
         zoom={zoomControls}
-        legend={<MapLegend bins={bins} showSelected={selectedShown} notes={notes} orientation="vertical" showZoomNote={false} />}
+        legend={props.legend ?? <MapLegend bins={bins} showSelected={selectedShown} notes={notes} orientation="vertical" showZoomNote={false} />}
         legendLabel={t.legend.toggle}
         hint={t.hint}
         attribution={props.attribution}
@@ -147,7 +149,7 @@ export function RegionMap(props: RegionMapProps) {
         </div>
         <p className="text-right text-xs text-muted">{t.hint}</p>
       </div>
-      <MapLegend bins={bins} showSelected={selectedShown} notes={notes} orientation="horizontal" showZoomNote={false} />
+      {props.legend ?? <MapLegend bins={bins} showSelected={selectedShown} notes={notes} orientation="horizontal" showZoomNote={false} />}
       {notice}
     </div>
   );
