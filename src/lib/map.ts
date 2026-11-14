@@ -292,3 +292,15 @@ export function mapLegend(bins: Bins): MapLegendItem[] {
 export function dayDate(month: string, day: number): string {
   return `${month}-${String(day).padStart(2, "0")}`;
 }
+
+/**
+ * 7장 월간 인사이트: 보이는 구역마다 값 → 색 단계(`binOf`). 값은 자기 `head.value`와 이웃 `neighbors[].v`
+ * (`/map`의 `regions[].value`와 같은 단위라 같은 `bins`로 칠한다). 값이 없거나 `null`이면 `none`.
+ */
+export function fillsFromValues(
+  ids: readonly string[],
+  values: ReadonlyMap<string, number | null>,
+  bins: Bins,
+): Map<string, FillState> {
+  return new Map(ids.map((id): [string, FillState] => [id, binOf(values.get(id) ?? null, bins)]));
+}
