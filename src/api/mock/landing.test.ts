@@ -3,15 +3,6 @@ import { keys } from "../keys";
 import type { Landing, SeriesResponse } from "../types";
 import { mockGet } from "./index";
 
-async function caught(promise: Promise<unknown>): Promise<unknown> {
-  try {
-    await promise;
-  } catch (e) {
-    return e;
-  }
-  throw new Error("실패해야 하는데 성공했다");
-}
-
 describe("목 /landing", () => {
   it("한국은 백엔드 기대값(spec_test.py 758–777행)과 같다", async () => {
     const l = (await mockGet("/KOR/landing")) as Landing;
@@ -40,10 +31,13 @@ describe("목 /landing", () => {
     expect(l.annual.after[l.annual.years.indexOf(2013)]).toBe(Math.round(sum * 10) / 10);
   });
 
-  it("목이 없는 나라는 mock: not implemented", async () => {
-    const error = await caught(mockGet("/CAL/landing"));
-    expect(error).toMatchObject({ status: 404, code: "NOT_FOUND" });
-    expect(String((error as Error).message)).toMatch(/^mock: not implemented/);
+  it("캘리포니아·BC도 목이 있다(기법 페이지 나라 탭). 25개 해, BC는 공식 기록 대조가 판단 보류", async () => {
+    const cal = (await mockGet("/CAL/landing")) as Landing;
+    const bc = (await mockGet("/BC/landing")) as Landing;
+    expect(cal.annual.years).toHaveLength(25);
+    expect(cal.annual.after).toHaveLength(25);
+    expect(bc.official_break).toEqual({ source: "BC Wildfire Service", before: 4.99, after: 2.14, inconclusive: true });
+    expect(bc.detect_by_size.map((d) => d.bin)).toEqual(["0.1 ha 미만", "0.1~1", "1~10", "10~100", "100 ha 이상"]);
   });
 
   it("쿼리 키는 나라가 맨 앞이다", () => {
