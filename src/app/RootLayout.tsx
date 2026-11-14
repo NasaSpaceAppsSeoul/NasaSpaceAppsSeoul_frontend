@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import { apiMode } from "../api/client";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
@@ -33,6 +33,11 @@ function Shell({ locale }: { locale: Locale }) {
         <Outlet />
       </div>
       <Footer sources={meta.data?.sources} processedOn={meta.data?.generated_at?.slice(0, 10)} />
+      {/*
+       * 새 주소는 맨 위, 뒤로 가기는 보던 위치(`plans/about-revise.md` 10절 ⑥).
+       * 대시보드·인사이트 안에서 달·지역을 고르는 이동은 `preventScrollReset`으로 위치를 그대로 둔다
+       */}
+      <ScrollRestoration />
     </div>
   );
 }

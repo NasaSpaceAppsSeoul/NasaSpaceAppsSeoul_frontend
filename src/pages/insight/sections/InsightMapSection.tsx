@@ -119,7 +119,8 @@ export function InsightMapSection({ scope, insight }: { scope: InsightScope; ins
       dimmed={false}
       describe={describe}
       onRegionClick={(id) => {
-        if (id !== region.id) navigate(insightPath(locale, country, id, month));
+        // 지도에서 이웃을 누르면 지도 자리에 그대로 머문다(스크롤을 맨 위로 되돌리지 않는다)
+        if (id !== region.id) void navigate(insightPath(locale, country, id, month), { preventScrollReset: true });
       }}
     />,
   );
