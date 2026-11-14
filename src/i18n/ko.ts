@@ -363,13 +363,19 @@ export const ko = {
       detectionDays: "불이 감지된 날짜 수",
     },
     cumulative: {
-      title: (year: number, monthOfYear: number, monthName: string) =>
-        monthOfYear === 1 ? `${year}년 1월 누적` : `${year}년 1월부터 ${monthName}까지 누적`,
+      // 누적은 시즌 시작 달부터(북반구 1월, 칠레·NSW 7월). 해를 넘기면 앞 해를 함께 쓴다
+      title: (from: { year: number; name: string }, to: { year: number; name: string }, single: boolean) =>
+        single
+          ? `${to.year}년 ${to.name} 누적`
+          : from.year === to.year
+            ? `${to.year}년 ${from.name}부터 ${to.name}까지 누적`
+            : `${from.year}년 ${from.name}부터 ${to.year}년 ${to.name}까지 누적`,
       usual: (months: string, usual: string) => `평소 ${months} 약 ${usual}`,
       convertedRange: "환산 범위",
       unitNote: "약 1 km 칸에서 같은 날 감지된 불은 1로 셉니다. 화재 건수나 피해 면적이 아닙니다.",
     },
-    monthsSpan: (to: number) => (to === 1 ? "1월" : `1–${to}월`),
+    // 해를 넘기는 구간(남반구 7월~2월)은 "7–2월"이 거꾸로 읽혀 "7월–2월"로 쓴다
+    monthsSpan: (from: number, to: number) => (from === to ? `${to}월` : from < to ? `${from}–${to}월` : `${from}월–${to}월`),
     regionMissing: {
       title: "지역을 찾을 수 없습니다",
       body: "주소의 지역이 이 나라 목록에 없습니다. 지역을 다시 골라 주세요.",

@@ -35,6 +35,7 @@ export const nsw: CountryMock = {
       official: "NSW NPWS",
       boundary: "geoBoundaries AUS (호주 통계청 ABS 2022 지방정부, CC BY 4.0)",
       bins: [3, 10, 31],
+      season_start: 7,
     },
     sources: ["NASA FIRMS", "geoBoundaries (ABS, CC BY 4.0)", "NSW NPWS"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },

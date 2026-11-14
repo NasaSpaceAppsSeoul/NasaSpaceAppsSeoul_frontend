@@ -357,15 +357,20 @@ export const en: Messages = {
       detectionDays: "Days with detections",
     },
     cumulative: {
-      title: (year: number, monthOfYear: number, monthName: string) =>
-        monthOfYear === 1 ? `Total for January ${year}` : `Total from January to ${monthName} ${year}`,
+      title: (from: { year: number; name: string }, to: { year: number; name: string }, single: boolean) =>
+        single
+          ? `Total for ${to.name} ${to.year}`
+          : from.year === to.year
+            ? `Total from ${from.name} to ${to.name} ${to.year}`
+            : `Total from ${from.name} ${from.year} to ${to.name} ${to.year}`,
       usual: (months: string, usual: string) => `Usual ${months} about ${usual}`,
       convertedRange: "Adjusted range",
       unitNote: "A fire detected in one approximately 1 km cell on one day counts as 1. It is not a fire incident count or burned area.",
     },
-    monthsSpan: (to: number) => {
+    monthsSpan: (from: number, to: number) => {
       const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      return to === 1 ? "Jan" : `Jan–${names[to - 1] ?? to}`;
+      const name = (m: number) => names[m - 1] ?? String(m);
+      return from === to ? name(to) : `${name(from)}–${name(to)}`;
     },
     regionMissing: {
       title: "Region not found",

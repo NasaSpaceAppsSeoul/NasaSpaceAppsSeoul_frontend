@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BaselineResponse, Judgement, SeriesMonth, SeriesResponse } from "../types";
+import type { Judgement, SeriesMonth, SeriesResponse } from "../types";
 import { mockGet } from "./index";
 import { GOSEONG_GANGWON, GUNPO, UISEONG } from "./series-overrides";
 
@@ -181,7 +181,24 @@ describe("/series와 /judgement의 일관성", () => {
     ["KOR", GOSEONG_GANGWON, ["2016-03", "2025-02"]],
     ["CAL", BUTTE, ["2018-11"]],
     ["BC", "BC-RD-41", ["2021-07"]],
+    // 남반구: 누적은 7월부터(해를 넘김)
+    ["CHL", "CHL", ["2025-07", "2025-12", "2026-02", "2023-02"]],
+    ["NSW", "NSW", ["2019-12", "2020-01"]],
   ];
+  const SEASON_START: Record<string, number> = { KOR: 1, CAL: 1, BC: 1, GRC: 1, CHL: 7, NSW: 7 };
+  /** 시즌 첫 달 (백엔드 seasonStartMonth) */
+  const seasonFrom = (country: string, month: string) => {
+    const s = SEASON_START[country] ?? 1;
+    const y = Number(month.slice(0, 4));
+    return `${Number(month.slice(5)) >= s ? y : y - 1}-${String(s).padStart(2, "0")}`;
+  };
+  /** numpy 기본 퍼센타일 */
+  const pct = (sorted: number[], q: number) => {
+    const pos = q * (sorted.length - 1);
+    const lo = Math.floor(pos);
+    const a = sorted[lo] ?? 0;
+    return a + ((sorted[Math.min(lo + 1, sorted.length - 1)] ?? a) - a) * (pos - lo);
+  };
 
   it.each(cases)("%s %s: 값·ytd·순위·중앙값이 시계열과 맞는다", async (country, id, monthList) => {
     const full = (await series(country, id)).months;
@@ -194,10 +211,11 @@ describe("/series와 /judgement의 일관성", () => {
       expect(j.estimated).toBe(row.estimated);
 
       const year = month.slice(0, 4);
+      const from = seasonFrom(country, month);
       const ytd = full
-        .filter((m) => m.month.startsWith(year) && m.month <= month)
+        .filter((m) => m.month >= from && m.month <= month)
         .reduce((sum, m) => sum + (m.value ?? 0), 0);
-      expect(j.ytd_sum).toBe(ytd);
+      expect(j.ytd_sum).toBeCloseTo(ytd, 6);
 
       if (j.rank_period === null || row.value === null) continue;
       const [start, end] = j.rank_period;
@@ -217,17 +235,42 @@ describe("/series와 /judgement의 일관성", () => {
     }
   });
 
-  it.each(cases)("%s %s: ytd_lo·ytd_hi는 자체 판정일 때 1월~그 달 범위 합(합 ≤ 0이면 null)", async (country, id, monthList) => {
-    const { by_month } = (await mockGet(`/${country}/baseline/${encodeURIComponent(id)}`)) as BaselineResponse;
+  it.each(cases)("%s %s: ytd_median·ytd_lo·ytd_hi는 해마다 같은 시즌 누적 합의 중앙값·범위(백엔드 ytdBand)", async (country, id, monthList) => {
+    const full = (await series(country, id)).months;
+    const value = new Map(full.map((m) => [m.month, m.value]));
+    const s = SEASON_START[country] ?? 1;
     for (const month of monthList) {
       const j = await judge(country, id, month);
-      if (j.judge_unit !== "self" || j.ytd_sum === null) {
+      if (j.judge_unit !== "self" || j.ytd_sum === null || j.rank_period === null) {
+        expect([j.ytd_median ?? null, j.ytd_lo, j.ytd_hi]).toEqual([null, null, null]);
+        continue;
+      }
+      const [start, end] = j.rank_period;
+      const mm = Number(month.slice(5));
+      const ks: number[] = [];
+      for (let k = s; ; k = (k % 12) + 1) {
+        ks.push(k);
+        if (k === mm) break;
+      }
+      const sums: number[] = [];
+      for (let sy = start - 1; sy <= end; sy += 1) {
+        const vs = ks.map((k) => {
+          const yy = k >= s ? sy : sy + 1;
+          return yy < start || yy > end ? null : (value.get(`${yy}-${String(k).padStart(2, "0")}`) ?? null);
+        });
+        if (vs.every((v) => v !== null)) sums.push(vs.reduce<number>((a, v) => a + (v ?? 0), 0));
+      }
+      if (sums.length < 3) {
         expect([j.ytd_lo, j.ytd_hi]).toEqual([null, null]);
         continue;
       }
-      const upTo = by_month.filter((b) => b.month <= Number(month.slice(5)));
-      const lo = upTo.reduce((sum, b) => sum + (b.band_low ?? 0), 0);
-      const hi = upTo.reduce((sum, b) => sum + (b.band_high ?? 0), 0);
+      sums.sort((a, b) => a - b);
+      const med = pct(sums, 0.5);
+      const slack = 2 * Math.sqrt(Math.max(med, 1));
+      const lo = Math.min(pct(sums, 0.15), med - slack);
+      const hi = Math.max(pct(sums, 0.85), med + slack);
+      expect(j.ytd_median).toBeCloseTo(Math.round(med * 10) / 10, 6);
+      if (med > 0) expect(j.ytd_ratio).toBeCloseTo(j.ytd_sum / med, 2);
       if (lo > 0) expect(j.ytd_lo).toBeCloseTo(lo, 6);
       else expect(j.ytd_lo).toBeNull();
       if (hi > 0) expect(j.ytd_hi).toBeCloseTo(hi, 6);

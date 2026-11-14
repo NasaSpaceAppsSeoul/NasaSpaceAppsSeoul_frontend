@@ -39,6 +39,7 @@ export interface Meta {
   labels: {
     country: string; short: string; lv1: string; lv2: string;
     single: boolean; official: string; boundary: string; bins: [number, number, number];
+    season_start: number;               // 시즌(누적) 시작 달. 북반구 1, 남반구 CHL·NSW 7 (백엔드 Country.seasonStart)
   };
   sources: string[];
   time_basis: { code: "UTC+9" | "solar"; label_ko: string };
@@ -95,8 +96,11 @@ export interface Judgement {
   median: number | null; band_low: number | null; band_high: number | null;
   ratio_to_median: number | null;
   ytd_sum: number | null;               // 반올림 안 됨. 표시할 때 소수 한 자리로
-  ytd_ratio: number | null;
-  // 평소 누적 범위: 1월~그 달 band_low·band_high 합. 자체 판정이 아니거나 ytd_sum이 null이거나 합 ≤ 0이면 null
+  // 누적 평년: 시즌 시작 달~그 달의 해마다 누적 합의 중앙값(소수 한 자리, PR #17). 자체 판정이 아니면 null.
+  // 판정 서비스가 옛 빌드면 오지 않는다(2026-11-15) → 화면은 `ytd_sum ÷ ytd_ratio`로 대신한다
+  ytd_median?: number | null;
+  ytd_ratio: number | null;             // ytd_sum ÷ ytd_median
+  // 평소 누적 범위: 해마다 누적 합의 15·85 퍼센타일 ∓ 2√중앙값. 자체 판정이 아니거나 누적 합이 3개 미만이거나 ≤ 0이면 null
   ytd_lo: number | null; ytd_hi: number | null;
   quality: Quality | null; estimated: boolean; status: Status;
   reason: Reason | null;                // 하나만 온다. value·status·region_type·median 을 직접 본다

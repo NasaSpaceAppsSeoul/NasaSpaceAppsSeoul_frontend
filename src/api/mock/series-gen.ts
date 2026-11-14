@@ -20,7 +20,8 @@ export const FIRST_MONTH = "2001-01";
 export const VIIRS_START = "2012-02";
 export const NOAA20_START = "2018-04";
 
-type CountryTimeline = { last: string; nrtFrom: string; season: readonly number[]; nationScale: number };
+/** `seasonStart`: 누적(ytd) 시즌 시작 달, 목 `meta.labels.season_start`와 같은 값(백엔드 `Country.seasonStart`) */
+type CountryTimeline = { last: string; nrtFrom: string; season: readonly number[]; nationScale: number; seasonStart: number };
 
 /** 계절 가중치(1~12월). 한국은 3~4월, 캘리포니아는 7~10월, BC는 7~8월, 그리스는 7~8월, 칠레는 1~2월, NSW는 10~1월이 높다. */
 const TIMELINES: Record<Country, CountryTimeline> = {
@@ -29,36 +30,42 @@ const TIMELINES: Record<Country, CountryTimeline> = {
     nrtFrom: "2026-09",
     season: [0.6, 0.9, 2.6, 2.2, 1.0, 0.3, 0.15, 0.15, 0.2, 0.5, 0.8, 0.5],
     nationScale: 70,
+    seasonStart: 1,
   },
   CAL: {
     last: "2026-11",
     nrtFrom: "2026-08",
     season: [0.2, 0.2, 0.3, 0.4, 0.6, 1.2, 2.0, 2.4, 2.0, 1.6, 0.8, 0.3],
     nationScale: 250,
+    seasonStart: 1,
   },
   BC: {
     last: "2026-11",
     nrtFrom: "2026-09",
     season: [0.1, 0.1, 0.2, 0.5, 0.9, 1.4, 2.8, 3.0, 1.6, 0.6, 0.2, 0.1],
     nationScale: 200,
+    seasonStart: 1,
   },
   GRC: {
     last: "2026-11",
     nrtFrom: "2026-09",
     season: [0.3, 0.4, 0.6, 0.5, 0.5, 0.9, 2.4, 2.8, 1.4, 0.7, 0.4, 0.3],
     nationScale: 40,
+    seasonStart: 1,
   },
   CHL: {
     last: "2026-11",
     nrtFrom: "2026-09",
     season: [2.6, 2.4, 1.6, 0.8, 0.4, 0.2, 0.1, 0.2, 0.3, 0.6, 1.2, 2.0],
     nationScale: 120,
+    seasonStart: 7,
   },
   NSW: {
     last: "2026-11",
     nrtFrom: "2026-09",
     season: [1.8, 0.9, 0.7, 0.6, 0.5, 0.5, 0.6, 0.9, 1.2, 1.8, 2.4, 2.6],
     nationScale: 300,
+    seasonStart: 7,
   },
 };
 

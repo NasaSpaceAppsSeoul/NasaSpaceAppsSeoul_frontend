@@ -5,29 +5,38 @@ import { Badge } from "../Chip";
 
 /*
  * 누적 카드 (screens/kr/dashboard-national.png, 나라 단계만, `decisions.md` 3-5. 모양은 시안 v9 유리 카드).
- * 평소 누적 = `ytd_sum ÷ ytd_ratio`. 비율이 없거나 0이면 그 줄을 뺀다. 환산 범위 줄은 자리만(1-9).
+ * 기간은 시즌 시작 달(`from`, 남반구 7월)부터 그 달까지. 평소 누적은 `ytd_median`(없으면 `ytd_sum ÷ ytd_ratio`, `judgementView`).
+ * 평소 값이 없으면 그 줄을 뺀다. 환산 범위 줄은 자리만(1-9).
  * 집계 중인 달은 덜 찬 누적이라 평소와 비교하지 않고 "집계 중"을 붙인다(숫자 카드가 칩을 숨기는 것과 같은 기준).
  */
 type CumulativeCardProps = {
   month: string;
+  /** 시즌 첫 달 */
+  from: string;
   sum: number;
   usual: number | null;
   partial: boolean;
   stale: boolean;
 };
 
-export function CumulativeCard({ month, sum, usual, partial, stale }: CumulativeCardProps) {
+export function CumulativeCard({ month, from, sum, usual, partial, stale }: CumulativeCardProps) {
   const t = useMessages();
   const c = t.dashboard.cumulative;
   const locale = useLocale();
   const m = monthNumber(month);
-  const span = t.dashboard.monthsSpan(m);
+  const start = monthNumber(from);
+  const span = t.dashboard.monthsSpan(start, m);
+  const title = c.title(
+    { year: monthYear(from), name: formatMonthName(start, locale) },
+    { year: monthYear(month), name: formatMonthName(m, locale) },
+    from === month,
+  );
   return (
     <section
       aria-busy={stale}
       className={`flex flex-col gap-4 glass rounded-card border border-line p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
     >
-      <h2 className="text-base font-medium">{c.title(monthYear(month), m, formatMonthName(m, locale))}</h2>
+      <h2 className="text-base font-medium">{title}</h2>
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-title-lg font-light">
           {formatFireDays(sum, locale)} {t.dashboard.unit}

@@ -37,6 +37,7 @@ export const chl: CountryMock = {
       official: "CONAF",
       boundary: "geoBoundaries CHL (칠레 국회도서관 BCN, CC BY 3.0 IGO)",
       bins: [1, 2, 5],
+      season_start: 7,
     },
     sources: ["NASA FIRMS", "geoBoundaries (BCN, CC BY 3.0 IGO)", "CONAF"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },

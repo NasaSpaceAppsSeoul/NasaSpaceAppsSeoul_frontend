@@ -3,6 +3,8 @@ import { dashboardPath } from "./dashboardPath";
 import { andParticle, formatFireDays, formatMonth, formatRatio } from "./format";
 import { judgementKind, judgementView, numberSize, type JudgementLike } from "./judgementView";
 import { beforeDistrictData, clampMonth, isInRange, monthRange, shiftMonth } from "./month";
+import { ko } from "../i18n/ko";
+import { en } from "../i18n/en";
 import {
   ancestorNames,
   byValueThenName,
@@ -182,13 +184,13 @@ const ref = { id: "경북", label_ko: "경북", value: 948, chip: "record" as co
 
 describe("숫자 카드 분기 (3절, 7가지 순서)", () => {
   it("일반: 칩·배수·순위(기간 포함)", () => {
-    const v = judgementView(base, "NOAA-20");
+    const v = judgementView(base, "NOAA-20", 1);
     expect(v.kind).toBe("normal");
     expect(v.chip).toBe("record");
     expect(v.ratio).toEqual({ median: 174, ratio: 6.28 });
     expect(v.rank).toEqual({ rank: 1, n: 25, period: [2001, 2025] });
     expect(v.converted).toBe(false);
-    expect(v.ytd).toEqual({ sum: 1157, usual: 1157 / 2.5 });
+    expect(v.ytd).toEqual({ sum: 1157, usual: 1157 / 2.5, from: "2025-01" });
   });
 
   it("순서대로 먼저 맞는 하나", () => {
@@ -202,22 +204,22 @@ describe("숫자 카드 분기 (3절, 7가지 순서)", () => {
   });
 
   it("값 없음: 2012년 2월 전은 reason으로 문구를 고르고 빌린 판정 줄을 붙인다", () => {
-    const v = judgementView({ ...base, value: null, chip: null, reason: "PRE_2012_DISTRICT", ref }, null);
+    const v = judgementView({ ...base, value: null, chip: null, reason: "PRE_2012_DISTRICT", ref }, null, 1);
     expect(v.kind).toBe("noValue");
     expect(v.preDistrict).toBe(true);
     expect(v.ref).toEqual({ id: "경북", label: "경북", chip: "record", rank: { rank: 1, n: 25, period: null } });
-    expect(judgementView({ ...base, value: null, reason: null }, null).preDistrict).toBe(false);
+    expect(judgementView({ ...base, value: null, reason: null }, null, 1).preDistrict).toBe(false);
   });
 
   it("감지 기록 없는 지역은 값이 0보다 커도 그 값을 그대로 쓴다", () => {
-    const v = judgementView({ ...base, region_type: "none", value: 3, chip: null, reason: "NO_RECORD", ref }, null);
+    const v = judgementView({ ...base, region_type: "none", value: 3, chip: null, reason: "NO_RECORD", ref }, null, 1);
     expect(v.kind).toBe("noRecord");
     expect(v.value).toBe(3);
     expect(v.chip).toBeNull();
   });
 
   it("집계 중: 칩·순위·빌린 판정 줄을 숨긴다", () => {
-    const v = judgementView({ ...base, status: "partial", chip: "below", ref }, null);
+    const v = judgementView({ ...base, status: "partial", chip: "below", ref }, null, 1);
     expect(v.kind).toBe("partial");
     expect(v.chip).toBeNull();
     expect(v.rank).toBeNull();
@@ -225,38 +227,64 @@ describe("숫자 카드 분기 (3절, 7가지 순서)", () => {
   });
 
   it("드문 지역: 자기 순위는 쓰지 않고 빌린 판정 줄", () => {
-    const v = judgementView({ ...base, region_type: "sparse", chip: null, rank: 3, median: 0, ref }, null);
+    const v = judgementView({ ...base, region_type: "sparse", chip: null, rank: 3, median: 0, ref }, null, 1);
     expect(v.kind).toBe("sparse");
     expect(v.rank).toBeNull();
     expect(v.ref?.label).toBe("경북");
   });
 
   it("일반인데 중앙값·배수·순위가 없으면 그 문장을 빼고, 2026년 달은 기간을 붙이지 않는다", () => {
-    const v = judgementView({ ...base, month: "2026-03", median: null, ratio_to_median: null, n: 26 }, null);
+    const v = judgementView({ ...base, month: "2026-03", median: null, ratio_to_median: null, n: 26 }, null, 1);
     expect(v.ratio).toBeNull();
     expect(v.rank).toEqual({ rank: 1, n: 26, period: null });
-    expect(judgementView({ ...base, rank: null }, null).rank).toBeNull();
+    expect(judgementView({ ...base, rank: null }, null, 1).rank).toBeNull();
   });
 
   it("범위 하한이 음수면 0으로(3-6), 범위 값이 하나라도 없으면 범위 줄을 뺀다", () => {
-    expect(judgementView({ ...base, band_low: -1.3, band_high: 4.2 }, null).band).toEqual({ low: 0, high: 4.2 });
-    expect(judgementView({ ...base, band_low: null }, null).band).toBeNull();
+    expect(judgementView({ ...base, band_low: -1.3, band_high: 4.2 }, null, 1).band).toEqual({ low: 0, high: 4.2 });
+    expect(judgementView({ ...base, band_low: null }, null, 1).band).toBeNull();
   });
 
   it("센서 환산 배지는 그 달 관측 위성에 '→'가 있을 때만(4-3a)", () => {
-    expect(judgementView(base, "S-NPP→NOAA-20").converted).toBe(true);
-    expect(judgementView(base, "NOAA-20").converted).toBe(false);
-    expect(judgementView(base, null).converted).toBe(false);
+    expect(judgementView(base, "S-NPP→NOAA-20", 1).converted).toBe(true);
+    expect(judgementView(base, "NOAA-20", 1).converted).toBe(false);
+    expect(judgementView(base, null, 1).converted).toBe(false);
   });
 
-  it("평소 누적은 비율이 없거나 0이면 빼고, 누적이 없으면 누적도 없다", () => {
-    expect(judgementView({ ...base, ytd_ratio: 0 }, null).ytd).toEqual({ sum: 1157, usual: null });
-    expect(judgementView({ ...base, ytd_ratio: null }, null).ytd).toEqual({ sum: 1157, usual: null });
-    expect(judgementView({ ...base, ytd_sum: null }, null).ytd).toBeNull();
+  it("평소 누적은 ytd_median, 없으면(옛 판정 서비스) 합 ÷ 비율, 비율도 없거나 0이면 빼고, 누적이 없으면 누적도 없다", () => {
+    expect(judgementView({ ...base, ytd_median: 410.5 }, null, 1).ytd).toEqual({ sum: 1157, usual: 410.5, from: "2025-01" });
+    expect(judgementView({ ...base, ytd_median: null }, null, 1).ytd).toEqual({ sum: 1157, usual: null, from: "2025-01" });
+    expect(judgementView({ ...base, ytd_ratio: 0 }, null, 1).ytd).toEqual({ sum: 1157, usual: null, from: "2025-01" });
+    expect(judgementView({ ...base, ytd_ratio: null }, null, 1).ytd).toEqual({ sum: 1157, usual: null, from: "2025-01" });
+    expect(judgementView({ ...base, ytd_sum: null }, null, 1).ytd).toBeNull();
+  });
+
+  it("평소 누적 0이면 줄을 뺀다(두 경로 같게)", () => {
+    expect(judgementView({ ...base, ytd_median: 0 }, null, 1).ytd?.usual).toBeNull();
+  });
+
+  it("누적 문구: 한 달·같은 해·해 넘김, 달 구간(ko/en)", () => {
+    const from = { year: 2025, name: "7월" };
+    expect(ko.dashboard.cumulative.title(from, { year: 2025, name: "7월" }, true)).toBe("2025년 7월 누적");
+    expect(ko.dashboard.cumulative.title({ year: 2026, name: "1월" }, { year: 2026, name: "3월" }, false)).toBe("2026년 1월부터 3월까지 누적");
+    expect(ko.dashboard.cumulative.title(from, { year: 2026, name: "2월" }, false)).toBe("2025년 7월부터 2026년 2월까지 누적");
+    expect(en.dashboard.cumulative.title({ year: 2025, name: "July" }, { year: 2026, name: "February" }, false)).toBe(
+      "Total from July 2025 to February 2026",
+    );
+    expect(ko.dashboard.monthsSpan(1, 3)).toBe("1–3월");
+    expect(ko.dashboard.monthsSpan(7, 2)).toBe("7월–2월");
+    expect(ko.dashboard.monthsSpan(7, 7)).toBe("7월");
+    expect(en.dashboard.monthsSpan(7, 2)).toBe("Jul–Feb");
+  });
+
+  it("남반구(시즌 7월): 누적 시작 달이 시즌 첫 달, 해를 넘긴다", () => {
+    expect(judgementView({ ...base, month: "2026-02" }, null, 7).ytd?.from).toBe("2025-07");
+    expect(judgementView({ ...base, month: "2025-07" }, null, 7).ytd?.from).toBe("2025-07");
+    expect(judgementView({ ...base, month: "2025-12" }, null, 7).ytd?.from).toBe("2025-07");
   });
 
   it("준실시간 표시", () => {
-    expect(judgementView({ ...base, status: "nrt" }, null).nrt).toBe(true);
+    expect(judgementView({ ...base, status: "nrt" }, null, 1).nrt).toBe(true);
   });
 });
 

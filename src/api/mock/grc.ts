@@ -37,6 +37,7 @@ export const grc: CountryMock = {
       official: "그리스 소방청",
       boundary: "geoBoundaries GRC (EuroGeographics, CC BY 4.0)",
       bins: [1, 2, 3],
+      season_start: 1,
     },
     sources: ["NASA FIRMS", "geoBoundaries (EuroGeographics, CC BY 4.0)", "그리스 소방청"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },
