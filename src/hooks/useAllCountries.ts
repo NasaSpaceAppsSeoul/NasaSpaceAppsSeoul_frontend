@@ -39,7 +39,7 @@ export function useAllLanding() {
   return { byCountry: byCountry<Landing>(list), list };
 }
 
-/** 여섯 지역의 `/regions`. `enabled`가 거짓이면 묻지 않는다(첫 화면 검색 "전체"에서 입력할 때만) */
+/** 여섯 지역의 `/regions`. `enabled`가 거짓이면 묻지 않는다(첫 화면 검색 대화상자가 "전체" 칩으로 열려 있는 동안만 묻는다, 입력 전에도) */
 export function useAllRegions(enabled: boolean) {
   const list = useQueries({ queries: COUNTRIES.map((c) => ({ ...regionsQuery(c), enabled })) });
   return { byCountry: byCountry<RegionsResponse>(list), list };

@@ -97,7 +97,7 @@ export function basisValue(data: SeriesMonthLike, basis: Basis): number | null {
   return basis === "raw" ? data.raw_before : data.value;
 }
 
-/** 보정 전 값이 한 달이라도 있는가. 시·도는 서버가 늘 null로 준다(2026-11-15 확인) → 보정 전 전환을 막는다 */
+/** 보정 전 값이 한 달이라도 있는가. 하나도 없는 지역은 보정 전 전환을 막는다(시·도는 백엔드 PR #24부터 소속 시·군·구 합으로 값이 온다) */
 export function hasRawValues(months: readonly SeriesMonthLike[]): boolean {
   // 칸에 그리는 판정(`basisValue`)과 같은 기준: 보정 후 값이 없는 달의 보정 전 0만 있으면 전환해도 빈 격자다
   return months.some((m) => basisValue(m, "raw") !== null);

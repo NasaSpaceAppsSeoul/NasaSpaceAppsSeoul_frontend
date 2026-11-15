@@ -16,7 +16,8 @@ import type { RegionIndex } from "../../../lib/region";
 
 /*
  * 첫 화면 히어로의 지역 검색 대화상자 (`plans/about-revise.md` 11절). 예전 "지역 둘러보기"를 합쳤다.
- * 입력 전에는 나라 목록(`COUNTRIES`) 아래 한국 시·도를 들여 쓴 계층 목록, 입력하면 한국 시·도·시·군·구를 거른다(소개는 한국 고정, 2-7).
+ * 입력 전에는 나라 목록(`COUNTRIES` 여섯 곳), 나라 칩을 고르면 그 나라 줄 아래 시·도(단일 단계 나라는 카운티 등)를 들여 쓴 계층 목록.
+ * 입력하면 고른 나라의, "전체"면 여섯 나라의 시·도·시·군·구를 거른다(아래 칩 설명).
  * 나라 줄 보조 글자는 "나라 대시보드 · 그 나라 `/meta`의 자료 끝 달"(받았을 때만). 준비 안 된 나라는 빼고 그린다(2-6).
  * 고르면 그 대시보드로 간다. 달은 붙이지 않는다(최신 달, 7-2).
  * 검색 칸 위 나라 칩(UI 다듬기 2026-11-15): 나라를 고르면 그 나라 줄과 그 나라 `/regions`로 목록·검색을 바꾼다.
@@ -38,7 +39,7 @@ export function HeroDialogs({ open, close: closeDialog, regions: korRegions, ind
   const h = t.about.hero;
   const locale = useLocale();
   const navigate = useNavigate();
-  // 나라 칩(UI 다듬기 2026-11-15): `null`은 "전체" = 대화상자 처음 모습(나라 목록 + 한국 시·도). 닫으면 처음으로 되돌린다
+  // 나라 칩(UI 다듬기 2026-11-15): `null`은 "전체" = 대화상자 처음 모습(나라 줄만). 닫으면 처음으로 되돌린다
   const [chip, setChip] = useState<Country | null>(null);
   const close = () => {
     setChip(null);
