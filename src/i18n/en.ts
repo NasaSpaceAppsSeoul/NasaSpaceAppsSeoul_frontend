@@ -624,6 +624,7 @@ export const en: Messages = {
       place: "Location",
       cause: "Cause",
       area: "Area (ha)",
+      areaSmall: "<0.1",
       empty: "No official record this month. A fire spanning several regions is recorded in only one of them.",
       rate: (since: string, n: string, detected: string, days: number, percent: number) =>
         `Since ${since}, satellites detected ${detected} of ${n} official records within ${days} days (${percent}%).`,

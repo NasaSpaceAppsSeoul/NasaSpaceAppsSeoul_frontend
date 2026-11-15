@@ -344,6 +344,12 @@ export function neighborRows(
 type OfficialLike = { date: string; place: string; cause: string; area_ha: number };
 export type OfficialRow = { key: string; date: string; place: string; cause: string; area: number | null };
 
+/**
+ * 면적을 소수 한 자리로 쓰면 0이 되는 작은 값의 경계. 이보다 작은 면적은 "0.1 미만"으로 쓴다(9장 2차: 그리스 기록에 0.01~0.03 ha가 많다).
+ * 기법 페이지 감지율 구간 "0.1 ha 미만"과 같은 경계
+ */
+export const SMALL_AREA_HA = 0.1;
+
 /** 면적 0은 "모름"일 수 있어 빈칸(`null`, 8-4). 기록에 ID가 없어 key는 날짜·장소·순번 */
 export function officialRows(items: readonly OfficialLike[]): OfficialRow[] {
   return items.map((item, i) => ({

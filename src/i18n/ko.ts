@@ -655,6 +655,8 @@ export const ko = {
       place: "위치",
       cause: "원인",
       area: "면적(ha)",
+      // 0보다 크고 0.1 ha보다 작은 면적(소수 한 자리로 쓰면 0이 된다)
+      areaSmall: "0.1 미만",
       empty: "이 달의 공식 기록이 없습니다. 여러 지역에 걸친 산불은 한 지역에만 기록됩니다.",
       rate: (since: string, n: string, detected: string, days: number, percent: number) =>
         `${since}부터 공식 기록 ${n}건 중 ${detected}건을 위성이 ${days}일 안에 감지했습니다(${percent}%).`,
