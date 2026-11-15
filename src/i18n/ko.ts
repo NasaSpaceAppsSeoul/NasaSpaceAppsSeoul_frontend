@@ -11,7 +11,7 @@ function objectParticle(word: string): "을" | "를" {
 const AS_RECEIVED: Readonly<Record<string, string>> = {};
 
 export const ko = {
-  brand: "Burnline",
+  brand: "Hwaruruk",
   language: {
     label: "언어",
     ko: "KR",
@@ -193,7 +193,7 @@ export const ko = {
   },
   // 푸터(참고 소스 `burnline-landing 6` 첫 화면 문구 그대로, 2026-11-15)
   footer: {
-    brand: "Burnline",
+    brand: "Hwaruruk",
     source: "자료 출처: NASA FIRMS",
     si: "디자인 및 웹 구현 과정에서 SI를 활용했습니다.",
     note: "과거 화재 활동 기록 · 실시간 경보 서비스가 아닙니다",
@@ -441,7 +441,7 @@ export const ko = {
         title: (name: string, from: number, to: number) => `${name} · 연도별·월별 화재 달력 ${from}–${to}`,
         sub: "화재 감지일 · NOAA-20 기준 보정값 · 한 달에 점 하나",
         subRaw: "화재 감지일 · 보정 전(위성이 남긴 원래 기록) · 한 달에 점 하나",
-        source: (dataEnd: string) => `출처: NASA FIRMS · 자료 기준일 ${dataEnd} · Burnline`,
+        source: (dataEnd: string) => `출처: NASA FIRMS · 자료 기준일 ${dataEnd} · Hwaruruk`,
         period: (from: number, to: number) => `색 구간: 이 지역 0이 아닌 월값의 50·75·90 퍼센타일 · 평소 비교 기간 ${from}–${to}`,
         // 보정 전 그림도 색 구간은 보정 후 값으로 계산한 같은 경계다(`heat_bins`)
         periodRaw: (from: number, to: number) =>

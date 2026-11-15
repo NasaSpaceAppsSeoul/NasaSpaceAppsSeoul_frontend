@@ -43,10 +43,10 @@ describe("달력 PNG 배치 (9장)", () => {
   });
 
   it("파일 이름: 나라·지역 ID, 파일에 못 쓰는 글자는 _", () => {
-    expect(csvFileName("KOR", "경북")).toBe("burnline_KOR_경북.csv");
-    expect(calendarFileName("CHL", "Región de Antofagasta")).toBe("burnline_CHL_Región_de_Antofagasta_calendar.png");
-    expect(calendarFileName("KOR", "KOR", "raw")).toBe("burnline_KOR_KOR_calendar_raw.png");
-    expect(csvFileName("KOR", "a/b")).toBe("burnline_KOR_a_b.csv");
+    expect(csvFileName("KOR", "경북")).toBe("hwaruruk_KOR_경북.csv");
+    expect(calendarFileName("CHL", "Región de Antofagasta")).toBe("hwaruruk_CHL_Región_de_Antofagasta_calendar.png");
+    expect(calendarFileName("KOR", "KOR", "raw")).toBe("hwaruruk_KOR_KOR_calendar_raw.png");
+    expect(csvFileName("KOR", "a/b")).toBe("hwaruruk_KOR_a_b.csv");
   });
 
   it("칸 상태 → 그림 모양(빈칸은 그리지 않음, 환산 점무늬는 모양과 따로)", () => {

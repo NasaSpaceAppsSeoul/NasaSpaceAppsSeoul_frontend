@@ -142,7 +142,7 @@ describe("머리글", () => {
     // 첫 banner가 사이트 머리글(화면 안 `header`도 banner로 잡힌다)
     const header = within(screen.getAllByRole("banner")[0] as HTMLElement);
     expect(header.queryByRole("navigation")).toBeNull();
-    expect(header.getByRole("link", { name: "Burnline" }).getAttribute("href")).toBe("/en");
+    expect(header.getByRole("link", { name: "Hwaruruk" }).getAttribute("href")).toBe("/en");
     expect(header.getByRole("group", { name: "Language" })).toBeTruthy();
     cleanup();
 
@@ -153,12 +153,12 @@ describe("머리글", () => {
 });
 
 describe("푸터", () => {
-  it("참고안 문구 세 칸(Burnline · 자료 출처·SI · 서비스 성격), 목 모드 표시 줄은 없다", async () => {
+  it("참고안 문구 세 칸(Hwaruruk · 자료 출처·SI · 서비스 성격), 목 모드 표시 줄은 없다", async () => {
     renderAt("/dashboard/CAL");
     await heading();
     expect(screen.queryByRole("note")).toBeNull();
     const footer = within(screen.getByRole("contentinfo"));
-    expect(footer.getByText("Burnline")).toBeTruthy();
+    expect(footer.getByText("Hwaruruk")).toBeTruthy();
     expect(footer.getByText("자료 출처: NASA FIRMS")).toBeTruthy();
     expect(footer.getByText("디자인 및 웹 구현 과정에서 SI를 활용했습니다.")).toBeTruthy();
     expect(footer.getByText("과거 화재 활동 기록 · 실시간 경보 서비스가 아닙니다")).toBeTruthy();

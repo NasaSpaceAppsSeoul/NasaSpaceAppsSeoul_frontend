@@ -2,7 +2,7 @@ import type { Messages } from "./ko";
 
 /** 영어 문구. 디자인 영문판에서 그대로 옮긴다. */
 export const en: Messages = {
-  brand: "Burnline",
+  brand: "Hwaruruk",
   language: {
     label: "Language",
     ko: "KR",
@@ -166,7 +166,7 @@ export const en: Messages = {
     reload: "Reload",
   },
   footer: {
-    brand: "Burnline",
+    brand: "Hwaruruk",
     source: "Data source: NASA FIRMS",
     si: "SI was used in the design and development of this website.",
     note: "Historical fire activity · not a real-time alert service",
@@ -413,7 +413,7 @@ export const en: Messages = {
         title: (name: string, from: number, to: number) => `${name} · Fire calendar by year and month ${from}–${to}`,
         sub: "Fire grid-days · harmonized to NOAA-20 · one dot per month",
         subRaw: "Fire grid-days · raw (original sensor records) · one dot per month",
-        source: (dataEnd: string) => `Source: NASA FIRMS · data through ${dataEnd} · Burnline`,
+        source: (dataEnd: string) => `Source: NASA FIRMS · data through ${dataEnd} · Hwaruruk`,
         period: (from: number, to: number) => `Color bands: 50·75·90th percentiles of this area's non-zero months · usual period ${from}–${to}`,
         periodRaw: (from: number, to: number) =>
           `Color bands: 50·75·90th percentiles of this area's non-zero harmonized months (same bands on the raw view) · usual period ${from}–${to}`,
