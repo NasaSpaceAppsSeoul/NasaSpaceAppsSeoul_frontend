@@ -17,20 +17,26 @@ type InsightTableProps = {
   fixed?: boolean;
   /** 오른쪽 정렬할 열 번호(요약 줄의 2~4열) */
   alignRight?: readonly number[];
-  /** 둥근 테두리 틀로 감싼다(기법 페이지 표와 같은 `rounded-xl border`). 인사이트는 카드가 없어 표가 맨바닥에 놓이므로 켠다 */
+  /**
+   * 인사이트 표 모양(참고안 테마, 2026-11-15 디자이너): 틀·회색 머리 바탕 없이 머리 줄 13px 흐림 + 아래 흰 14% 선,
+   * 줄 사이 흰 8% 선, 본문 보통 굵기 #ecece8, 강조 줄은 옅은 주황 바탕. 첫 열은 절 글과 같은 선에서 시작한다.
+   * 기법 페이지는 이 표시 없이 쓴다(그쪽 모양은 그대로).
+   */
   framed?: boolean;
 };
 
 export function InsightTable({ caption, head, rows, variant = "data", fixed = false, alignRight = [], framed = false }: InsightTableProps) {
   const align = (i: number) => (alignRight.includes(i) ? "text-right" : "text-left");
+  // 인사이트 모양은 첫 열 왼쪽·마지막 열 오른쪽 여백을 없애 절 글과 같은 선에 맞춘다
+  const pad = (i: number) => (framed ? `px-4 ${i === 0 ? "pl-0" : ""} ${i === head.length - 1 ? "pr-0" : ""}` : "px-4");
   return (
-    <div data-reveal={framed ? "" : undefined} className={framed ? "overflow-x-auto overflow-y-hidden rounded-xl border border-line" : "overflow-x-auto"}>
+    <div data-reveal={framed ? "" : undefined} className="overflow-x-auto">
       <table className={`w-full border-collapse text-sm ${fixed ? "table-fixed" : ""}`.trim()}>
         <caption className="sr-only">{caption}</caption>
-        <thead className="bg-wash text-muted">
+        <thead className={framed ? "border-b border-white/14 text-[13px] text-[#a9b2bf]" : "bg-wash text-muted"}>
           <tr>
             {head.map((title, i) => (
-              <th key={title} scope="col" className={`px-4 py-3 font-normal ${align(i)}`}>
+              <th key={title} scope="col" className={`${pad(i)} ${framed ? "pt-0 pb-2.5" : "py-3"} font-normal ${align(i)}`}>
                 {title}
               </th>
             ))}
@@ -40,17 +46,19 @@ export function InsightTable({ caption, head, rows, variant = "data", fixed = fa
           {rows.map((row) => (
             <tr
               key={row.key}
-              className={`border-b border-border text-ink ${
-                row.highlight === true ? "bg-tone-orange" : variant === "plain" ? "" : "font-semibold"
-              }`.trim()}
+              className={
+                framed
+                  ? `border-b border-white/8 text-[#ecece8] ${row.highlight === true ? "bg-[rgba(233,163,107,0.1)]" : ""}`.trim()
+                  : `border-b border-border text-ink ${row.highlight === true ? "bg-tone-orange" : variant === "plain" ? "" : "font-semibold"}`.trim()
+              }
             >
               {row.cells.map((cell, i) =>
                 i === 0 ? (
-                  <th key={head[i] ?? "col-0"} scope="row" className={`px-4 py-3 [font-weight:inherit] ${align(i)}`}>
+                  <th key={head[i] ?? "col-0"} scope="row" className={`${pad(i)} py-3 [font-weight:inherit] ${align(i)}`}>
                     {cell}
                   </th>
                 ) : (
-                  <td key={head[i] ?? `col-${i}`} className={`px-4 py-3 ${align(i)}`}>
+                  <td key={head[i] ?? `col-${i}`} className={`${pad(i)} py-3 ${align(i)}`}>
                     {cell}
                   </td>
                 ),
