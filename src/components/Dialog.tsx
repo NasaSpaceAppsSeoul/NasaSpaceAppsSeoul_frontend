@@ -43,6 +43,11 @@ type DialogProps = {
    * 높이가 바뀌어도 위 가장자리가 움직이지 않고 아래로만 늘고 줄게 한다(2026-11-14 사용자 확인).
    */
   placement?: "center" | "top";
+  /**
+   * 높이를 고정하고 안쪽 전체 대신 자식이 정한 부분만 스크롤한다(검색 대화상자: 목록만, 참고 소스 `.ps-modal`
+   * `min(680px, 화면 − 32px)`, UI 다듬기 2026-11-15). 위쪽 붙임의 최대 높이 84vh 안에서. 자식은 `flex-1 min-h-0`으로 남은 높이를 채운다
+   */
+  fixedHeight?: boolean;
 };
 
 /*
@@ -54,7 +59,7 @@ const PLACEMENT = {
   top: "mx-auto mt-[8vh] mb-auto max-h-[84vh]",
 } as const;
 
-export function Dialog({ open, onClose, title, description, children, placement = "center" }: DialogProps) {
+export function Dialog({ open, onClose, title, description, children, placement = "center", fixedHeight = false }: DialogProps) {
   const t = useMessages();
   const titleId = useId();
   const descriptionId = useId();
@@ -95,12 +100,12 @@ export function Dialog({ open, onClose, title, description, children, placement 
       // 스크롤은 안쪽에서만 생기게 해 대화상자 자신(바깥으로 판정됨)의 스크롤바를 누르는 일이 없게 한다.
       // 모양은 카드와 같은 유리 재료(진한 반투명 + 흐림 24px + 흰 선 하나), 뒤 막은 어둡게 흐려 별이 살짝 비친다
       className={
-        `${PLACEMENT[placement]} flex-col w-full max-w-xl overflow-hidden open:flex rounded-card border border-line ` +
+        `${PLACEMENT[placement]} ${fixedHeight ? "h-[min(680px,84vh)]" : ""} flex-col w-full max-w-xl overflow-hidden open:flex rounded-card border border-line ` +
         "bg-dialog p-0 text-ink shadow-[0_24px_80px_#0006] backdrop-blur-[24px] backdrop-saturate-[1.1] " +
         "backdrop:bg-scrim backdrop:backdrop-blur-[8px]"
       }
     >
-      <div className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto p-6">
+      <div className={`flex min-h-0 w-full flex-col gap-4 p-6 ${fixedHeight ? "h-full overflow-hidden" : "overflow-y-auto"}`}>
         <header className="flex items-center justify-between gap-4">
           <h2 id={titleId} className="text-xl font-semibold">
             {title}

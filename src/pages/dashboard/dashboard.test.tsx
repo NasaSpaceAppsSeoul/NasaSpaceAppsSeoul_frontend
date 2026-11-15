@@ -253,13 +253,17 @@ describe("선택 줄과 대화상자", () => {
     await waitFor(() => expect(router.state.location.search).toBe("?month=2026-11"));
   });
 
-  it("나라 이름만 맞는 검색어는 결과 없음(나라는 맨 위 버튼으로 고른다)", async () => {
+  it("나라 이름만 맞는 검색어는 그 나라 줄만 맨 위에 남고, 다른 나라 줄은 빠진다(UI 다듬기)", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     fireEvent.click(await screen.findByRole("button", { name: /지역 검색/ }));
     const dialog = await screen.findByRole("dialog", { name: "지역 검색" });
-    fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "대한민국" } });
-    expect(within(dialog).getByText("맞는 지역이 없습니다.")).toBeTruthy();
+    const box = within(dialog).getByRole("searchbox");
+    fireEvent.change(box, { target: { value: "대한민국" } });
+    expect(within(dialog).queryByText("맞는 지역이 없습니다.")).toBeNull();
     expect(within(dialog).getAllByRole("button", { name: "대한민국" })).toHaveLength(1);
+    expect(within(dialog).queryByRole("button", { name: "캘리포니아" })).toBeNull();
+    // 남은 줄이 하나뿐이라 강조된다(Enter로 열 수 있다)
+    expect(document.getElementById(box.getAttribute("aria-activedescendant") ?? "")?.textContent).toBe("대한민국");
   });
 
   it("검색어로 시·군·구를 찾아 간다", async () => {

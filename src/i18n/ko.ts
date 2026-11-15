@@ -9,11 +9,6 @@ function objectParticle(word: string): "을" | "를" {
 
 export const ko = {
   brand: "Burnline",
-  nav: {
-    label: "주 메뉴",
-    about: "소개",
-    dashboard: "대시보드",
-  },
   language: {
     label: "언어",
     ko: "KR",
@@ -31,19 +26,16 @@ export const ko = {
     hero: {
       eyebrow: "MODIS + VIIRS 화재 기록",
       // 줄바꿈은 문구 안의 "\n"
-      title: "더 길게 보는\n화재 기록.",
-      lead: "대한민국의 화재 기록을 나라 전체부터 시·군·구까지 살펴보고, 매달을 지난 기록과 비교해 보세요.",
+      // 제목·설명은 참고 소스 히어로 문구(UI 다듬기 2026-11-15 사용자)
+      title: "화재를,\n더 길게 보다.",
+      lead: "6개국의 위성 화재 기록을 살펴보세요. 제공된 연구 영역에서 지역 단위까지 좁혀 들어가고, 각 달을 과거와 비교할 수 있습니다.",
       howItWorks: "작동 방식 보기",
       scrollCue: "스크롤해서 읽기",
-      // 검색 줄 오른쪽 밝은 칸(장식, 줄 전체가 검색 버튼). 예전 "지역 둘러보기"는 검색에 합쳤다(about-revise 11절)
+      // 검색 줄 읽는 이름의 앞부분. 예전 "지역 둘러보기"는 검색에 합쳤다(about-revise 11절)
       find: "지역 찾기",
-      // 예시 줄: 앞말 + 지역 링크(받기 전에는 `examples` 글 그대로)
-      examplesLead: "예:",
-      examples: "예: 경북 의성 · 강원 고성 · 대구 중구",
-      examplesLabel: "예시 지역",
-      countriesLabel: "나라별 대시보드",
-      countryLink: (country: string) => `${country} →`,
-      countryNotReady: (country: string) => `${country} · 준비 중`,
+      // 검색 줄 안 글자와 아래 흰 버튼(참고 소스 히어로, UI 다듬기 2026-11-15)
+      searchPrompt: "지역 찾기: 의성군, 캘리포니아, 아티카…",
+      dashboard: "대시보드 보기",
       countryRowSub: "나라 대시보드",
       dataEnd: (date: string) => `${date}까지 자료`,
     },
@@ -101,13 +93,32 @@ export const ko = {
       legendHelpLabel: "점선과 실선의 뜻",
       legendHelp:
         "점선 막대는 값이 아직 확정되지 않은 달입니다. 그 달이 아직 끝나지 않았거나(집계 중), 확정 자료가 나오기 전의 빠른 처리 자료(준실시간)라서 나중에 값이 달라질 수 있습니다. 실선 막대는 확정된 값입니다.",
+      // 나라 칩과 칩 아래 자료 범위(참고 소스 `burnline-landing 4` `.study-area-tabs`·`coverageText`, UI 다듬기 2026-11-15).
+      // 구역 수는 서버 `/regions`(2026-11-15). 그리스·칠레 문구는 참고 소스에 없어 새로 씀(사용자 승인)
+      chipsLabel: "지역 고르기",
+      coverage: {
+        KOR: "대한민국 전체(시·도 17, 시·군·구 229)입니다.",
+        CAL: "미국 가운데 캘리포니아만 제공합니다. 다른 주의 자료는 없습니다.",
+        BC: "캐나다 가운데 브리티시컬럼비아만 제공합니다. 다른 주의 자료는 없습니다.",
+        GRC: "그리스 전체(주 14, 시군 325)입니다.",
+        CHL: "칠레 전체(주 16, 시군 345)입니다.",
+        NSW: "호주 가운데 뉴사우스웨일스만 제공합니다. 다른 주의 자료는 없습니다.",
+      },
     },
     // 03 신뢰와 한계 (새 시안 v9 "03 / TRUST & LIMITS" 번역). 단위 설명은 공용 푸터 문구(`footer.unit`)와 같은 사실
     limits: {
       index: "03 / 신뢰와 한계",
       title: "기록을 읽고\n한계를 알기.",
       body: "위성 기록은 불을 놓칠 수 있습니다. 화재 감지일 하나는 약 1 km 칸에서 하루 동안 불이 감지된 것을 셉니다. 화재 건수나 피해 면적이 아닙니다.",
-      guidance: "변화를 해석하기 전에 관측 기준(센서)과 자료 범위를 확인하세요.",
+      // 구분선 아래 안내(참고 소스 `burnline-landing 4` `.limits-guidance` 문구, UI 다듬기 2026-11-15). 날짜는 서버 `/meta` `data_end`.
+      // 지역마다 날짜가 다르면 범위와 "(지역마다 다름)". 여섯 지역을 다 받기 전이나 한 곳이라도 실패하면 날짜 문장을 뺀다
+      guidance: {
+        date: (span: string, varies: boolean) => `자료 기준일: ${span}${varies ? "(지역마다 다름)" : ""}.`,
+        collecting: (month: string) => `${month}은 아직 집계 중이며 준실시간(NRT) 기록은 잠정값입니다.`,
+        provisional: "준실시간(NRT) 기록은 잠정값입니다.",
+        coverage:
+          "미국·캐나다·호주는 각각 캘리포니아·브리티시컬럼비아·뉴사우스웨일스만 포함합니다. 변화를 해석하기 전에 지역 범위를 확인하세요.",
+      },
       dashboard: "대시보드 보기",
     },
     // 히어로 3D 지구 (Make 원문 번역). 위성은 개념도라 출처 줄에 "개념도"를 남긴다(about-revise 10절 ③)
@@ -337,6 +348,12 @@ export const ko = {
       truncated: "결과가 많습니다. 검색어를 더 입력하세요.",
       // 입력 전 계층 목록 끝 안내(about-revise 11절)
       searchHint: "시·군·구와 카운티는 이름을 입력해 찾으세요.",
+      // 검색 칸 위 나라 칩·아래 키 안내(참고 소스 `burnline-landing 4` `PlaceSearch`, UI 다듬기 2026-11-15).
+      // 일부 주만 있는 나라는 "나라 · 주"로 쓴다(참고 칩 모양). "전체"는 대화상자 처음 모습으로 되돌린다
+      chipsLabel: "나라 고르기",
+      chipAll: "전체",
+      chipParent: { CAL: "미국", BC: "캐나다", NSW: "호주" } as Partial<Record<string, string>>,
+      searchKeys: "↑ ↓ 이동 · Enter 열기 · Esc 닫기",
       monthTitle: "기준 월 선택",
       monthDescription: (first: string, last: string) => `${first}부터 ${last}까지 고를 수 있습니다.`,
       previousYear: "이전 해",

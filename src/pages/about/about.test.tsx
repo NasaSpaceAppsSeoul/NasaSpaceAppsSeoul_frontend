@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { EarthErrorBoundary } from "../../components/about/EarthPanel";
 import { lazy, Suspense } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -29,10 +29,18 @@ describe("소개 화면 (목)", () => {
     const section = within(await screen.findByRole("region", { name: "기록을 읽고\n한계를 알기." }));
     expect(section.getByText(/^위성 기록은 불을 놓칠 수 있습니다/)).toBeTruthy();
     expect(section.getByRole("link", { name: "대시보드 보기" }).getAttribute("href")).toBe("/dashboard");
+    // 자료 기준일(UI 다듬기): 여섯 지역 목 `data_end`가 10-31~11-14로 달라 범위와 "(지역마다 다름)", 마지막 날의 달은 집계 중
+    expect(
+      await section.findByText(
+        "자료 기준일: 2026년 10월 31일–11월 14일(지역마다 다름). 11월은 아직 집계 중이며 준실시간(NRT) 기록은 잠정값입니다. " +
+          "미국·캐나다·호주는 각각 캘리포니아·브리티시컬럼비아·뉴사우스웨일스만 포함합니다. 변화를 해석하기 전에 지역 범위를 확인하세요.",
+      ),
+    ).toBeTruthy();
     cleanup();
     renderRoute("/en");
     const en = within(await screen.findByRole("region", { name: "Read the record.\nKnow its limits." }));
     expect(en.getByRole("link", { name: "Explore dashboard" }).getAttribute("href")).toBe("/en/dashboard");
+    expect(await en.findByText(/^Snapshot: 31 October–14 November 2026 \(varies by region\)\. November is incomplete/)).toBeTruthy();
   });
 
   it("자료를 받기 전에는 검색 줄을 막고 숫자 구역은 회색 자리, 받으면 연다", async () => {
@@ -46,23 +54,99 @@ describe("소개 화면 (목)", () => {
     expect(screen.queryByRole("button", { name: "지역 둘러보기" })).toBeNull();
   });
 
-  it("검색 대화상자 첫 화면: 나라 6개(`COUNTRIES`), 대한민국 아래 시·도 17곳(소속 표시), 고르면 그 대시보드", async () => {
+  it("검색 대화상자 첫 화면('전체'): 나라 줄 6개만(시·도는 펼치지 않음), 입력하면 여섯 나라에서 찾아 나라별로 묶고 고르면 그 대시보드", async () => {
     const { router } = renderRoute("/");
     const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
     await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
     fireEvent.click(search);
     const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
     expect(dialog.getAllByText(/^나라 대시보드 · 2026년 1\d월까지 자료$/)).toHaveLength(COUNTRIES.length);
-    const provinces = dialog.getByRole("list", { name: "대한민국" });
-    expect(within(provinces).getAllByText("시·도 · 대한민국")).toHaveLength(17);
+    expect(dialog.queryByRole("list", { name: "대한민국" })).toBeNull();
+    expect(dialog.queryByText("시·도 · 대한민국")).toBeNull();
 
-    fireEvent.click(within(provinces).getByRole("button", { name: /^경북/ }));
+    // 한국 밖 지역도 찾는다(캘리포니아 카운티), 결과는 나라 이름 아래에 단계·소속과 함께
+    const input = dialog.getByRole("searchbox");
+    fireEvent.change(input, { target: { value: "Los" } });
+    expect(await dialog.findByRole("heading", { name: "캘리포니아" })).toBeTruthy();
+    expect(dialog.getByRole("button", { name: /^Los Angeles.*카운티 · 캘리포니아$/ })).toBeTruthy();
+    fireEvent.change(input, { target: { value: "경북" } });
+    fireEvent.click((await dialog.findAllByRole("button", { name: /^경북.*시·도/ }))[0] as HTMLElement);
     await waitFor(() => expect(router.state.location.pathname).toBe(`/dashboard/KOR/${encodeURIComponent("경북")}`));
+  });
+
+  it("검색 대화상자 칩(UI 다듬기): 나라를 고르면 그 나라만·그 나라 안에서 검색, ↑↓·Enter로 열고, 전체는 처음 모습으로", async () => {
+    const { router } = renderRoute("/");
+    const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
+    await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(search);
+    const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
+    const chips = within(dialog.getByRole("group", { name: "나라 고르기" }));
+    // 전체 + 여섯 나라, 일부 주만 있는 나라는 "나라 · 주"
+    expect(chips.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "전체",
+      "대한민국",
+      "미국·캘리포니아",
+      "캐나다·브리티시컬럼비아",
+      "그리스",
+      "칠레",
+      "호주·뉴사우스웨일스",
+    ]);
+    expect(chips.getByRole("button", { name: "전체" }).getAttribute("aria-pressed")).toBe("true");
+    expect(dialog.getByText("↑ ↓ 이동 · Enter 열기 · Esc 닫기")).toBeTruthy();
+    // 입력 전에는 강조가 없어 Enter가 아무 데도 가지 않는다. 결과가 없을 때도 같다
+    const box = dialog.getByRole("searchbox");
+    expect(box.getAttribute("aria-activedescendant")).toBeNull();
+    fireEvent.keyDown(box, { key: "Enter" });
+    fireEvent.change(box, { target: { value: "없는지역이름" } });
+    expect(await dialog.findByText("맞는 지역이 없습니다.")).toBeTruthy();
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(router.state.location.pathname).toBe("/");
+    // 같은 이름이 여러 곳("동구": 광주·대구·울산…)이면 자동으로 고르지 않는다. ↓로 골라야 연다
+    fireEvent.change(box, { target: { value: "동구" } });
+    expect((await dialog.findAllByRole("button", { name: /^동구/ })).length).toBeGreaterThan(1);
+    expect(box.getAttribute("aria-activedescendant")).toBeNull();
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(router.state.location.pathname).toBe("/");
+    fireEvent.change(box, { target: { value: "" } });
+
+    // 캘리포니아 칩: 나라 줄은 캘리포니아만, 입력은 캘리포니아 카운티에서 찾는다
+    fireEvent.click(chips.getByRole("button", { name: /^미국/ }));
+    await waitFor(() => expect(dialog.getAllByRole("button", { name: /나라 대시보드/ })).toHaveLength(1));
+    expect(dialog.getByRole("button", { name: /^캘리포니아/ })).toBeTruthy();
+    // 시·도 단계가 없는 나라는 나라 줄 아래에 카운티를 들여 쓴다(목 카운티 6곳)
+    expect(within(await dialog.findByRole("list", { name: "캘리포니아" })).getAllByText("카운티 · 캘리포니아")).toHaveLength(6);
+    expect(dialog.queryByRole("status")).toBeNull();
+    const input = dialog.getByRole("searchbox");
+    fireEvent.change(input, { target: { value: "Los" } });
+    expect(await dialog.findByRole("button", { name: /^Los Angeles/ })).toBeTruthy();
+    // 입력 중에는 찾은 것만 위에(이름이 안 맞는 나라 줄은 빠진다). 결과가 하나뿐이면 그 줄을 강조(화면 낭독기용 활성 줄도 그 줄)
+    expect(dialog.queryByRole("button", { name: /나라 대시보드/ })).toBeNull();
+    const activeName = () => document.getElementById(input.getAttribute("aria-activedescendant") ?? "")?.textContent ?? "";
+    expect(activeName()).toMatch(/^Los Angeles/);
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(activeName()).toMatch(/^Los Angeles/);
+    // Enter → 그 카운티 대시보드
+    fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard/CAL/52423323B10000000000005"));
+  });
+
+  it("검색 대화상자 칩 '전체'는 처음 모습(나라 줄 6개만)으로 되돌린다", async () => {
+    renderRoute("/");
+    const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
+    await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(search);
+    const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
+    const chips = within(dialog.getByRole("group", { name: "나라 고르기" }));
+    fireEvent.click(chips.getByRole("button", { name: "칠레" }));
+    await waitFor(() => expect(dialog.getAllByRole("button", { name: /나라 대시보드/ })).toHaveLength(1));
+    fireEvent.click(chips.getByRole("button", { name: "전체" }));
+    expect(dialog.getAllByRole("button", { name: /나라 대시보드/ })).toHaveLength(COUNTRIES.length);
+    expect(dialog.queryByRole("list", { name: "칠레" })).toBeNull();
   });
 
   it("검색 대화상자에서 나라를 고르면 그 나라 대시보드(영어)", async () => {
     const { router } = renderRoute("/en");
-    const search = screen.getByRole("button", { name: "Find a region, Search a country, province, city or county" });
+    const search = screen.getByRole("button", { name: "Find a place, Search a country, province, city or county" });
     await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
     fireEvent.click(search);
     const dialog = within(await screen.findByRole("dialog", { name: "Search a region" }));
@@ -70,12 +154,11 @@ describe("소개 화면 (목)", () => {
     await waitFor(() => expect(router.state.location.pathname).toBe("/en/dashboard/CAL"));
   });
 
-  it("예시 지역은 그 시·군·구 대시보드 링크다", async () => {
+  it("검색 줄 아래 예시 줄은 없다(UI 다듬기)", async () => {
     renderRoute("/");
-    const examples = within(await screen.findByRole("navigation", { name: "예시 지역" }));
-    const links = examples.getAllByRole("link");
-    expect(links.map((a) => a.textContent)).toEqual(["경북 의성군", "강원 고성군", "대구 중구"]);
-    links.forEach((a) => expect(a.getAttribute("href")).toMatch(/^\/dashboard\/KOR\/.+/));
+    await waitFor(() => expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(false));
+    expect(screen.queryByRole("navigation", { name: "예시 지역" })).toBeNull();
+    expect(screen.queryByText(/^예: /)).toBeNull();
   });
 
   it("검색 칸을 누르면 검색 대화상자, 지역을 고르면 그 대시보드", async () => {
@@ -89,11 +172,15 @@ describe("소개 화면 (목)", () => {
     await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/dashboard\/KOR\/\w+/));
   });
 
-  it("나라 버튼은 그 나라 대시보드 링크다(목은 모든 지역이 준비됨)", async () => {
+  it("히어로: 검색 줄 아래 흰 '대시보드 보기'와 '작동 방식 보기', 나라별 바로가기는 없다(UI 다듬기)", async () => {
     renderRoute("/");
-    const nav = within(await screen.findByRole("navigation", { name: "나라별 대시보드" }));
-    expect(nav.getByRole("link", { name: "대한민국 →" }).getAttribute("href")).toBe("/dashboard/KOR");
-    expect(nav.getByRole("link", { name: "캘리포니아 →" }).getAttribute("href")).toBe("/dashboard/CAL");
+    const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
+    expect(search.textContent).toBe("지역 찾기: 의성군, 캘리포니아, 아티카…");
+    // 히어로와 03이 같은 이름의 링크를 둔다. 둘 다 대시보드
+    expect(screen.getAllByRole("link", { name: "대시보드 보기" }).map((a) => a.getAttribute("href"))).toEqual(["/dashboard", "/dashboard"]);
+    expect(screen.getByRole("link", { name: "작동 방식 보기" }).getAttribute("href")).toBe("/method");
+    expect(screen.queryByRole("navigation", { name: "나라별 대시보드" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "대한민국 →" })).toBeNull();
   });
 
   it("01 이어진 기록: 2011년 연간 원시값 → 보정값(목 값)과 설명 줄", async () => {
@@ -146,6 +233,40 @@ describe("소개 화면 (목)", () => {
     expect(section.getByRole("tooltip", { hidden: true }).textContent).toMatch(/^점선 막대는 값이 아직 확정되지 않은 달입니다/);
   });
 
+  it("02 나라 칩: 처음은 대한민국, 칩을 누르면 제목·범위 문구가 그 나라로, 선택한 달은 마지막 달로(UI 다듬기)", async () => {
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "한 달만 보지 말고\n흐름을 보세요." }));
+    const chips = within(section.getByRole("group", { name: "지역 고르기" }));
+    expect(chips.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "대한민국",
+      "캘리포니아",
+      "브리티시컬럼비아",
+      "그리스",
+      "칠레",
+      "뉴사우스웨일스",
+    ]);
+    expect(chips.getByRole("button", { name: "대한민국" }).getAttribute("aria-pressed")).toBe("true");
+    expect(section.getByText("대한민국 전체(시·도 17, 시·군·구 229)입니다.")).toBeTruthy();
+    expect(await section.findByRole("heading", { name: /^대한민국 · / })).toBeTruthy();
+    // 한국에서 1월을 골라 두고 나라를 바꾸면 그 나라의 마지막 달로 되돌아간다
+    const korBars = within(section.getByRole("group", { name: /월별 막대 그래프$/ })).getAllByRole("button");
+    fireEvent.click(korBars[0] as HTMLElement);
+    expect((korBars[0] as HTMLElement).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(chips.getByRole("button", { name: "브리티시컬럼비아" }));
+    expect(chips.getByRole("button", { name: "브리티시컬럼비아" }).getAttribute("aria-pressed")).toBe("true");
+    expect(chips.getByRole("button", { name: "대한민국" }).getAttribute("aria-pressed")).toBe("false");
+    expect(section.getByText("캐나다 가운데 브리티시컬럼비아만 제공합니다. 다른 주의 자료는 없습니다.")).toBeTruthy();
+    expect(await section.findByRole("heading", { name: /^브리티시컬럼비아 · 20\d\d년 1–\d+월$/ })).toBeTruthy();
+    const bcBars = within(section.getByRole("group", { name: /^브리티시컬럼비아 .*월별 막대 그래프$/ })).getAllByRole("button");
+    expect((bcBars[bcBars.length - 1] as HTMLElement).getAttribute("aria-pressed")).toBe("true");
+    // 이미 받은 나라로 돌아가도(회색 판 없이 바로 그려짐) 선택은 그 나라의 마지막 달
+    fireEvent.click(bcBars[0] as HTMLElement);
+    fireEvent.click(chips.getByRole("button", { name: "대한민국" }));
+    const korAgain = within(section.getByRole("group", { name: /^대한민국 .*월별 막대 그래프$/ })).getAllByRole("button");
+    expect((korAgain[0] as HTMLElement).getAttribute("aria-pressed")).toBe("false");
+    expect((korAgain[korAgain.length - 1] as HTMLElement).getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("'스크롤해서 읽기'는 주소를 바꾸지 않고 01로 초점을 옮긴다(언어 전환이 01로 끌고 가지 않게)", async () => {
     const { router } = renderRoute("/");
     const cue = screen.getByRole("link", { name: "스크롤해서 읽기" });
@@ -178,7 +299,7 @@ describe("소개 화면 (목)", () => {
       "Read the record.\nKnow its limits.",
     ]);
     expect(await screen.findByRole("heading", { name: "Republic of Korea · 2011" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Republic of Korea →" }).getAttribute("href")).toBe("/en/dashboard/KOR");
+    expect(screen.getAllByRole("link", { name: "Explore dashboard" }).map((a) => a.getAttribute("href"))).toEqual(["/en/dashboard", "/en/dashboard"]);
   });
 });
 
@@ -274,12 +395,13 @@ describe("소개 화면 (서버 에러)", () => {
     live();
     serve((path) => (path === "/BC/meta" ? json({ code: "COUNTRY_NOT_READY", message: "x" }, 404) : null));
     renderRoute("/");
-    await screen.findByRole("button", { name: "브리티시컬럼비아 · 준비 중" });
     const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
     await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
     fireEvent.click(search);
     const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
-    expect(dialog.queryByRole("button", { name: /^브리티시컬럼비아/ })).toBeNull();
+    // BC /meta가 404로 돌아오면 나라 줄과 칩에서 빠진다
+    await waitFor(() => expect(dialog.queryByRole("button", { name: /^브리티시컬럼비아/ })).toBeNull());
+    expect(dialog.queryByRole("button", { name: /^캐나다/ })).toBeNull();
     expect(dialog.getByRole("button", { name: /^캘리포니아/ })).toBeTruthy();
   });
 
@@ -289,6 +411,38 @@ describe("소개 화면 (서버 에러)", () => {
     renderRoute("/");
     expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(true);
+  });
+
+  it("검색 대화상자 칩: 그 나라 /regions가 실패하면 목록 아래 에러와 다시 시도, '결과 없음'은 말하지 않는다", async () => {
+    live();
+    serve((path) => (path === "/CAL/regions" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
+    renderRoute("/");
+    const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
+    await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(search);
+    const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
+    fireEvent.change(dialog.getByRole("searchbox"), { target: { value: "Los" } });
+    fireEvent.click(within(dialog.getByRole("group", { name: "나라 고르기" })).getByRole("button", { name: /^미국/ }));
+    expect(await dialog.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
+    expect(dialog.getByRole("button", { name: "다시 시도" })).toBeTruthy();
+    expect(dialog.queryByText("맞는 지역이 없습니다.")).toBeNull();
+  });
+
+  it("03: 한 지역 /meta라도 실패하면 자료 기준일 문장을 빼고 범위 문장만(일부만으로 범위를 말하지 않게)", async () => {
+    live();
+    serve((path) => (path === "/GRC/meta" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "기록을 읽고\n한계를 알기." }));
+    const coverage =
+      "미국·캐나다·호주는 각각 캘리포니아·브리티시컬럼비아·뉴사우스웨일스만 포함합니다. 변화를 해석하기 전에 지역 범위를 확인하세요.";
+    // 다른 다섯 지역 /meta 응답이 모두 돌아온 뒤에도 날짜는 나오지 않는다(받는 중이라 없는 것과 구분)
+    const metaCalls = () => fetchMock.mock.calls.map((c) => String(c[0])).filter((u) => /\/(KOR|CAL|BC|CHL|NSW)\/meta$/.test(u));
+    await waitFor(() => expect(new Set(metaCalls()).size).toBe(5));
+    await act(async () => {
+      await Promise.all(fetchMock.mock.results.map((r) => r.value));
+    });
+    expect(await section.findByText(coverage)).toBeTruthy();
+    expect(section.queryByText(/^자료 기준일/)).toBeNull();
   });
 
   it("02: /series/KOR가 실패하면 그 구역에만 다시 시도, 01은 그대로", async () => {
@@ -318,22 +472,11 @@ describe("소개 화면 (서버 에러)", () => {
     expect(section.queryByText(/MODIS로만 관측한 마지막 해/)).toBeNull();
   });
 
-  it("/meta가 404 COUNTRY_NOT_READY인 나라는 준비 중 비활성 버튼", async () => {
-    live();
-    serve((path) => (path === "/BC/meta" ? json({ code: "COUNTRY_NOT_READY", message: "x" }, 404) : null));
-    renderRoute("/");
-    const button = await screen.findByRole("button", { name: "브리티시컬럼비아 · 준비 중" });
-    expect(button.hasAttribute("disabled")).toBe(true);
-    expect(screen.getByRole("link", { name: "대한민국 →" })).toBeTruthy();
-  });
-
   it("한국 /regions가 실패하면 머리에 구역 에러와 다시 시도, 검색은 막힌다", async () => {
     live();
     serve((path) => (path === "/KOR/regions" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
     renderRoute("/");
     expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(true);
-    expect(screen.queryByText("예: 경북 의성 · 강원 고성 · 대구 중구")).toBeNull();
-    expect(screen.queryByRole("navigation", { name: "예시 지역" })).toBeNull();
   });
 });

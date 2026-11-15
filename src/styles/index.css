@@ -91,16 +91,10 @@
   --color-row-selected: rgba(76, 158, 255, 0.16);
 
   /*
-   * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`). 시안 v9 `.primary-nav`·`.language-switch` 값.
-   * 우주 배경이 비치도록 반투명으로 둔다(투명도를 다시 거는 사용처가 없는 머리글 전용 토큰이라 괜찮다).
-   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음)
+   * 색: 머리글 EN/KR 전환(`segment*`, 시안 v9 `.language-switch` 값). 우주 배경이 비치도록 반투명으로 둔다.
+   * 소개·대시보드 알약 메뉴는 뺐다(UI 다듬기 2026-11-15). `nav-hover`는 버튼 누름 색으로 남는다
    */
-  --color-nav: rgba(255, 255, 255, 0.08);
   --color-nav-hover: rgba(255, 255, 255, 0.12);
-  --color-nav-ink: #f4f4f1;
-  --color-nav-line: rgba(255, 255, 255, 0.08);
-  --color-nav-active: #ffffff;
-  --color-nav-active-ink: #080809;
   --color-segment: rgba(255, 255, 255, 0.06);
   --color-segment-line: rgba(255, 255, 255, 0.11);
   /* 시안은 #68696e지만 바탕 대비 3.4:1이라 읽기 기준(4.5:1)에 못 미쳐 muted(약 6:1)로 둔다(2026-11-14 사용자) */

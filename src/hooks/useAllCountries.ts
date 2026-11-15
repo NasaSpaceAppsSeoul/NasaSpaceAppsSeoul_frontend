@@ -1,8 +1,9 @@
 import { useQueries, type UseQueryResult } from "@tanstack/react-query";
-import type { Country, Landing, Meta } from "../api/types";
+import type { Country, Landing, Meta, RegionsResponse } from "../api/types";
 import { COUNTRIES } from "../lib/country";
 import { landingQuery } from "./useLanding";
 import { metaQuery } from "./useMeta";
+import { regionsQuery } from "./useRegions";
 
 export type CountryQueries<T> = Record<Country, UseQueryResult<T>>;
 
@@ -36,4 +37,10 @@ export function useAllMeta() {
 export function useAllLanding() {
   const list = useQueries({ queries: COUNTRIES.map((c) => landingQuery(c)) });
   return { byCountry: byCountry<Landing>(list), list };
+}
+
+/** 여섯 지역의 `/regions`. `enabled`가 거짓이면 묻지 않는다(첫 화면 검색 "전체"에서 입력할 때만) */
+export function useAllRegions(enabled: boolean) {
+  const list = useQueries({ queries: COUNTRIES.map((c) => ({ ...regionsQuery(c), enabled })) });
+  return { byCountry: byCountry<RegionsResponse>(list), list };
 }

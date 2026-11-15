@@ -3,11 +3,6 @@ import type { Messages } from "./ko";
 /** 영어 문구. 디자인 영문판에서 그대로 옮긴다. */
 export const en: Messages = {
   brand: "Burnline",
-  nav: {
-    label: "Main menu",
-    about: "About",
-    dashboard: "Dashboard",
-  },
   language: {
     label: "Language",
     ko: "KR",
@@ -24,16 +19,12 @@ export const en: Messages = {
     hero: {
       eyebrow: "MODIS + VIIRS fire records",
       title: "A longer view\nof fire.",
-      lead: "Explore South Korea’s fire history—from the whole country to individual districts—and compare each month with its past.",
+      lead: "Explore satellite fire records across six countries. Move from the available study areas to local places, and compare each month with its past.",
       howItWorks: "See how it works",
       scrollCue: "Scroll to read",
-      find: "Find a region",
-      examplesLead: "Try",
-      examples: "Try Uiseong, Gyeongbuk · Goseong, Gangwon · Jung-gu, Daegu",
-      examplesLabel: "Example regions",
-      countriesLabel: "Country dashboards",
-      countryLink: (country: string) => `${country} →`,
-      countryNotReady: (country: string) => `${country} · Coming soon`,
+      find: "Find a place",
+      searchPrompt: "Find a place: Uiseong, California, Attica…",
+      dashboard: "Explore dashboard",
       countryRowSub: "Country dashboard",
       dataEnd: (date: string) => `Data through ${date}`,
     },
@@ -85,12 +76,27 @@ export const en: Messages = {
       legendHelpLabel: "What dashed and solid bars mean",
       legendHelp:
         "Dashed bars are months whose values are not final yet. Either the month has not ended (in progress), or the value comes from fast near-real-time processing before the final archive, so it may change later. Solid bars are final values.",
+      chipsLabel: "Choose a region",
+      coverage: {
+        KOR: "All of South Korea (17 provinces, 229 districts).",
+        CAL: "California only within the United States; other states are not supplied.",
+        BC: "British Columbia only within Canada; other provinces are not supplied.",
+        GRC: "All of Greece (14 regions, 325 municipalities).",
+        CHL: "All of Chile (16 regions, 345 municipalities).",
+        NSW: "New South Wales only within Australia; other states are not supplied.",
+      },
     },
     limits: {
       index: "03 / Trust & limits",
       title: "Read the record.\nKnow its limits.",
       body: "Satellite records can miss fires. One fire grid-day counts a roughly 1 km cell with fire detected on one day. It is not a fire incident count or burned area.",
-      guidance: "Check the sensor basis and data coverage before interpreting a change.",
+      guidance: {
+        date: (span: string, varies: boolean) => `Snapshot: ${span}${varies ? " (varies by region)" : ""}.`,
+        collecting: (month: string) => `${month} is incomplete and NRT records are provisional.`,
+        provisional: "NRT records are provisional.",
+        coverage:
+          "United States, Canada and Australia currently cover California, British Columbia and New South Wales respectively. Check local coverage before interpreting a change.",
+      },
       dashboard: "Explore dashboard",
     },
     earth: {
@@ -326,6 +332,10 @@ export const en: Messages = {
       noResults: "No matching regions.",
       truncated: "Many results. Type more to narrow them down.",
       searchHint: "Type a name to find cities, counties and districts.",
+      chipsLabel: "Choose a country",
+      chipAll: "All",
+      chipParent: { CAL: "United States", BC: "Canada", NSW: "Australia" },
+      searchKeys: "↑ ↓ to move · Enter to open · Esc to close",
       monthTitle: "Choose reference month",
       monthDescription: (first: string, last: string) => `You can choose from ${first} to ${last}.`,
       previousYear: "Previous year",
