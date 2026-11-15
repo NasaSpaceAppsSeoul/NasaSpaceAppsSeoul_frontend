@@ -73,7 +73,12 @@ export function CalendarSection({ scope, insight }: { scope: InsightScope; insig
           peakText={t.calendar.peak}
           futureText={t.calendar.future}
         />
-        <DayLegend note={underlined ? t.calendar.legendNote : t.calendar.legendNoteBasic} />
+        <DayLegend
+          title={t.calendar.legendTitle}
+          future={t.calendar.future}
+          cluster={underlined ? t.calendar.legendCluster : null}
+          note={t.calendar.legendBins}
+        />
       </InsightPanel>
       <InsightTable
           framed

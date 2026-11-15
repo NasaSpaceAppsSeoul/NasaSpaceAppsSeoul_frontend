@@ -630,8 +630,10 @@ export const ko = {
       peak: "최대 활동일",
       future: "집계 전",
       inCluster: "최대 감지 묶음 기간",
-      legendNote: "화재 칸 · 파란 밑줄: 최대 감지 묶음 중 이 지역에서 감지된 날",
-      legendNoteBasic: "화재 칸",
+      // 범례(참고안 `.in-legend` 모양, 2026-11-15): 이름, 밑줄 견본 이름, 아래 줄 색 구간 설명
+      legendTitle: "날짜별 화재 칸",
+      legendCluster: "최대 감지 묶음 중 이 지역 감지일(파란 밑줄)",
+      legendBins: "색 구간: 그날 이 지역에서 감지된 화재 칸 수(0, 1, 2, 3, 4칸 이상).",
       summary: {
         fireDays: "불이 감지된 날",
         peak: "활동 격자가 가장 많았던 날",

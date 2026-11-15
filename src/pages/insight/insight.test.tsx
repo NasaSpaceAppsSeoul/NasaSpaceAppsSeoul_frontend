@@ -187,13 +187,16 @@ describe("월간 인사이트", () => {
     expect(await screen.findByRole("img", { name: /^3월 26일 · 108칸 · 최대 활동일 · 최대 감지 묶음 기간/ })).toBeTruthy();
     expect(screen.getByRole("img", { name: "3월 29일 · 0칸" })).toBeTruthy();
     expect(screen.getByText(/파란 밑줄은 최대 감지 묶음\(3월 22–29일, 인접 지역 포함\) 중 이 지역에서 감지된 날입니다/)).toBeTruthy();
-    expect(screen.getByText("화재 칸 · 파란 밑줄: 최대 감지 묶음 중 이 지역에서 감지된 날")).toBeTruthy();
+    // 범례(참고안 모양): 이름 · 부등호 구간 · 집계 전 · 밑줄 견본 · 아래 줄 설명
+    expect(screen.getByText("날짜별 화재 칸")).toBeTruthy();
+    expect(screen.getByText("> 3")).toBeTruthy();
+    expect(screen.getByText("최대 감지 묶음 중 이 지역 감지일(파란 밑줄)")).toBeTruthy();
   });
 
-  it("달력: 묶음이 없는 달(2018-04 전)은 밑줄 설명 없이 '화재 칸'만", async () => {
+  it("달력: 묶음이 없는 달(2018-04 전)은 범례에 밑줄 견본이 없다", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2017-03`);
     expect(await screen.findByText("숫자는 그날 감지된 화재 칸 수입니다.")).toBeTruthy();
-    expect(screen.getByText("화재 칸")).toBeTruthy();
+    expect(screen.getByText("날짜별 화재 칸")).toBeTruthy();
     expect(screen.queryByText(/파란 밑줄/)).toBeNull();
   });
 

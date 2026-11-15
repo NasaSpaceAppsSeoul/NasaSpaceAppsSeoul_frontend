@@ -590,8 +590,9 @@ export const en: Messages = {
       peak: "Peak day",
       future: "Not yet counted",
       inCluster: "During largest cluster",
-      legendNote: "fire cells · blue underline: detected here during the largest cluster",
-      legendNoteBasic: "fire cells",
+      legendTitle: "Fire cells by day",
+      legendCluster: "Detected here during the largest cluster (blue underline)",
+      legendBins: "Colour bands: fire cells detected in this area that day (0, 1, 2, 3, 4 or more).",
       summary: {
         fireDays: "Days with detections",
         peak: "Peak active-cell day",

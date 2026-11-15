@@ -43,10 +43,13 @@ export function InsightSection({ id, index, title, lead, note, first = false, ch
   );
 }
 
-/** 그림 판: 달력·막대·지도처럼 그림이 들어가는 곳에만 쓰는 유리 판(기법 페이지 `MethodFigure`와 같은 재료) */
+/**
+ * 그림 자리: 달력·막대·지도·계절 그림을 묶는 칸. 참고안처럼 판(유리 바탕·테두리·안쪽 여백) 없이 배경 위에 둔다(2026-11-15 디자이너).
+ * 이름은 예전 그대로(부르는 곳·배치를 바꾸지 않으려고).
+ */
 export function InsightPanel({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div data-reveal className={`glass flex flex-col gap-6 rounded-card border border-line p-6 ${className}`.trim()}>
+    <div data-reveal className={`flex flex-col gap-6 ${className}`.trim()}>
       {children}
     </div>
   );
