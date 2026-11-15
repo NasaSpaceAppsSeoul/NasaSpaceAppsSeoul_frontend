@@ -12,13 +12,23 @@ type MenuRowProps = {
   /** 비활성 이유(예: "준비 중"). `title` 속성으로 보인다(`decisions.md` 1-9) */
   disabledHint?: string;
   onSelect: () => void;
+  /** 검색 칸에서 ↑↓로 강조한 줄(참고 소스 `.ps-option.is-active`: 흰 7% 바탕 + 왼쪽 파란 2px, UI 다듬기 2026-11-15) */
+  active?: boolean;
+  id?: string;
 };
 
-export function MenuRow({ title, sub, selected = false, disabled = false, disabledHint, onSelect }: MenuRowProps) {
-  const background = selected ? "bg-row-selected" : disabled ? "bg-transparent" : "bg-transparent hover:bg-row-hover";
+export function MenuRow({ title, sub, selected = false, disabled = false, disabledHint, onSelect, active = false, id }: MenuRowProps) {
+  const background = selected
+    ? "bg-row-selected"
+    : disabled
+      ? "bg-transparent"
+      : active
+        ? "bg-white/[0.07]"
+        : "bg-transparent hover:bg-row-hover";
   return (
     <button
       type="button"
+      id={id}
       aria-pressed={selected}
       disabled={disabled}
       title={disabled ? disabledHint : undefined}
@@ -26,7 +36,8 @@ export function MenuRow({ title, sub, selected = false, disabled = false, disabl
       className={
         "flex w-full flex-col items-start gap-0.5 rounded-control px-3 py-3 text-left " +
         "focus-visible:outline-2 focus-visible:outline-selection disabled:cursor-not-allowed " +
-        background
+        background +
+        (active ? " shadow-[inset_2px_0_0_#4c9eff]" : "")
       }
     >
       <span className={`text-sm font-medium ${disabled ? "text-muted" : "text-ink"}`}>{title}</span>

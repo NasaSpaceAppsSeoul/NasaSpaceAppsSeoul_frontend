@@ -54,18 +54,94 @@ describe("소개 화면 (목)", () => {
     expect(screen.queryByRole("button", { name: "지역 둘러보기" })).toBeNull();
   });
 
-  it("검색 대화상자 첫 화면: 나라 6개(`COUNTRIES`), 대한민국 아래 시·도 17곳(소속 표시), 고르면 그 대시보드", async () => {
+  it("검색 대화상자 첫 화면('전체'): 나라 줄 6개만(시·도는 펼치지 않음), 입력하면 여섯 나라에서 찾아 나라별로 묶고 고르면 그 대시보드", async () => {
     const { router } = renderRoute("/");
     const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
     await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
     fireEvent.click(search);
     const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
     expect(dialog.getAllByText(/^나라 대시보드 · 2026년 1\d월까지 자료$/)).toHaveLength(COUNTRIES.length);
-    const provinces = dialog.getByRole("list", { name: "대한민국" });
-    expect(within(provinces).getAllByText("시·도 · 대한민국")).toHaveLength(17);
+    expect(dialog.queryByRole("list", { name: "대한민국" })).toBeNull();
+    expect(dialog.queryByText("시·도 · 대한민국")).toBeNull();
 
-    fireEvent.click(within(provinces).getByRole("button", { name: /^경북/ }));
+    // 한국 밖 지역도 찾는다(캘리포니아 카운티), 결과는 나라 이름 아래에 단계·소속과 함께
+    const input = dialog.getByRole("searchbox");
+    fireEvent.change(input, { target: { value: "Los" } });
+    expect(await dialog.findByRole("heading", { name: "캘리포니아" })).toBeTruthy();
+    expect(dialog.getByRole("button", { name: /^Los Angeles.*카운티 · 캘리포니아$/ })).toBeTruthy();
+    fireEvent.change(input, { target: { value: "경북" } });
+    fireEvent.click((await dialog.findAllByRole("button", { name: /^경북.*시·도/ }))[0] as HTMLElement);
     await waitFor(() => expect(router.state.location.pathname).toBe(`/dashboard/KOR/${encodeURIComponent("경북")}`));
+  });
+
+  it("검색 대화상자 칩(UI 다듬기): 나라를 고르면 그 나라만·그 나라 안에서 검색, ↑↓·Enter로 열고, 전체는 처음 모습으로", async () => {
+    const { router } = renderRoute("/");
+    const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
+    await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(search);
+    const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
+    const chips = within(dialog.getByRole("group", { name: "나라 고르기" }));
+    // 전체 + 여섯 나라, 일부 주만 있는 나라는 "나라 · 주"
+    expect(chips.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "전체",
+      "대한민국",
+      "미국·캘리포니아",
+      "캐나다·브리티시컬럼비아",
+      "그리스",
+      "칠레",
+      "호주·뉴사우스웨일스",
+    ]);
+    expect(chips.getByRole("button", { name: "전체" }).getAttribute("aria-pressed")).toBe("true");
+    expect(dialog.getByText("↑ ↓ 이동 · Enter 열기 · Esc 닫기")).toBeTruthy();
+    // 입력 전에는 강조가 없어 Enter가 아무 데도 가지 않는다. 결과가 없을 때도 같다
+    const box = dialog.getByRole("searchbox");
+    expect(box.getAttribute("aria-activedescendant")).toBeNull();
+    fireEvent.keyDown(box, { key: "Enter" });
+    fireEvent.change(box, { target: { value: "없는지역이름" } });
+    expect(await dialog.findByText("맞는 지역이 없습니다.")).toBeTruthy();
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(router.state.location.pathname).toBe("/");
+    // 같은 이름이 여러 곳("동구": 광주·대구·울산…)이면 자동으로 고르지 않는다. ↓로 골라야 연다
+    fireEvent.change(box, { target: { value: "동구" } });
+    expect((await dialog.findAllByRole("button", { name: /^동구/ })).length).toBeGreaterThan(1);
+    expect(box.getAttribute("aria-activedescendant")).toBeNull();
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(router.state.location.pathname).toBe("/");
+    fireEvent.change(box, { target: { value: "" } });
+
+    // 캘리포니아 칩: 나라 줄은 캘리포니아만, 입력은 캘리포니아 카운티에서 찾는다
+    fireEvent.click(chips.getByRole("button", { name: /^미국/ }));
+    await waitFor(() => expect(dialog.getAllByRole("button", { name: /나라 대시보드/ })).toHaveLength(1));
+    expect(dialog.getByRole("button", { name: /^캘리포니아/ })).toBeTruthy();
+    // 시·도 단계가 없는 나라는 나라 줄 아래에 카운티를 들여 쓴다(목 카운티 6곳)
+    expect(within(await dialog.findByRole("list", { name: "캘리포니아" })).getAllByText("카운티 · 캘리포니아")).toHaveLength(6);
+    expect(dialog.queryByRole("status")).toBeNull();
+    const input = dialog.getByRole("searchbox");
+    fireEvent.change(input, { target: { value: "Los" } });
+    expect(await dialog.findByRole("button", { name: /^Los Angeles/ })).toBeTruthy();
+    // 입력 중에는 찾은 것만 위에(이름이 안 맞는 나라 줄은 빠진다). 결과가 하나뿐이면 그 줄을 강조(화면 낭독기용 활성 줄도 그 줄)
+    expect(dialog.queryByRole("button", { name: /나라 대시보드/ })).toBeNull();
+    const activeName = () => document.getElementById(input.getAttribute("aria-activedescendant") ?? "")?.textContent ?? "";
+    expect(activeName()).toMatch(/^Los Angeles/);
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(activeName()).toMatch(/^Los Angeles/);
+    // Enter → 그 카운티 대시보드
+    fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard/CAL/52423323B10000000000005"));
+  });
+
+  it("검색 대화상자 칩 '전체'는 처음 모습(나라 줄 6개만)으로 되돌린다", async () => {
+    renderRoute("/");
+    const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
+    await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(search);
+    const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
+    const chips = within(dialog.getByRole("group", { name: "나라 고르기" }));
+    fireEvent.click(chips.getByRole("button", { name: "칠레" }));
+    await waitFor(() => expect(dialog.getAllByRole("button", { name: /나라 대시보드/ })).toHaveLength(1));
+    fireEvent.click(chips.getByRole("button", { name: "전체" }));
+    expect(dialog.getAllByRole("button", { name: /나라 대시보드/ })).toHaveLength(COUNTRIES.length);
+    expect(dialog.queryByRole("list", { name: "칠레" })).toBeNull();
   });
 
   it("검색 대화상자에서 나라를 고르면 그 나라 대시보드(영어)", async () => {
@@ -329,6 +405,29 @@ describe("소개 화면 (서버 에러)", () => {
     expect(dialog.getByRole("button", { name: /^캘리포니아/ })).toBeTruthy();
   });
 
+  it("한국 /meta가 실패하면 머리에 구역 에러와 다시 시도, 검색은 막힌다", async () => {
+    live();
+    serve((path) => (path === "/KOR/meta" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
+    renderRoute("/");
+    expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(true);
+  });
+
+  it("검색 대화상자 칩: 그 나라 /regions가 실패하면 목록 아래 에러와 다시 시도, '결과 없음'은 말하지 않는다", async () => {
+    live();
+    serve((path) => (path === "/CAL/regions" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
+    renderRoute("/");
+    const search = screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" });
+    await waitFor(() => expect(search.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(search);
+    const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
+    fireEvent.change(dialog.getByRole("searchbox"), { target: { value: "Los" } });
+    fireEvent.click(within(dialog.getByRole("group", { name: "나라 고르기" })).getByRole("button", { name: /^미국/ }));
+    expect(await dialog.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
+    expect(dialog.getByRole("button", { name: "다시 시도" })).toBeTruthy();
+    expect(dialog.queryByText("맞는 지역이 없습니다.")).toBeNull();
+  });
+
   it("03: 한 지역 /meta라도 실패하면 자료 기준일 문장을 빼고 범위 문장만(일부만으로 범위를 말하지 않게)", async () => {
     live();
     serve((path) => (path === "/GRC/meta" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
@@ -344,14 +443,6 @@ describe("소개 화면 (서버 에러)", () => {
     });
     expect(await section.findByText(coverage)).toBeTruthy();
     expect(section.queryByText(/^자료 기준일/)).toBeNull();
-  });
-
-  it("한국 /meta가 실패하면 머리에 구역 에러와 다시 시도, 검색은 막힌다", async () => {
-    live();
-    serve((path) => (path === "/KOR/meta" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
-    renderRoute("/");
-    expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(true);
   });
 
   it("02: /series/KOR가 실패하면 그 구역에만 다시 시도, 01은 그대로", async () => {

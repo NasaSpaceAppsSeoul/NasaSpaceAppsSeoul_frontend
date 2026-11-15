@@ -347,6 +347,12 @@ export const ko = {
       truncated: "결과가 많습니다. 검색어를 더 입력하세요.",
       // 입력 전 계층 목록 끝 안내(about-revise 11절)
       searchHint: "시·군·구와 카운티는 이름을 입력해 찾으세요.",
+      // 검색 칸 위 나라 칩·아래 키 안내(참고 소스 `burnline-landing 4` `PlaceSearch`, UI 다듬기 2026-11-15).
+      // 일부 주만 있는 나라는 "나라 · 주"로 쓴다(참고 칩 모양). "전체"는 대화상자 처음 모습으로 되돌린다
+      chipsLabel: "나라 고르기",
+      chipAll: "전체",
+      chipParent: { CAL: "미국", BC: "캐나다", NSW: "호주" } as Partial<Record<string, string>>,
+      searchKeys: "↑ ↓ 이동 · Enter 열기 · Esc 닫기",
       monthTitle: "기준 월 선택",
       monthDescription: (first: string, last: string) => `${first}부터 ${last}까지 고를 수 있습니다.`,
       previousYear: "이전 해",
