@@ -37,9 +37,13 @@ export function heatLegend(bins: readonly number[]): LegendItem[] {
 
 type QualityValue = "high" | "medium" | "low";
 
+/** 히트맵에 그릴 값: 보정 후(`value`, 기본) / 보정 전(`raw_before`, 위성이 남긴 원래 기록) */
+export type Basis = "harmonized" | "raw";
+
 export type SeriesMonthLike = {
   month: string;
   value: number | null;
+  raw_before: number | null;
   source: string | null;
   quality: QualityValue | null;
   estimated: boolean;
@@ -57,8 +61,10 @@ export type HeatCell = {
   state: CellState;
   value: number | null;
   level: HeatLevel;
-  /** 센서 환산값: 그 달 관측 위성에 "→"(4-3). 값이 없으면 붙이지 않는다 */
+  /** 센서 환산값: 그 달 관측 위성에 "→"(4-3). 값이 없거나 보정 전이면 붙이지 않는다 */
   converted: boolean;
+  /** 보정 전일 때 그 달을 관측한 위성(`source`의 "→" 앞). 보정 후이거나 값이 없으면 `null` */
+  sensor: string | null;
   estimated: boolean;
   quality: QualityValue | null;
   nrt: boolean;
@@ -71,7 +77,9 @@ export type HeatRow = { year: number; cells: HeatCell[] };
 
 type GridInput = {
   months: readonly SeriesMonthLike[];
+  /** 색 구간은 보정 전에도 같은 `heat_bins`(시안도 같은 기준). 그래서 2012년 전 보정 전 칸이 연해져 위성 단절이 보인다 */
   bins: readonly number[];
+  basis: Basis;
   /** 맨 아래 해(표시 연도) */
   startYear: number;
   /** 주소의 달 */
@@ -80,32 +88,52 @@ type GridInput = {
   clickRange: MonthRange;
 };
 
+/**
+ * 그 달에 그릴 값. 보정 전은 보정 후 값이 있는 달만 쓴다: 시·군·구는 2012년 전 `value`가 null인데 `raw_before`는 0으로 와서,
+ * 그대로 쓰면 자료 없는 달이 "감지 없음"으로 보인다(2026-11-15 서버 확인)
+ */
+export function basisValue(data: SeriesMonthLike, basis: Basis): number | null {
+  if (data.value === null) return null;
+  return basis === "raw" ? data.raw_before : data.value;
+}
+
+/** 보정 전 값이 한 달이라도 있는가. 시·도는 서버가 늘 null로 준다(2026-11-15 확인) → 보정 전 전환을 막는다 */
+export function hasRawValues(months: readonly SeriesMonthLike[]): boolean {
+  // 칸에 그리는 판정(`basisValue`)과 같은 기준: 보정 후 값이 없는 달의 보정 전 0만 있으면 전환해도 빈 격자다
+  return months.some((m) => basisValue(m, "raw") !== null);
+}
+
 function cellOf(month: string, data: SeriesMonthLike | undefined, first: string, last: string, input: GridInput): HeatCell {
+  const raw = input.basis === "raw";
+  const value = data === undefined ? null : basisValue(data, input.basis);
   const state: CellState =
     month > last
       ? "future"
       : month < first
         ? "blank"
-        : data === undefined || data.value === null
+        : data === undefined || value === null
           ? "noData"
           : data.status === "partial"
             ? "partial"
-            : data.value === 0
+            : value === 0
               ? "zero"
               : "value";
-  const value = data?.value ?? null;
   const hasValue = value !== null && (state === "value" || state === "zero" || state === "partial");
+  const source = hasValue && data !== undefined ? data.source : null;
   return {
     month,
     state,
     value: hasValue ? value : null,
     level: hasValue ? heatLevel(value, input.bins) : 0,
-    converted: hasValue && data !== undefined && data.source !== null && data.source.includes("→"),
-    estimated: hasValue && data !== undefined && data.estimated,
+    converted: !raw && source !== null && source.includes("→"),
+    sensor: raw && source !== null ? (source.split("→")[0] ?? null) : null,
+    // 추정은 보정(환산) 쪽 이야기라 보정 전에는 붙이지 않는다
+    estimated: !raw && hasValue && data !== undefined && data.estimated,
     quality: hasValue && data !== undefined ? data.quality : null,
     nrt: hasValue && data !== undefined && data.status === "nrt",
     selected: month === input.selected,
-    clickable: hasValue && isInRange(month, input.clickRange),
+    // 누를 수 있는지는 보정 후 값 기준(달 이동은 다른 카드, 곧 보정 후 화면으로 가는 길이라 보정 전 값 유무와 상관없다)
+    clickable: month >= first && month <= last && data !== undefined && data.value !== null && isInRange(month, input.clickRange),
   };
 }
 

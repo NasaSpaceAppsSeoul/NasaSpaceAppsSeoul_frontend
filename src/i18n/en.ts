@@ -399,21 +399,27 @@ export const en: Messages = {
       image: {
         title: (name: string, from: number, to: number) => `${name} · Fire calendar by year and month ${from}–${to}`,
         sub: "Fire grid-days · harmonized to NOAA-20 · one dot per month",
+        subRaw: "Fire grid-days · raw (original sensor records) · one dot per month",
         source: (dataEnd: string) => `Source: NASA FIRMS · data through ${dataEnd} · Burnline`,
         period: (from: number, to: number) => `Color bands: 50·75·90th percentiles of this area's non-zero months · usual period ${from}–${to}`,
+        periodRaw: (from: number, to: number) =>
+          `Color bands: 50·75·90th percentiles of this area's non-zero harmonized months (same bands on the raw view) · usual period ${from}–${to}`,
       },
     },
     csvMock: "Downloads are not available with mock data",
+    rawUnavailable: "No raw values for this area",
     monthCorner: "Month",
     monthHead: (m: number) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1] ?? String(m),
     empty: "There is no monthly data for this region.",
     gridLabel: "Fire calendar by year and month. Use the arrow keys to move between cells and Enter to open that month.",
     caption: "Years → · Months ↓ · Common comparison basis",
+    captionRaw: "Years → · Months ↓ · Original sensor records",
     divider: {
       snpp: "Feb 2012 S-NPP",
       noaa20: "Apr 2018 NOAA-20",
     },
     dividerTail: "dotted values are converted to the NOAA-20 basis",
+    dividerTailRaw: "sensor sensitivity changes with each satellite",
     legend: {
       below: (to: string) => `under ${to}`,
       between: (from: string, to: string) => `${from}–${to}`,
@@ -437,6 +443,7 @@ export const en: Messages = {
       future: { title: "Not yet available", body: "After the last month of data · gray dashes" },
     },
     tooltip: {
+      sensor: (name: string) => `Original ${name} record`,
       estimated: "Estimated",
       noData: "No value because observations are missing.",
       future: "Not counted yet.",

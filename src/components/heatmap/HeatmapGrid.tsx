@@ -1,6 +1,6 @@
 import { useCallback, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useMessages } from "../../i18n";
-import { dividerAfter, type HeatRow } from "../../lib/heatmap";
+import { dividerAfter, type Basis, type HeatRow } from "../../lib/heatmap";
 import { HeatmapCell } from "./HeatmapCell";
 import { HeatmapTooltip, type TooltipAlign } from "./HeatmapTooltip";
 import { useCellText, type BandFor } from "./useCellText";
@@ -16,6 +16,8 @@ import { useCellText, type BandFor } from "./useCellText";
  */
 type HeatmapGridProps = {
   rows: HeatRow[];
+  /** 점 색과 아래 설명 줄이 달라진다(보정 전: 파랑, "원래 기록") */
+  basis: Basis;
   regionLabel: string;
   bandFor: BandFor;
   onSelect: (month: string) => void;
@@ -32,7 +34,7 @@ function alignFor(col: number, count: number): TooltipAlign {
 const DELTA: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 const MONTHS = Array.from({ length: 12 }, (_, i) => i);
 
-export function HeatmapGrid({ rows, regionLabel, bandFor, onSelect }: HeatmapGridProps) {
+export function HeatmapGrid({ rows, basis, regionLabel, bandFor, onSelect }: HeatmapGridProps) {
   const t = useMessages().heatmap;
   const text = useCellText(regionLabel, bandFor);
   const tooltipId = useId();
@@ -140,6 +142,7 @@ export function HeatmapGrid({ rows, regionLabel, bandFor, onSelect }: HeatmapGri
                 <div key={cell.month} className={`relative ${edge(row.year)}`} onKeyDown={(event) => move(event, yearIndex, monthIndex)}>
                   <HeatmapCell
                     cell={cell}
+                    basis={basis}
                     label={label}
                     tooltipId={active ? tooltipId : undefined}
                     focusable={cell.month === focusMonth}
@@ -166,8 +169,12 @@ export function HeatmapGrid({ rows, regionLabel, bandFor, onSelect }: HeatmapGri
       </div>
       {/* 시안 `.db-calendar-caption`: Mono 10/1.7, 위 16. 왼쪽 읽는 법, 오른쪽 보이는 센서 전환 + 점무늬 뜻 */}
       <div className="mt-1 flex flex-wrap justify-between gap-4 font-mono text-[10px] leading-[1.7] text-[#a1aab7]">
-        <span>{t.caption}</span>
-        <span>{[dividers.map((d) => t.divider[d.key]).join(" / "), t.dividerTail].filter((x) => x !== "").join(" — ")}</span>
+        <span>{basis === "raw" ? t.captionRaw : t.caption}</span>
+        <span>
+          {[dividers.map((d) => t.divider[d.key]).join(" / "), basis === "raw" ? t.dividerTailRaw : t.dividerTail]
+            .filter((x) => x !== "")
+            .join(" — ")}
+        </span>
       </div>
     </div>
   );

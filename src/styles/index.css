@@ -123,6 +123,11 @@
   --color-heat-5: #ca8547;
   --color-heat-6: #be7037;
   --color-heat-7: #ae5b2b;
+  /* 보정 전(원래 기록) 점 4단계. 시안 v9 `calendarTheme.ts` raw 8색 중 보정 후와 같은 자리(2·4·5·7). 0단계는 heat-0 공용 */
+  --color-heat-raw-2: #accde4;
+  --color-heat-raw-4: #76a7cc;
+  --color-heat-raw-5: #6095bf;
+  --color-heat-raw-7: #3972a4;
 
   /* 색: 지도 면 5단계 (시안 v9 `mapData.ts` cellColors) */
   --color-map-0: #465260;

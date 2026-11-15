@@ -402,6 +402,8 @@ export const ko = {
     csv: "월별 CSV",
     png: "달력 PNG",
     csvMock: "목 모드에서는 내려받을 수 없습니다",
+    // 서버가 보정 전 값(`raw_before`)을 주지 않는 지역(시·도, 목 모드)
+    rawUnavailable: "이 지역은 보정 전 값이 없습니다",
     // 내려받기 확인 대화상자(overlays/kr/export-csv·export-png). "프로토타입 미리보기" 줄은 빼고 버튼은 "내려받기"(4-8)
     exports: {
       description: "내려받을 파일의 내용을 확인하세요.",
@@ -414,8 +416,12 @@ export const ko = {
       image: {
         title: (name: string, from: number, to: number) => `${name} · 연도별·월별 화재 달력 ${from}–${to}`,
         sub: "화재 감지일 · NOAA-20 기준 보정값 · 한 달에 점 하나",
+        subRaw: "화재 감지일 · 보정 전(위성이 남긴 원래 기록) · 한 달에 점 하나",
         source: (dataEnd: string) => `출처: NASA FIRMS · 자료 기준일 ${dataEnd} · Burnline`,
         period: (from: number, to: number) => `색 구간: 이 지역 0이 아닌 월값의 50·75·90 퍼센타일 · 평소 비교 기간 ${from}–${to}`,
+        // 보정 전 그림도 색 구간은 보정 후 값으로 계산한 같은 경계다(`heat_bins`)
+        periodRaw: (from: number, to: number) =>
+          `색 구간: 이 지역 0이 아닌 보정 후 월값의 50·75·90 퍼센타일(보정 전 그림에도 같은 구간) · 평소 비교 기간 ${from}–${to}`,
       },
     },
     monthCorner: "달",
@@ -423,12 +429,15 @@ export const ko = {
     empty: "이 지역의 월별 자료가 없습니다.",
     gridLabel: "연도별·월별 화재 달력. 방향키로 칸을 옮기고 Enter로 그 달을 엽니다.",
     caption: "해 → · 달 ↓ · 같은 기준으로 비교",
+    // 보정 전(시안 v11 "Original sensor records", "sensor sensitivity changes")
+    captionRaw: "해 → · 달 ↓ · 위성이 남긴 원래 기록",
     // 격자 아래 오른쪽 센서 전환 요약(세로 점선과 짝). 보이는 전환만 잇는다
     divider: {
       snpp: "2012년 2월 S-NPP",
       noaa20: "2018년 4월 NOAA-20",
     },
     dividerTail: "점무늬는 NOAA-20 기준 환산값",
+    dividerTailRaw: "위성이 바뀌면 감지 감도도 달라집니다",
     legend: {
       below: (to: string) => `${to} 미만`,
       between: (from: string, to: string) => `${from}–${to}`,
@@ -457,6 +466,8 @@ export const ko = {
       future: { title: "아직 집계 전", body: "자료 마지막 달 이후 · 회색 점선" },
     },
     tooltip: {
+      // 보정 전 칸: 그 달을 관측한 위성(`source`의 "→" 앞, 서버 값 그대로)
+      sensor: (name: string) => `${name} 원래 기록`,
       estimated: "추정값",
       noData: "관측 자료가 없어 값이 없습니다.",
       future: "아직 집계 전입니다.",
