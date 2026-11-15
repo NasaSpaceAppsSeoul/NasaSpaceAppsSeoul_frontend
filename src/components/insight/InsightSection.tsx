@@ -26,17 +26,18 @@ export function InsightSection({ id, index, title, lead, note, first = false, ch
       id={id}
       data-toc-section={id}
       aria-labelledby={titleId}
-      className={`min-w-0 scroll-mt-8 pb-14 break-keep ${first ? "" : "border-t border-line pt-7"}`.trim()}
+      // 절 사이 선은 참고안 큰 구분 흰 14%(`--in-rule`, 2026-11-15 디자이너)
+      className={`min-w-0 scroll-mt-8 pb-14 break-keep ${first ? "" : "border-t border-white/14 pt-7"}`.trim()}
     >
       <div data-reveal>
         <p className="font-mono text-[0.8125rem] font-medium text-fire [&:lang(en)]:tracking-[0.12em]">{index}</p>
         <h2 id={titleId} className="mt-2 mb-2.5 text-[1.75rem] leading-tight font-medium tracking-tight text-ink">
           {title}
         </h2>
-        <p className="mb-6 max-w-[40em] text-lg leading-normal text-ink">{lead}</p>
+        <p className="mb-6 max-w-[40em] text-lg leading-normal text-[#ecece8]">{lead}</p>
       </div>
       <div className="flex flex-col gap-6">
-        {note !== undefined && note !== null && <div className="-mt-3 text-base text-muted">{note}</div>}
+        {note !== undefined && note !== null && <div className="-mt-3 text-base text-[#a9b2bf]">{note}</div>}
         {children}
       </div>
     </section>
@@ -63,7 +64,8 @@ export function InsightFigureRow({ figure, aside }: { figure: ReactNode; aside: 
   return (
     <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start gap-8">
       {figure}
-      <div data-reveal data-reveal-delay="1" className="flex min-w-0 flex-col gap-4 text-sm text-muted">
+      {/* 글 칸: 참고안 본문 글색 #c3cad4(`.in-note`), 14px */}
+      <div data-reveal data-reveal-delay="1" className="flex min-w-0 flex-col gap-4 text-sm text-[#c3cad4]">
         {aside}
       </div>
     </div>
