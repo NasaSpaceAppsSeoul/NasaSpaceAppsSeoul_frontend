@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { EarthErrorBoundary } from "../../components/about/EarthPanel";
 import { lazy, Suspense } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -29,10 +29,18 @@ describe("소개 화면 (목)", () => {
     const section = within(await screen.findByRole("region", { name: "기록을 읽고\n한계를 알기." }));
     expect(section.getByText(/^위성 기록은 불을 놓칠 수 있습니다/)).toBeTruthy();
     expect(section.getByRole("link", { name: "대시보드 보기" }).getAttribute("href")).toBe("/dashboard");
+    // 자료 기준일(UI 다듬기): 여섯 지역 목 `data_end`가 10-31~11-14로 달라 범위와 "(지역마다 다름)", 마지막 날의 달은 집계 중
+    expect(
+      await section.findByText(
+        "자료 기준일: 2026년 10월 31일–11월 14일(지역마다 다름). 11월은 아직 집계 중이며 준실시간(NRT) 기록은 잠정값입니다. " +
+          "미국·캐나다·호주는 각각 캘리포니아·브리티시컬럼비아·뉴사우스웨일스만 포함합니다. 변화를 해석하기 전에 지역 범위를 확인하세요.",
+      ),
+    ).toBeTruthy();
     cleanup();
     renderRoute("/en");
     const en = within(await screen.findByRole("region", { name: "Read the record.\nKnow its limits." }));
     expect(en.getByRole("link", { name: "Explore dashboard" }).getAttribute("href")).toBe("/en/dashboard");
+    expect(await en.findByText(/^Snapshot: 31 October–14 November 2026 \(varies by region\)\. November is incomplete/)).toBeTruthy();
   });
 
   it("자료를 받기 전에는 검색 줄을 막고 숫자 구역은 회색 자리, 받으면 연다", async () => {
@@ -315,6 +323,23 @@ describe("소개 화면 (서버 에러)", () => {
     const dialog = within(await screen.findByRole("dialog", { name: "지역 검색" }));
     expect(dialog.queryByRole("button", { name: /^브리티시컬럼비아/ })).toBeNull();
     expect(dialog.getByRole("button", { name: /^캘리포니아/ })).toBeTruthy();
+  });
+
+  it("03: 한 지역 /meta라도 실패하면 자료 기준일 문장을 빼고 범위 문장만(일부만으로 범위를 말하지 않게)", async () => {
+    live();
+    serve((path) => (path === "/GRC/meta" ? json({ code: "UPSTREAM_UNAVAILABLE", message: "x" }, 503) : null));
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "기록을 읽고\n한계를 알기." }));
+    const coverage =
+      "미국·캐나다·호주는 각각 캘리포니아·브리티시컬럼비아·뉴사우스웨일스만 포함합니다. 변화를 해석하기 전에 지역 범위를 확인하세요.";
+    // 다른 다섯 지역 /meta 응답이 모두 돌아온 뒤에도 날짜는 나오지 않는다(받는 중이라 없는 것과 구분)
+    const metaCalls = () => fetchMock.mock.calls.map((c) => String(c[0])).filter((u) => /\/(KOR|CAL|BC|CHL|NSW)\/meta$/.test(u));
+    await waitFor(() => expect(new Set(metaCalls()).size).toBe(5));
+    await act(async () => {
+      await Promise.all(fetchMock.mock.results.map((r) => r.value));
+    });
+    expect(await section.findByText(coverage)).toBeTruthy();
+    expect(section.queryByText(/^자료 기준일/)).toBeNull();
   });
 
   it("한국 /meta가 실패하면 머리에 구역 에러와 다시 시도, 검색은 막힌다", async () => {

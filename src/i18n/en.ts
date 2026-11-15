@@ -99,7 +99,13 @@ export const en: Messages = {
       index: "03 / Trust & limits",
       title: "Read the record.\nKnow its limits.",
       body: "Satellite records can miss fires. One fire grid-day counts a roughly 1 km cell with fire detected on one day. It is not a fire incident count or burned area.",
-      guidance: "Check the sensor basis and data coverage before interpreting a change.",
+      guidance: {
+        date: (span: string, varies: boolean) => `Snapshot: ${span}${varies ? " (varies by region)" : ""}.`,
+        collecting: (month: string) => `${month} is incomplete and NRT records are provisional.`,
+        provisional: "NRT records are provisional.",
+        coverage:
+          "United States, Canada and Australia currently cover California, British Columbia and New South Wales respectively. Check local coverage before interpreting a change.",
+      },
       dashboard: "Explore dashboard",
     },
     earth: {

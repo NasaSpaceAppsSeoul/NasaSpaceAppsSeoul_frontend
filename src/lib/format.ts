@@ -53,6 +53,22 @@ export function formatFullDate(date: string, locale: Locale): string {
   return locale === "ko" ? `${year}년 ${m}월 ${d}일` : `${d} ${formatMonthName(m, locale)} ${year}`;
 }
 
+/**
+ * 날짜 범위를 연·월·일로(03 자료 기준일): 같은 날 "2026년 11월 14일" / "14 November 2026",
+ * 같은 달 "2026년 11월 11–14일" / "11–14 November 2026", 같은 해 "2026년 10월 31일–11월 14일" / "31 October–14 November 2026",
+ * 해가 다르면 두 날짜를 다 쓴다.
+ */
+export function formatDateSpan(first: string, last: string, locale: Locale): string {
+  if (first === last) return formatFullDate(last, locale);
+  if (first.slice(0, 4) !== last.slice(0, 4)) return `${formatFullDate(first, locale)}–${formatFullDate(last, locale)}`;
+  const year = Number(last.slice(0, 4));
+  const [m1, d1, m2, d2] = [first.slice(5, 7), first.slice(8, 10), last.slice(5, 7), last.slice(8, 10)].map(Number) as [number, number, number, number];
+  if (locale === "ko") return m1 === m2 ? `${year}년 ${m1}월 ${d1}–${d2}일` : `${year}년 ${m1}월 ${d1}일–${m2}월 ${d2}일`;
+  return m1 === m2
+    ? `${d1}–${d2} ${formatMonthName(m2, locale)} ${year}`
+    : `${d1} ${formatMonthName(m1, locale)}–${d2} ${formatMonthName(m2, locale)} ${year}`;
+}
+
 /** 날짜("YYYY-MM-DD")를 달·일로: "3월 26일" / "Mar 26" */
 export function formatDayDate(date: string, locale: Locale): string {
   const m = Number(date.slice(5, 7));
