@@ -1,10 +1,14 @@
 # Hwaruruk — Frontend
 
+### 🔗 Live demo: https://hwaruruk.unzipp.cloud
+
+[Dashboard](https://hwaruruk.unzipp.cloud/en/dashboard/KOR?month=2025-03) · [Monthly insight](https://hwaruruk.unzipp.cloud/en/insight/KOR/91817680B75376031789242?month=2025-03) · [Method](https://hwaruruk.unzipp.cloud/en/method)
+
 [한국어](./README.ko.md)
 
 A web app that shows satellite fire-detection records by region and month, so any month can be compared with the same month in earlier years. This repository is the web frontend, built for NASA Space Apps Challenge 2026 (Seoul).
 
-![Home](./docs/images/home.jpg)
+[![Home](./docs/images/home.jpg)](https://hwaruruk.unzipp.cloud)
 
 ## What it shows
 
@@ -127,9 +131,7 @@ The frontend only reads. All endpoints are `GET` under `/api/v1/{country}`.
 
 ## Deployment
 
-**https://hwaruruk.unzipp.cloud**
-
-Deployed on Vercel. Every merge into `main` is deployed automatically, and pull requests get a preview URL. `vercel.json` forwards `/api/*` to the API server, so the browser only talks to one origin and no CORS setup is needed. API responses are not cached on the Vercel CDN.
+Deployed on Vercel at the address at the top of this page. Every merge into `main` is deployed automatically, and pull requests get a preview URL. `vercel.json` forwards `/api/*` to the API server, so the browser only talks to one origin and no CORS setup is needed. API responses are not cached on the Vercel CDN.
 
 ## Author
 
