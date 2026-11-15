@@ -127,7 +127,9 @@ The frontend only reads. All endpoints are `GET` under `/api/v1/{country}`.
 
 ## Deployment
 
-Deployed on Vercel. <!-- TODO: add the URL once the deployment is set up -->
+**https://hwaruruk.unzipp.cloud**
+
+Deployed on Vercel. Every merge into `main` is deployed automatically, and pull requests get a preview URL. `vercel.json` forwards `/api/*` to the API server, so the browser only talks to one origin and no CORS setup is needed. API responses are not cached on the Vercel CDN.
 
 ## Author
 
