@@ -40,6 +40,19 @@ export const cal: CountryMock = {
     sources: ["NASA FIRMS", "geoBoundaries USA (미국 인구조사국, 퍼블릭 도메인)", "CAL FIRE"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },
     external_validation: { ...korMeta.external_validation, source: "CAL FIRE" },
+    // 서버 `/CAL/meta` 응답(2026-11-15, 백엔드 dfea737) 그대로
+    validation: { break_test_ratio: 1.02, break_test_ci95: [0.98, 1.06], official_break: { before: 2.54, after: 1.25, inconclusive: false } },
+    method_stats: {
+      grid_sensitivity: [
+        { "월별 R²": 0.946, "격자(도)": 0.1, "연간 오차 %": 7.3 },
+        { "월별 R²": 0.966, "격자(도)": 0.05, "연간 오차 %": 6.8 },
+        { "월별 R²": 0.979, "격자(도)": 0.02, "연간 오차 %": 7.2 },
+        { "월별 R²": 0.979, "격자(도)": 0.01, "연간 오차 %": 7.4 },
+      ],
+      loocv_annual_error_pct: 7.4,
+      calibration_error_pct: { terra_to_modis: 4.6, snpp_to_noaa20: 5.1, noaa21_to_noaa20: 1.5 },
+      rank_corr: { annual_vs_count: 0.4, annual_vs_area: 0.93, big_fires_vs_cells: 0.58 },
+    },
   },
   regions,
   geo,
