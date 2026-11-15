@@ -1,0 +1,75 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router-dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createTestQueryClient, renderRoute } from "../test/render";
+import { localeRoutes } from "./routes";
+
+function Boom(): never {
+  throw new Error("boom in page");
+}
+
+function renderWith(children: RouteObject[], path: string) {
+  const router = createMemoryRouter(localeRoutes(children), { initialEntries: [path] });
+  return render(
+    <QueryClientProvider client={createTestQueryClient()}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
+}
+
+describe("라우트 오류 화면", () => {
+  it("화면이 예외를 던지면 머리글·푸터와 언어를 유지한 채 안내와 원인을 보여 준다", async () => {
+    // React가 잡은 렌더 예외를 콘솔에 찍는 것은 이 테스트의 의도된 결과다
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    renderWith([{ path: "boom", element: <Boom /> }], "/en/boom");
+
+    expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe(
+      "Something went wrong while drawing this page",
+    );
+    expect(screen.getByText("boom in page")).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Language" })).toBeTruthy();
+    expect(within(screen.getByRole("contentinfo")).getByText("Data source: NASA FIRMS")).toBeTruthy();
+    consoleError.mockRestore();
+  });
+});
+
+describe("서버를 흉내 낸 앱 틀 (live)", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+
+  beforeEach(() => {
+    vi.stubEnv("VITE_API_MODE", "live");
+    vi.stubEnv("VITE_API_BASE", "https://api.test/api/v1");
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  it("/meta가 5xx로 두 번 실패하면 요청은 정확히 2번이고, 화면과 푸터는 그대로다", async () => {
+    fetchMock.mockImplementation(async () => new Response("error code: 1033", { status: 530 }));
+    renderRoute("/");
+    // 소개 화면은 다른 요청(나라별 /meta, /regions, /landing)도 하므로 한국 /meta만 센다
+    const korMetaCalls = () => fetchMock.mock.calls.filter(([input]) => String(input).endsWith("/KOR/meta")).length;
+    await waitFor(() => expect(korMetaCalls()).toBe(2));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(korMetaCalls()).toBe(2);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("화재를,\n더 길게 보다.");
+    expect(within(screen.getByRole("contentinfo")).getByText("자료 출처: NASA FIRMS")).toBeTruthy();
+    expect(screen.queryByRole("note")).toBeNull();
+  });
+
+  it("/meta의 generated_at이 null이어도 화면이 깨지지 않는다", async () => {
+    const { korMeta } = await import("../api/mock/kor");
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify({ ...korMeta, generated_at: null }), { status: 200 }),
+    );
+    renderRoute("/");
+    expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("화재를,\n더 길게 보다.");
+    expect(within(screen.getByRole("contentinfo")).getByText("Hwaruruk")).toBeTruthy();
+  });
+
+});
