@@ -19,7 +19,7 @@ export const en: Messages = {
     hero: {
       eyebrow: "MODIS + VIIRS fire records",
       title: "A longer view\nof fire.",
-      lead: "Explore South Korea’s fire history—from the whole country to individual districts—and compare each month with its past.",
+      lead: "Explore satellite fire records across six countries. Move from the available study areas to local places, and compare each month with its past.",
       howItWorks: "See how it works",
       scrollCue: "Scroll to read",
       find: "Find a place",

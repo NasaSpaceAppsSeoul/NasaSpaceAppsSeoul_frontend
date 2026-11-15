@@ -14,7 +14,7 @@ function heading() {
 describe("routes", () => {
   it("/는 한글 소개 화면이다", async () => {
     renderAt("/");
-    expect((await heading()).textContent).toBe("더 길게 보는\n화재 기록.");
+    expect((await heading()).textContent).toBe("화재를,\n더 길게 보다.");
   });
 
   it("/en은 영어 소개 화면이다", async () => {
