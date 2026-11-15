@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ButtonObject } from "../../../components/about/ButtonObject";
 import { EarthPanel } from "../../../components/about/EarthPanel";
 import { HeroSearchBar } from "../../../components/about/HeroSearchBar";
 import { SectionError } from "../../../components/SectionError";
 import { useMeta } from "../../../hooks/useMeta";
 import { useRegions } from "../../../hooks/useRegions";
 import { useLocale, useMessages } from "../../../i18n";
-import { COUNTRIES } from "../../../lib/country";
 import { errorKind } from "../../../lib/errorKind";
 import { localizePath } from "../../../lib/locale";
 import { indexRegions } from "../../../lib/region";
-import { CountryButton } from "./CountryButton";
 import { HeroDialogs } from "./HeroDialogs";
 
 /*
  * 첫 화면 히어로 (Figma Make `design/extra/landing-hero.jpg`, `plans/about-revise.md` 0·1·10절).
- * 왼쪽 글(작은 제목·큰 제목·설명) → 지역 검색 줄 → 나라 버튼 → "작동 방식 보기"(기법 페이지). 예시 줄은 뺐다(UI 다듬기 2026-11-15 사용자).
+ * 왼쪽 글(작은 제목·큰 제목·설명) → 지역 검색 줄 → 흰 "대시보드 보기" + "작동 방식 보기"(기법 페이지).
+ * 예시 줄·나라별 바로가기 버튼·검색 줄 오른쪽 밝은 칸은 뺐다(UI 다듬기 2026-11-15 사용자, 참고 소스 `burnline-landing 4` 히어로).
  * 오른쪽은 3D 지구. 1280(xl) 미만에서는 지구가 글 아래로 내려간다(10절 ④).
  * 검색은 한국 `/regions`·`/meta`를 쓴다(소개 화면은 한국 고정, `decisions.md` 2-7). 예전 "지역 둘러보기"는 검색에 합쳤다(11절).
  * 받는 동안은 검색 줄을 막고, 실패하면 검색 줄 아래에 구역 에러를 보인다.
@@ -59,10 +59,11 @@ export function HeroSection() {
           {/* 설명: 최대 435px(시안 .hero-body) */}
           <p className="mt-8 max-w-[435px] text-lg text-subtle">{h.lead}</p>
 
-          <div className="mt-10">
+          {/* 참고 `.hero-search`: 설명 아래 32 */}
+          <div className="mt-8">
             <HeroSearchBar
-              placeholder={t.dashboard.controls.searchPlaceholder}
-              actionLabel={h.find}
+              prompt={h.searchPrompt}
+              label={`${h.find}, ${t.dashboard.controls.searchPlaceholder}`}
               disabled={!ready}
               onOpen={() => setSearchOpen(true)}
             />
@@ -77,22 +78,30 @@ export function HeroSection() {
               className="mt-4"
             />
           ) : null}
-          <nav aria-label={h.countriesLabel} className="mt-6">
-            <ul className="grid grid-cols-3 gap-2">
-              {COUNTRIES.map((country) => (
-                <li key={country}>
-                  <CountryButton country={country} />
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <Link
-            to={localizePath("/method", locale)}
-            className="mt-6 inline-flex items-center gap-2 self-start text-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-selection"
-          >
-            {h.howItWorks}
-            <span aria-hidden="true">→</span>
-          </Link>
+          {/*
+           * 참고 `.hero-actions`(검색 줄 아래 24, 사이 16): 흰 "대시보드 보기"(`.dashboard-button--light`, 높이 56·최소 224·둥근 12·15/500)
+           * + "작동 방식 보기 →"(`.text-button`, 14px #b2b3b7). 나라별 바로가기 버튼은 뺐다(UI 다듬기 2026-11-15 사용자)
+           */}
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <Link
+              to={localizePath("/dashboard", locale)}
+              className={
+                "group inline-flex h-14 min-w-56 items-center justify-between gap-4 rounded-xl bg-[#f6f6f3] py-2 pr-2 pl-5 " +
+                "text-[15px] font-medium whitespace-nowrap text-[#050506] " +
+                "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-selection"
+              }
+            >
+              {h.dashboard}
+              <ButtonObject />
+            </Link>
+            <Link
+              to={localizePath("/method", locale)}
+              className="inline-flex h-14 items-center gap-2 text-sm whitespace-nowrap text-[#b2b3b7] hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-selection"
+            >
+              {h.howItWorks}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
 
         <div className="h-120 xl:h-150">

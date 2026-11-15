@@ -38,7 +38,7 @@ afterEach(() => {
 const title = () => screen.findByRole("heading", { level: 1 });
 
 describe("기법 페이지", () => {
-  it("머리 · 숫자 카드 3장 · 01~10 · 끝 줄 순서, 머리글은 소개가 켜진다", async () => {
+  it("머리 · 숫자 카드 3장 · 01~10 · 끝 줄 순서", async () => {
     renderRoute("/method");
     expect((await title()).textContent).toBe("25년의 불을 하나의 자로.");
     const stats = within(screen.getByRole("list", { name: "요약 숫자" })).getAllByRole("listitem");
@@ -57,8 +57,6 @@ describe("기법 페이지", () => {
       "만든 방법과 배운 것",
       "출처",
     ]);
-    const nav = screen.getByRole("navigation", { name: "주 메뉴" });
-    expect(within(nav).getByRole("link", { name: "소개" }).getAttribute("aria-current")).toBe("page");
     // 머리의 링크와 목차 위 자리(머리 링크가 화면 위로 나가기 전에는 숨김)
     const backs = screen.getAllByRole("link", { name: "← 소개로 돌아가기" });
     expect(backs.map((a) => a.getAttribute("href"))).toEqual(["/", "/"]);

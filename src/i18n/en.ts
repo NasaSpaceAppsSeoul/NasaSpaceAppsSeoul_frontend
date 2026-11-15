@@ -3,11 +3,6 @@ import type { Messages } from "./ko";
 /** 영어 문구. 디자인 영문판에서 그대로 옮긴다. */
 export const en: Messages = {
   brand: "Burnline",
-  nav: {
-    label: "Main menu",
-    about: "About",
-    dashboard: "Dashboard",
-  },
   language: {
     label: "Language",
     ko: "KR",
@@ -27,10 +22,9 @@ export const en: Messages = {
       lead: "Explore South Korea’s fire history—from the whole country to individual districts—and compare each month with its past.",
       howItWorks: "See how it works",
       scrollCue: "Scroll to read",
-      find: "Find a region",
-      countriesLabel: "Country dashboards",
-      countryLink: (country: string) => `${country} →`,
-      countryNotReady: (country: string) => `${country} · Coming soon`,
+      find: "Find a place",
+      searchPrompt: "Find a place: Uiseong, California, Attica…",
+      dashboard: "Explore dashboard",
       countryRowSub: "Country dashboard",
       dataEnd: (date: string) => `Data through ${date}`,
     },

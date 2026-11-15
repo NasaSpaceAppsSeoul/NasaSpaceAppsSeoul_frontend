@@ -32,7 +32,7 @@ describe("대시보드 에러 화면", () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     expect(await screen.findByRole("heading", { name: "서버에 연결할 수 없습니다" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "다시 시도" })).toBeTruthy();
-    expect(screen.getByRole("navigation", { name: "주 메뉴" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "언어" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^기준 월/ })).toBeNull();
   });
 

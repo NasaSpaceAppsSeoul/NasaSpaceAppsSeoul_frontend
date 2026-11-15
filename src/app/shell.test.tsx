@@ -28,7 +28,7 @@ describe("라우트 오류 화면", () => {
       "Something went wrong while drawing this page",
     );
     expect(screen.getByText("boom in page")).toBeTruthy();
-    expect(screen.getByRole("navigation", { name: "Main menu" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Language" })).toBeTruthy();
     expect(screen.getByText("Burnline · NASA Space Apps Challenge 2026")).toBeTruthy();
     consoleError.mockRestore();
   });

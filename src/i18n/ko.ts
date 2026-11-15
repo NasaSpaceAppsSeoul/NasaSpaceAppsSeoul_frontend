@@ -9,11 +9,6 @@ function objectParticle(word: string): "을" | "를" {
 
 export const ko = {
   brand: "Burnline",
-  nav: {
-    label: "주 메뉴",
-    about: "소개",
-    dashboard: "대시보드",
-  },
   language: {
     label: "언어",
     ko: "KR",
@@ -35,11 +30,11 @@ export const ko = {
       lead: "대한민국의 화재 기록을 나라 전체부터 시·군·구까지 살펴보고, 매달을 지난 기록과 비교해 보세요.",
       howItWorks: "작동 방식 보기",
       scrollCue: "스크롤해서 읽기",
-      // 검색 줄 오른쪽 밝은 칸(장식, 줄 전체가 검색 버튼). 예전 "지역 둘러보기"는 검색에 합쳤다(about-revise 11절)
+      // 검색 줄 읽는 이름의 앞부분. 예전 "지역 둘러보기"는 검색에 합쳤다(about-revise 11절)
       find: "지역 찾기",
-      countriesLabel: "나라별 대시보드",
-      countryLink: (country: string) => `${country} →`,
-      countryNotReady: (country: string) => `${country} · 준비 중`,
+      // 검색 줄 안 글자와 아래 흰 버튼(참고 소스 히어로, UI 다듬기 2026-11-15)
+      searchPrompt: "지역 찾기: 의성군, 캘리포니아, 아티카…",
+      dashboard: "대시보드 보기",
       countryRowSub: "나라 대시보드",
       dataEnd: (date: string) => `${date}까지 자료`,
     },
