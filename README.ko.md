@@ -1,10 +1,14 @@
 # Hwaruruk — 프론트엔드
 
+### 🔗 배포 주소: https://hwaruruk.unzipp.cloud
+
+[대시보드](https://hwaruruk.unzipp.cloud/dashboard/KOR?month=2025-03) · [월간 인사이트](https://hwaruruk.unzipp.cloud/insight/KOR/91817680B75376031789242?month=2025-03) · [기법](https://hwaruruk.unzipp.cloud/method)
+
 [English](./README.md)
 
 위성이 감지한 화재 기록을 지역과 달별로 보여 주는 웹 앱입니다. 어느 달이든 지난 해들의 같은 달과 비교할 수 있습니다. 이 저장소는 웹 프론트엔드이며, NASA Space Apps Challenge 2026(서울) 출품작입니다.
 
-![첫 화면](./docs/images/home.jpg)
+[![첫 화면](./docs/images/home.jpg)](https://hwaruruk.unzipp.cloud)
 
 ## 무엇을 보여 주나
 
@@ -127,9 +131,7 @@ src/
 
 ## 배포
 
-**https://hwaruruk.unzipp.cloud**
-
-Vercel에 배포합니다. `main`에 병합하면 자동으로 배포되고, PR에는 미리보기 주소가 붙습니다. `vercel.json`이 `/api/*` 요청을 API 서버로 넘기므로 브라우저는 한 주소만 상대하고 CORS 설정이 필요 없습니다. API 응답은 Vercel CDN에 저장하지 않습니다.
+Vercel에 배포합니다(주소는 이 문서 맨 위). `main`에 병합하면 자동으로 배포되고, PR에는 미리보기 주소가 붙습니다. `vercel.json`이 `/api/*` 요청을 API 서버로 넘기므로 브라우저는 한 주소만 상대하고 CORS 설정이 필요 없습니다. API 응답은 Vercel CDN에 저장하지 않습니다.
 
 ## 만든 사람
 
