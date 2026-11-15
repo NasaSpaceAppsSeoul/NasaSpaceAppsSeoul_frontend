@@ -30,7 +30,10 @@ describe("목록 (5장)", () => {
     const items = await within(card).findAllByRole("listitem");
     expect(items).toHaveLength(top.items.length);
     expect(within(card).getByRole("list").tagName).toBe("OL");
-    expect(items[0]?.textContent).toMatch(/^1의성군2025년 3월384화재 감지일$/);
+    // 줄: 순번 · 이름 · 달 한 줄 · 값(단위는 화면 낭독기용). 머리 오른쪽에 지역 수와 달·단위(참고 소스 모양)
+    expect(items[0]?.textContent).toMatch(/^1의성군2025년 3월384 화재 감지일$/);
+    expect(within(card).getByText(`${top.items.length}개 지역`)).toBeTruthy();
+    expect(within(card).getByText("2025년 3월 · 화재 감지일")).toBeTruthy();
     // 서버 이름("경북 의성군")에서 같은 시·도는 떼어 낸다
     expect(card.textContent).not.toContain("경북 의성군");
   });
@@ -45,20 +48,22 @@ describe("목록 (5장)", () => {
     expect(router.state.location.search).toBe("?month=2025-03");
   });
 
-  it("시·군·구: 맞닿은 지역 전부, 값 큰 순(같으면 이름순), 0도 보이고 번호 없음", async () => {
+  it("시·군·구: 맞닿은 지역 전부, 값 큰 순(같으면 이름순), 0도 보이고 순번이 붙는다", async () => {
     renderRoute(`/dashboard/KOR/${UISEONG}?month=2025-03`);
     const card = await listCard("인접 지역의 3월 기록");
     const detail = (await mockGet(`/KOR/regions/${UISEONG}`)) as RegionDetail;
     const items = await within(card).findAllByRole("listitem");
     expect(items).toHaveLength(detail.neighbors.length);
-    expect(within(card).getByRole("list").tagName).toBe("UL");
-    // 한 줄: "안동시·220 화재 감지일"
-    const values = items.map((li) => Number((li.textContent ?? "").match(/·([\d,.]+) 화재 감지일$/)?.[1]?.replaceAll(",", "")));
+    expect(within(card).getByRole("list").tagName).toBe("OL");
+    // 한 줄: 순번 · 이름 · 값("1안동시220 화재 감지일")
+    const nameOf = (li: HTMLElement) => li.querySelector("a")?.textContent ?? "";
+    const valueOf = (li: HTMLElement) => Number((li.textContent ?? "").match(/([\d,.]+) 화재 감지일$/)?.[1]?.replaceAll(",", ""));
+    const values = items.map(valueOf);
     expect(values).toEqual([...values].sort((a, b) => b - a));
     expect(values).toContain(0);
-    expect(items[0]?.textContent).toMatch(/^안동시·220 화재 감지일$/);
+    expect(items[0]?.textContent).toMatch(/^1안동시220 화재 감지일$/);
     // 값이 같으면 이름순
-    const zeros = items.filter((li) => /·0 화재 감지일$/.test(li.textContent ?? "")).map((li) => (li.textContent ?? "").split("·")[0] ?? "");
+    const zeros = items.filter((li) => valueOf(li) === 0).map(nameOf);
     expect(zeros).toEqual([...zeros].sort((a, b) => a.localeCompare(b, "ko")));
   });
 
@@ -73,7 +78,7 @@ describe("목록 (5장)", () => {
     const card = await listCard("인접 지역의 8월 기록");
     const items = await within(card).findAllByRole("listitem");
     expect(items.length).toBeGreaterThan(0);
-    expect(items.every((li) => /^[A-Za-z ]+·/.test(li.textContent ?? ""))).toBe(true);
+    expect(items.every((li) => /^[A-Za-z ]+$/.test(li.querySelector("a")?.textContent ?? ""))).toBe(true);
   });
 
   it("다른 시·도와 맞닿은 이웃은 시·도를 붙인다", async () => {

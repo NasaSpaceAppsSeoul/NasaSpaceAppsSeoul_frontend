@@ -250,6 +250,8 @@ export const ko = {
   dashboard: {
     unit: "화재 감지일",
     // 시·도 목록 3곳(5장, `decisions.md` 6-1·6-3). 디자인 "3월 화재 감지일 순위"는 백엔드 정렬(그 지역 같은 달 순위 → 값)과 뜻이 달라 고쳐 씀
+    // 지도 아래 목록 머리 오른쪽 지역 수(참고 소스 `.db-region-meta`, 2026-11-15)
+    regionCount: (n: number) => `${n}개 지역`,
     top: {
       title: "평소보다 두드러진 곳",
       sub: (lv2: string) => `각 ${lv2}의 지난 같은 달 기록과 비교해 두드러진 순서입니다.`,
