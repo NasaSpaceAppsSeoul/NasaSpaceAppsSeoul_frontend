@@ -127,7 +127,9 @@ src/
 
 ## 배포
 
-Vercel에 배포합니다. <!-- TODO: 배포가 끝나면 주소 추가 -->
+**https://hwaruruk.unzipp.cloud**
+
+Vercel에 배포합니다. `main`에 병합하면 자동으로 배포되고, PR에는 미리보기 주소가 붙습니다. `vercel.json`이 `/api/*` 요청을 API 서버로 넘기므로 브라우저는 한 주소만 상대하고 CORS 설정이 필요 없습니다. API 응답은 Vercel CDN에 저장하지 않습니다.
 
 ## 만든 사람
 
