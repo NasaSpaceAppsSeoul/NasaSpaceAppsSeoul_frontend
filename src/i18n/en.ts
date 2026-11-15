@@ -224,6 +224,8 @@ export const en: Messages = {
   dashboard: {
     unit: "fire grid-days",
     regionCount: (n: number) => (n === 1 ? "1 area" : `${n} areas`),
+    listExpand: (n: number) => `Show all ${n} areas`,
+    listCollapse: "Show top 5 areas",
     top: {
       title: "Standing out from usual",
       sub: (lv2: string) => `Ordered by how much each ${lv2.toLowerCase()} stands out against its own past records for the same month.`,

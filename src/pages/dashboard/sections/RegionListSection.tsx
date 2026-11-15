@@ -94,7 +94,16 @@ export function RegionListSection({ scope, navigate }: RegionListSectionProps) {
       {rows.length === 0 ? (
         <p className="py-6 text-sm text-muted">{emptyText}</p>
       ) : (
-        <RegionList rows={rows} headLabel={scope.levelNames.lv2} unit={t.dashboard.unit} label={title} />
+        // 달이 바뀌면 접힌 상태로 되돌린다(지역이 바뀌면 화면이 `key={region.id}`로 새로 그린다)
+        <RegionList
+          key={data.month}
+          rows={rows}
+          headLabel={scope.levelNames.lv2}
+          unit={t.dashboard.unit}
+          label={title}
+          expandLabel={t.dashboard.listExpand}
+          collapseLabel={t.dashboard.listCollapse}
+        />
       )}
     </div>,
     { count: rows.length, month: data.month },

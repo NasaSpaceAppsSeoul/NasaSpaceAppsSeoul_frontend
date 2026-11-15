@@ -52,8 +52,15 @@ describe("목록 (5장)", () => {
     renderRoute(`/dashboard/KOR/${UISEONG}?month=2025-03`);
     const card = await listCard("인접 지역의 3월 기록");
     const detail = (await mockGet(`/KOR/regions/${UISEONG}`)) as RegionDetail;
-    const items = await within(card).findAllByRole("listitem");
+    // 6곳부터는 처음 5곳만, "N개 지역 모두 보기"로 펼친다(참고 소스와 같음)
+    expect(detail.neighbors.length).toBeGreaterThan(5);
+    expect(await within(card).findAllByRole("listitem")).toHaveLength(5);
+    const more = within(card).getByRole("button", { name: `${detail.neighbors.length}개 지역 모두 보기` });
+    expect(more.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(more);
+    const items = within(card).getAllByRole("listitem");
     expect(items).toHaveLength(detail.neighbors.length);
+    expect(within(card).getByRole("button", { name: "상위 5개만 보기" }).getAttribute("aria-expanded")).toBe("true");
     expect(within(card).getByRole("list").tagName).toBe("OL");
     // 한 줄: 순번 · 이름 · 값("1안동시220 화재 감지일")
     const nameOf = (li: HTMLElement) => li.querySelector("a")?.textContent ?? "";
