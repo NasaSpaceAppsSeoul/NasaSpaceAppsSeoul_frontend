@@ -166,10 +166,10 @@ export const en: Messages = {
     reload: "Reload",
   },
   footer: {
-    title: "Burnline · NASA Space Apps Challenge 2026",
-    sources: "Sources",
-    unit: "A fire grid-day is one approximately 1 km cell with fire detected on one day. It is not a fire incident count or burned area.",
-    processed: "Data processed",
+    brand: "Burnline",
+    source: "Data source: NASA FIRMS",
+    si: "SI was used in the design and development of this website.",
+    note: "Historical fire activity · not a real-time alert service",
   },
   common: {
     retry: "Try again",
@@ -223,6 +223,9 @@ export const en: Messages = {
   },
   dashboard: {
     unit: "fire grid-days",
+    regionCount: (n: number) => (n === 1 ? "1 area" : `${n} areas`),
+    listExpand: (n: number) => `Show all ${n} areas`,
+    listCollapse: (n: number) => `Show top ${n} areas`,
     top: {
       title: "Standing out from usual",
       sub: (lv2: string) => `Ordered by how much each ${lv2.toLowerCase()} stands out against its own past records for the same month.`,
@@ -539,6 +542,8 @@ export const en: Messages = {
     },
   },
   insight: {
+    // 왼쪽 목차(기법 페이지와 같은 `MethodToc`, 2026-11-15 사용자)
+    tocLabel: "Contents",
     back: "Back to this region and month →",
     toDashboard: "Open dashboard",
     eyebrow: "MONTHLY INSIGHT",
@@ -556,11 +561,13 @@ export const en: Messages = {
     partialFailure: "Some information could not be loaded.",
     refetchFailed: "Could not reload. Showing the information already loaded.",
     tiles: {
+      label: "Key figures",
       total: "This month's total · fire grid-days",
       years: (monthName: string) => `Years with ${monthName} detections`,
       yearsValue: (detected: number, total: number) => `${detected} / ${total} years`,
       days: "Active dates / peak date",
       daysValue: (days: number, date: string | null) => (date === null ? `${days} days` : `${days} days / ${date}`),
+      daysDate: (date: string) => ` / ${date}`,
       daysSub: (cells: string) => `Peak: ${cells} cells in a day`,
       cluster: "Largest detection cluster",
       cells: (cells: string) => `${cells} cells`,
@@ -583,8 +590,9 @@ export const en: Messages = {
       peak: "Peak day",
       future: "Not yet counted",
       inCluster: "During largest cluster",
-      legendNote: "fire cells · blue underline: detected here during the largest cluster",
-      legendNoteBasic: "fire cells",
+      legendTitle: "Fire cells by day",
+      legendCluster: "Detected here during the largest cluster (blue underline)",
+      legendBins: "Color bands: fire cells detected in this area that day (0, 1, 2, 3, 4 or more).",
       summary: {
         fireDays: "Days with detections",
         peak: "Peak active-cell day",
@@ -612,19 +620,12 @@ export const en: Messages = {
         `This comparison covers ${monthName} ${from}–${to} only. All values are fire grid-days on the NOAA-20 basis.`,
       currentFailed: "Could not load this year's value.",
       partialBar: "Still counting",
+      selectedBar: "selected year",
       chartLabel: (monthName: string) => `Bar chart of ${monthName} fire grid-days by year`,
     },
     detected: {
-      eyebrow: "YEARS WITH DETECTIONS",
-      title: "Start with the years that had detections.",
-      lead: (total: number, detected: number) => `${detected} of ${total} years had detections.`,
-      year: "Year",
-      value: (monthName: string) => `${monthName} grid-days`,
-      note: "Note",
-      selected: "Selected",
-      detected: "Detected",
+      countLine: (total: number, detected: number) => `${detected} of ${total} years had detections.`,
       sparseNote: "For sparse histories, start with detection years and the selected month before considering ratios or ranks.",
-      empty: "No year had detections.",
     },
     official: {
       eyebrow: "OFFICIAL RECORDS",

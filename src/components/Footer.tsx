@@ -1,33 +1,21 @@
 import { useMessages } from "../i18n";
 
 /*
- * 푸터 (components/sheet/03-nav-a 위, screens/kr/about.png 맨 아래).
- * 대회 이름과 단위 설명은 고정 문구다. 출처와 데이터 처리일은 백엔드 `/meta`의 값을 받는다(2026-11-14 사용자 결정).
- * 값이 아직 없으면(로딩·실패) 그 줄만 그리지 않는다.
+ * 푸터 (참고 소스 `burnline-landing 6` 첫 화면 `footer`, 2026-11-15 디자이너·사용자: "그대로 적용").
+ * 위 선 아래 세 칸(가운데 칸이 정확히 가운데에 오게 세 칸 같은 폭): 왼쪽 "Burnline", 가운데 자료 출처 + SI 한 줄, 오른쪽 서비스 성격.
+ * Mono 13/18, #a0a2a8, 영문만 자간 .04em. 모든 화면 공통.
+ * 예전의 `/meta` 출처 목록·데이터 처리일·단위 설명 줄은 참고 문구로 바꾸면서 뺐다.
  */
-type FooterProps = {
-  /** `/meta.sources` */
-  sources: string[] | undefined;
-  /** `/meta.generated_at`의 날짜 부분(YYYY-MM-DD) */
-  processedOn: string | undefined;
-};
-
-export function Footer({ sources, processedOn }: FooterProps) {
-  const t = useMessages();
+export function Footer() {
+  const f = useMessages().footer;
   return (
-    <footer className="mt-12 flex flex-col gap-2 border-t border-border py-6 text-sm text-muted">
-      <p className="font-semibold text-ink">{t.footer.title}</p>
-      {sources !== undefined && sources.length > 0 && (
-        <p>
-          {t.footer.sources}: {sources.join(" · ")}
-        </p>
-      )}
-      <p>{t.footer.unit}</p>
-      {processedOn !== undefined && (
-        <p className="text-xs">
-          {t.footer.processed} {processedOn}
-        </p>
-      )}
+    <footer className="mt-12 grid grid-cols-3 gap-6 border-t border-white/14 pt-6 pb-12 font-mono text-[13px] leading-[18px] text-[#a0a2a8] [&:lang(en)]:tracking-[0.04em]">
+      <p>{f.brand}</p>
+      <div className="min-w-0 text-center">
+        <p>{f.source}</p>
+        <p className="mt-2.5 break-words text-[#85878e]">{f.si}</p>
+      </div>
+      <p className="text-right">{f.note}</p>
     </footer>
   );
 }

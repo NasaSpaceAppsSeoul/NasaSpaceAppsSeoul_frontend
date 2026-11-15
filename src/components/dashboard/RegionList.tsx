@@ -1,61 +1,101 @@
+import { useId, useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronDownIcon } from "../icons";
 
 /*
- * 지역 목록 줄 (components/sheet/05-charts-badges·06-maps-panel-kr-r 아래, screens/kr/dashboard-province·district).
- * 줄은 그 지역 대시보드로 가는 링크다(이동은 `a`, 스킬 responsive-layout).
- * - `ranked`(시·도 목록): 순번 네모 + 이름 + 보조 한 줄 + 오른쪽 큰 값과 단위. 순번은 목록 안의 차례일 뿐이다
- *   (`/top`의 `rank`가 아니다, `decisions.md` 6-1).
- * - `compact`(인접 지역): 디자인처럼 한 줄("안동시 · 9 화재 감지일"). 이웃이 6~8곳이어도 왼쪽 열이 지도 카드보다 길어지지 않게.
- * 줄 사이는 구분선으로 나눈다(두 목록을 같게. 디자인은 시·도 목록에 선이 없다).
- * 같은 대시보드 안에서 지역만 바꾸는 이동이라 스크롤을 맨 위로 되돌리지 않는다(`preventScrollReset`).
+ * 지도 아래 지역 목록 (참고 소스 `burnline-landing 5` `.db-region-list` 모양, 2026-11-15 디자이너·사용자).
+ * 참고처럼 두 열(사이 48, 왼쪽 열을 위에서 아래로 먼저 채움. 한 줄에 하나는 가운데가 비어 사용자가 두 열로 정함). 1곳이면 한 열.
+ * 열마다 열 이름 줄(단계 이름 | 단위) 아래 줄마다 순번 | 이름(+보조 한 줄) | 값. 긴 이름은 말줄임, 마우스를 올리면 전체 이름.
+ * - 순번은 목록 안의 차례일 뿐이다(`/top`의 `rank`가 아니다, `decisions.md` 6-1). 목록(`ol`)이 차례를 알리므로 숫자는 읽지 않는다.
+ * - 줄의 이름은 그 지역 대시보드로 가는 링크다. 같은 대시보드 안 이동이라 스크롤을 되돌리지 않는다(`preventScrollReset`).
+ * - 6곳부터는 처음 5곳만 보이고 아래 버튼으로 펼치고 접는다(참고 `.db-list-expand`, 사용자). 달·지역이 바뀌면 부르는 쪽이 `key`로 접힌 상태로 되돌린다.
+ * 값은 표처럼 모인 숫자라 올라가기를 쓰지 않는다(`CountUp` 주석).
  */
 export type RegionListRow = { id: string; name: string; sub: string | null; value: string; href: string };
 
 type RegionListProps = {
   rows: readonly RegionListRow[];
-  variant: "ranked" | "compact";
+  /** 열 이름 줄 왼쪽(하위 단계 이름, 예: "시·군·구") */
+  headLabel: string;
+  /** 열 이름 줄 오른쪽(단위) */
   unit: string;
+  /** 목록 이름(화면 낭독기) */
+  label: string;
+  /** 펼치기·접기 버튼 글자 */
+  expandLabel: (count: number) => string;
+  collapseLabel: (count: number) => string;
 };
 
-const ROW = "flex w-full items-center gap-4 rounded-control px-2 text-left hover:bg-row-hover focus-visible:outline-2 focus-visible:outline-selection";
+/** 접힌 상태에서 보이는 줄 수(참고 소스와 같이 5) */
+const FOLDED = 5;
 
-export function RegionList({ rows, variant, unit }: RegionListProps) {
-  const ranked = variant === "ranked";
-  const List = ranked ? "ol" : "ul";
-  // 마우스를 올렸을 때의 배경 여백(px-2)만큼 밖으로 빼서 이름·값이 카드 제목과 같은 선에서 시작하게 한다
+export function RegionList({ rows: all, headLabel, unit, label, expandLabel, collapseLabel }: RegionListProps) {
+  const [expanded, setExpanded] = useState(false);
+  const listId = useId();
+  const foldable = all.length > FOLDED;
+  const rows = foldable && !expanded ? all.slice(0, FOLDED) : all;
+  const split = rows.length > 1;
+  // 왼쪽 열 줄 수(참고 `gridTemplateRows: repeat(half)`): 줄을 세로로 먼저 채운다
+  const half = Math.ceil(rows.length / 2);
+  // 참고 `.db-list-head`: 12px 흐린 색, 순번 칸(28)과 사이(12)만큼 들여 쓴다, 아래 흰 14% 선. 표 머리처럼 보이기만 하고 읽지 않는다
+  const head = (
+    // `display: contents` 부모의 aria-hidden을 무시하는 브라우저가 있어 머리 줄마다 숨긴다
+    <div aria-hidden="true" className="flex justify-between border-b border-white/14 pb-2 pl-10 text-xs text-[#aeb7c3]">
+      <span>{headLabel}</span>
+      <span>{unit}</span>
+    </div>
+  );
   return (
-    // `list-style: none`인 목록을 Safari·VoiceOver가 목록으로 알리지 않아 `role="list"`를 붙인다
-    <List role="list" className="-mx-2 flex flex-col divide-y divide-border">
-      {rows.map((row, i) => (
-        <li key={row.id}>
-          {ranked ? (
-            <Link to={row.href} preventScrollReset className={`${ROW} py-3`}>
-              {/* 목록(`ol`)이 순번을 알리므로 네모 숫자는 읽지 않는다 */}
-              <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-control-sm bg-inverse text-sm font-medium text-surface">
-                {i + 1}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-base font-medium text-ink">{row.name}</span>
-                {row.sub !== null && <span className="block truncate text-xs text-muted">{row.sub}</span>}
-              </span>
-              <span className="shrink-0 text-right">
-                <span className="block text-xl font-semibold text-ink">{row.value}</span>
-                <span className="block text-xs text-muted">{unit}</span>
-              </span>
-            </Link>
-          ) : (
-            <Link to={row.href} preventScrollReset className={`${ROW} py-3 text-base`}>
-              <span className="min-w-0 truncate font-medium text-ink">{row.name}</span>
-              <span aria-hidden="true" className="text-muted">
-                ·
-              </span>
-              <span className="shrink-0 text-ink">
-                <span className="font-semibold">{row.value}</span> {unit}
-              </span>
-            </Link>
-          )}
-        </li>
-      ))}
-    </List>
+    <div className={split ? "grid grid-cols-2 gap-x-12" : ""}>
+      <div className={split ? "contents" : ""}>
+        {head}
+        {split && head}
+      </div>
+      {/* `list-style: none`인 목록을 Safari·VoiceOver가 목록으로 알리지 않아 `role="list"`를 붙인다. 목록은 하나라 읽는 순서는 순번대로 */}
+      <ol
+        id={listId}
+        role="list"
+        aria-label={label}
+        className={split ? "col-span-2 grid grid-flow-col grid-cols-2 gap-x-12" : ""}
+        style={split ? { gridTemplateRows: `repeat(${half}, auto)` } : undefined}
+      >
+        {rows.map((row, i) => (
+          // 참고 `.db-map-list-row`: 순번 28 | 이름 | 값, 사이 12, 최소 높이 52, 위아래 10, 아래 흰 7% 선
+          <li key={row.id} className="grid min-h-13 grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3 border-b border-white/7 py-2.5">
+            <span aria-hidden="true" className="text-right text-xs text-[#8e98a6]">
+              {i + 1}
+            </span>
+            <span className="min-w-0">
+              <Link
+                to={row.href}
+                preventScrollReset
+                title={row.name}
+                className="block truncate text-[15px] text-[#eef2f6] hover:text-[#83bdff] focus-visible:outline-2 focus-visible:outline-selection"
+              >
+                {row.name}
+              </Link>
+              {row.sub !== null && <span className="mt-0.5 block truncate text-[11px] leading-[1.6] text-[#818b99]">{row.sub}</span>}
+            </span>
+            <span className="text-right text-[17px] text-[#e3bc9a] tabular-nums">
+              {row.value}
+              <span className="sr-only"> {unit}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      {foldable && (
+        // 참고 `.db-list-expand`: 가운데, 위 20, 11px 파란 글자, 아래 화살표(펼치면 위로)
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          onClick={() => setExpanded((v) => !v)}
+          className={`${split ? "col-span-2" : ""} flex w-full cursor-pointer items-center justify-center gap-2 pt-5 text-[11px] text-[#9cb7d9] hover:text-[#d1e4ff] focus-visible:outline-2 focus-visible:outline-selection`}
+        >
+          {expanded ? collapseLabel(FOLDED) : expandLabel(all.length)}
+          <ChevronDownIcon className={`size-2.75 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        </button>
+      )}
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import { Button } from "../../../components/Button";
-import { Card } from "../../../components/Card";
 import { SeasonCard } from "../../../components/dashboard/SeasonCard";
 import { SectionError } from "../../../components/SectionError";
 import { Skeleton } from "../../../components/Skeleton";
@@ -28,10 +27,11 @@ export function RiskSeasonSection({ scope }: { scope: DashboardScope }) {
   if (detail.data === undefined) {
     if (detail.isError) {
       return (
-        <Card>
+        // 집중 시기 칸과 같이 판 없이 제목 + 에러
+        <section>
           <h2 className="mb-4 text-xl font-semibold text-ink">{s.title}</h2>
           <SectionError kind={errorKind(detail.error)} onRetry={() => void detail.refetch()} />
-        </Card>
+        </section>
       );
     }
     return <Skeleton className="h-52 w-full" />;

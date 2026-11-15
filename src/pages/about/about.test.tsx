@@ -1,3 +1,4 @@
+import { fullText } from "../../test/fullText";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { EarthErrorBoundary } from "../../components/about/EarthPanel";
 import { lazy, Suspense } from "react";
@@ -213,13 +214,13 @@ describe("소개 화면 (목)", () => {
     expect(section.getByText(/^20\d\d년 1월 · /)).toBeTruthy();
     expect(section.getByText(/합계$/)).toBeTruthy();
     // 목의 마지막 달(2026-11)은 집계 중 → 합계 옆에 "집계 중"
-    expect(section.getByText(/^[\d,.]+ 화재 감지일 · 집계 중$/)).toBeTruthy();
+    expect(section.getByText(fullText(/^[\d,.]+ 화재 감지일 · 집계 중$/))).toBeTruthy();
     // 점선 달이 있으니 범례와 ⓘ 도움말(설명이 버튼에 이어진다)
     expect(section.getByText("집계 중·준실시간(바뀔 수 있음)")).toBeTruthy();
     // 준실시간 달(목: 2026-09)은 "집계 중"이 아니라 "준실시간"
     const september = chart.getByRole("button", { name: /^2026년 9월, .*준실시간$/ });
     fireEvent.click(september);
-    expect(section.getByText(/^2026년 9월 · [\d,.]+ 화재 감지일 · 준실시간$/)).toBeTruthy();
+    expect(section.getByText(fullText(/^2026년 9월 · [\d,.]+ 화재 감지일 · 준실시간$/))).toBeTruthy();
     const help = section.getByRole("button", { name: "점선과 실선의 뜻" });
     expect(help.getAttribute("aria-describedby")).toBeTruthy();
     // Esc를 누르면 설명 판이 닫힌다(보이기 클래스가 빠진다). 마우스가 떠나면 다시 열 수 있다

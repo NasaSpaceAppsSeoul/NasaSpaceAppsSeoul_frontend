@@ -1,9 +1,9 @@
 import { useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import type { GeoFeature, Insight } from "../../../api/types";
-import { SectionHeading } from "../../../components/about/SectionHeading";
 import { Button } from "../../../components/Button";
-import { Card } from "../../../components/Card";
+import { InsightFigureRow, InsightPanel, InsightSection } from "../../../components/insight/InsightSection";
+import { MapLegend } from "../../../components/map/MapLegend";
 import { RegionMap, type RegionMapHover } from "../../../components/map/RegionMap";
 import { SectionError } from "../../../components/SectionError";
 import { Skeleton } from "../../../components/Skeleton";
@@ -17,7 +17,7 @@ import { neighborName } from "../../../lib/region";
 import type { InsightScope } from "../scope";
 
 /*
- * 월간 인사이트 지도 (`plans/insight.md` 12절, 디자인 `screens/kr/insight.png` 지도 카드).
+ * 05 절 월간 인사이트 지도 (`plans/insight.md` 12절). 계절 옆 반 폭 카드였던 것을 절 + 왼쪽 지도 판 · 오른쪽 설명·범례로 바꿨다(2026-11-15).
  * 5장 `RegionMap`에 값만 넘긴다. 범위는 자기 + `/insight`의 이웃(일부 이웃이 실패하면 그 도형은 빠지고 안내 줄, 12-8 ⓐ).
  * 면 색은 판정 값(`head.value`, `neighbors[].v`), 점은 선택 지역 안의 `map.points`만(G-insight 카드 7).
  */
@@ -48,11 +48,19 @@ export function InsightMapSection({ scope, insight }: { scope: InsightScope; ins
   // 도형을 받기 전에는 응답의 이웃으로 판단한다(도형이 온 뒤 설명이 바뀌지 않게)
   const hasNeighbors = geo.data === undefined ? neighbors.length > 0 : visible.list.some((id) => id !== region.id);
   const lead = hasNeighbors ? t.insight.map.lead(name, andParticle(name), monthLabel) : t.insight.map.leadAlone(name, monthLabel);
-  const frame = (body: ReactNode) => (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading eyebrow={t.insight.map.eyebrow} title={t.insight.map.title} lead={lead} />
-      {body}
-    </Card>
+  // 지도는 왼쪽 판, 설명·범례·안내는 오른쪽 칸(`InsightFigureRow`). 지도 판에는 지도만 남겨 다른 절 그림과 크기를 맞춘다
+  const frame = (body: ReactNode, aside?: ReactNode) => (
+    <InsightSection id="map" index="05" title={t.insight.map.eyebrow} lead={t.insight.map.title}>
+      <InsightFigureRow
+        figure={<InsightPanel>{body}</InsightPanel>}
+        aside={
+          <>
+            <p className="text-base">{lead}</p>
+            {aside}
+          </>
+        }
+      />
+    </InsightSection>
   );
 
   if (geo.isError && geo.data === undefined) {
@@ -104,6 +112,7 @@ export function InsightMapSection({ scope, insight }: { scope: InsightScope; ins
     };
   };
 
+  const selectedShown = visible.list.includes(region.id);
   return frame(
     <RegionMap
       features={visible.features}
@@ -113,7 +122,8 @@ export function InsightMapSection({ scope, insight }: { scope: InsightScope; ins
       selectedId={region.id}
       bins={meta.labels.bins}
       notes={notes}
-      notice={notice}
+      // 범례와 실패 안내는 오른쪽 칸에 그린다(지도 판에는 지도만)
+      legend={<></>}
       fallbackBounds={region.bbox}
       label={t.insight.map.canvasLabel(t.insight.map.title, visible.list.length, cells.length)}
       dimmed={false}
@@ -123,5 +133,9 @@ export function InsightMapSection({ scope, insight }: { scope: InsightScope; ins
         if (id !== region.id) void navigate(insightPath(locale, country, id, month), { preventScrollReset: true });
       }}
     />,
+    <>
+      {notice}
+      <MapLegend bins={meta.labels.bins} showSelected={selectedShown} notes={notes} orientation="vertical" showZoomNote={false} />
+    </>,
   );
 }

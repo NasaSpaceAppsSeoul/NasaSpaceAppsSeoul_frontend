@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Button } from "../../../components/Button";
-import { Card, CardHeader } from "../../../components/Card";
 import { RegionList, type RegionListRow } from "../../../components/dashboard/RegionList";
 import { SectionError } from "../../../components/SectionError";
 import { Skeleton } from "../../../components/Skeleton";
@@ -19,6 +18,7 @@ import type { DashboardNavigate, DashboardScope } from "../scope";
  * - 시·군·구: `/top?parent=시·군·구` 맞닿은 지역 전부. 값 큰 순(같으면 이름순, 서버 동률 순서가 정해져 있지 않다), 0도 보인다.
  * 이름은 같은 시·도면 이름만, 다른 시·도면 시·도를 붙인다(`neighborName`). 줄을 누르면 그 지역으로(달 유지).
  * 빈 목록 문구는 달로 나눈다(2012-02 전은 시·군·구 값이 없다, 6-3). 화면이 `key={region.id}`로 그린다.
+ * 모양은 참고 소스 지역 목록(판 없음, 머리 오른쪽에 지역 수와 달·단위, 열 이름 줄, 순번 줄. 한 줄에 한 지역, 2026-11-15 디자이너·사용자).
  */
 type RegionListSectionProps = { scope: DashboardScope; navigate: DashboardNavigate };
 
@@ -32,11 +32,23 @@ export function RegionListSection({ scope, navigate }: RegionListSectionProps) {
   const title = district ? t.dashboard.neighbors.title(formatMonthName(monthNumber(month), locale)) : t.dashboard.top.title;
   const sub = district ? t.dashboard.neighbors.sub : t.dashboard.top.sub(scope.levelNames.lv2);
 
-  const frame = (body: ReactNode) => (
-    <Card>
-      <CardHeader title={title} sub={sub} />
+  // 참고 `.db-region-head`: 왼쪽 제목·설명, 오른쪽(값이 있을 때만) 지역 수 15px 흰색 + 달·단위 13px 흐린 색, 머리 아래 20
+  const frame = (body: ReactNode, meta?: { count: number; month: string }) => (
+    <section className="flex flex-col">
+      <header className="flex items-end justify-between gap-6 pb-5">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold text-ink">{title}</h2>
+          <p className="mt-1 text-sm text-muted">{sub}</p>
+        </div>
+        {meta !== undefined && (
+          <p className="flex shrink-0 flex-col items-end gap-0.5 text-right">
+            <strong className="text-[15px] font-medium text-[#f2f4f7]">{t.dashboard.regionCount(meta.count)}</strong>
+            <span className="text-[13px] text-[#aeb7c3]">{`${formatMonth(meta.month, locale)} · ${t.dashboard.unit}`}</span>
+          </p>
+        )}
+      </header>
       {body}
-    </Card>
+    </section>
   );
 
   if (query.isError && query.data === undefined) {
@@ -69,7 +81,7 @@ export function RegionListSection({ scope, navigate }: RegionListSectionProps) {
   const rows: RegionListRow[] = ordered.map((i) => ({
     id: i.id,
     name: nameOf(i.id),
-    // 시·도 목록은 디자인대로 달 한 줄. 인접 지역은 이름과 값 한 줄
+    // 시·도 목록은 이름 아래 달 한 줄. 인접 지역은 이름만
     sub: district ? null : formatMonth(data.month, locale),
     value: formatFireDays(i.value, locale),
     href: navigate.regionHref(i.id),
@@ -82,8 +94,19 @@ export function RegionListSection({ scope, navigate }: RegionListSectionProps) {
       {rows.length === 0 ? (
         <p className="py-6 text-sm text-muted">{emptyText}</p>
       ) : (
-        <RegionList rows={rows} variant={district ? "compact" : "ranked"} unit={t.dashboard.unit} />
+        // 달이 바뀌면 접힌 상태로 되돌린다(지역이 바뀌면 화면이 `key={region.id}`로 새로 그린다)
+        <RegionList
+          key={data.month}
+          rows={rows}
+          headLabel={scope.levelNames.lv2}
+          unit={t.dashboard.unit}
+          label={title}
+          expandLabel={t.dashboard.listExpand}
+          collapseLabel={t.dashboard.listCollapse}
+        />
       )}
     </div>,
+    // 빈 목록이면 "0개 지역"을 말하지 않는다(빈 목록 문구가 대신 설명한다)
+    rows.length === 0 ? undefined : { count: rows.length, month: data.month },
   );
 }

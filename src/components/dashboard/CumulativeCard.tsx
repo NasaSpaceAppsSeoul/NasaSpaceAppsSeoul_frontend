@@ -1,3 +1,4 @@
+import { CountUp } from "../CountUp";
 import { useLocale, useMessages } from "../../i18n";
 import { formatFireDays, formatMonthName } from "../../lib/format";
 import { monthNumber, monthYear } from "../../lib/month";
@@ -34,12 +35,13 @@ export function CumulativeCard({ month, from, sum, usual, partial, stale }: Cumu
   return (
     <section
       aria-busy={stale}
-      className={`flex flex-col gap-4 glass rounded-card border border-line p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
+      // 판 없이 위 가는 선으로 이번 달 묶음과 나눈다(2026-11-15 디자이너)
+      className={`flex flex-col gap-4 border-t border-line pt-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
     >
       <h2 className="text-base font-medium">{title}</h2>
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-title-lg font-light">
-          {formatFireDays(sum, locale)} {t.dashboard.unit}
+          <CountUp text={formatFireDays(sum, locale)} /> {t.dashboard.unit}
         </p>
         {partial && <Badge tone="sand">{t.dashboard.card.partial}</Badge>}
       </div>

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Insight } from "../../../api/types";
-import { SectionHeading } from "../../../components/about/SectionHeading";
-import { Card } from "../../../components/Card";
+import { InsightSection } from "../../../components/insight/InsightSection";
 import { InsightTable } from "../../../components/insight/InsightTable";
 import { useLocale, useMessages } from "../../../i18n";
 import { formatFireDays } from "../../../lib/format";
@@ -32,9 +31,9 @@ export function NeighborsSection({ scope, insight }: { scope: InsightScope; insi
   );
 
   return (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading eyebrow={t.eyebrow} title={t.title} lead={t.lead} />
+    <InsightSection id="neighbors" index="06" title={t.eyebrow} lead={t.title} note={t.lead}>
       <InsightTable
+          framed
         caption={t.eyebrow}
         head={[t.region, t.basis, t.value(scope.monthName), t.note]}
         rows={rows.map((r) => ({
@@ -56,6 +55,6 @@ export function NeighborsSection({ scope, insight }: { scope: InsightScope; insi
       />
       {rows.length === 1 && <p className="text-sm text-muted">{t.empty}</p>}
       {insight.unavailable.includes("neighbors") && <p className="text-sm text-muted">{t.partial}</p>}
-    </Card>
+    </InsightSection>
   );
 }

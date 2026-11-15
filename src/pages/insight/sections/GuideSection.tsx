@@ -1,7 +1,6 @@
 import type { Insight } from "../../../api/types";
-import { SectionHeading } from "../../../components/about/SectionHeading";
 import { ButtonLink } from "../../../components/Button";
-import { Card } from "../../../components/Card";
+import { InsightSection } from "../../../components/insight/InsightSection";
 import { InsightTable } from "../../../components/insight/InsightTable";
 import { useLocale, useMessages } from "../../../i18n";
 import { dashboardPath } from "../../../lib/dashboardPath";
@@ -28,9 +27,9 @@ export function GuideSection({ scope, insight }: { scope: InsightScope; insight:
   };
 
   return (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading eyebrow={t.guide.eyebrow} title={t.guide.title} />
+    <InsightSection id="guide" index="07" title={t.guide.eyebrow} lead={t.guide.title}>
       <InsightTable
+          framed
         caption={t.guide.eyebrow}
         head={[t.guide.item, t.guide.meaning]}
         variant="plain"
@@ -50,6 +49,6 @@ export function GuideSection({ scope, insight }: { scope: InsightScope; insight:
           </ButtonLink>
         )}
       </div>
-    </Card>
+    </InsightSection>
   );
 }

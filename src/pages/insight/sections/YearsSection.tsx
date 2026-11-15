@@ -1,15 +1,13 @@
+import type { ReactNode } from "react";
 import type { Insight } from "../../../api/types";
-import { SectionHeading } from "../../../components/about/SectionHeading";
 import { Button } from "../../../components/Button";
-import { Card } from "../../../components/Card";
+import { InsightFigureRow, InsightPanel, InsightSection } from "../../../components/insight/InsightSection";
 import { BarChart, type Bar } from "../../../components/insight/BarChart";
-import { InsightTable } from "../../../components/insight/InsightTable";
 import { SectionError } from "../../../components/SectionError";
 import { useSeries } from "../../../hooks/useSeries";
 import { useLocale, useMessages } from "../../../i18n";
 import { formatFireDays } from "../../../lib/format";
 import {
-  detectedYears,
   needsCurrentYear,
   showSparseNote,
   withCurrentYear,
@@ -22,7 +20,8 @@ import { monthYear } from "../../../lib/month";
 import type { InsightScope } from "../scope";
 
 /*
- * 같은 달 연도별 막대(왼쪽)와 감지된 해 표(오른쪽).
+ * 02 절 "다른 해의 같은 달": 같은 달 연도별 막대(왼쪽)와 설명 글(오른쪽, 04·05 절과 같은 그림 | 글 두 칸).
+ * 예전 "감지된 해" 표는 막대와 같은 숫자를 다시 나열해 뺐다(2026-11-15 사용자). 개수 한 줄과 드문 지역 안내는 글 칸에 남긴다.
  * 2026년 달은 `strip`에 올해가 없어 `/series?from=달&to=달`로 보충한다(스킬 `burnline-api` 12번, 8-5).
  * 개수("감지가 있던 해")는 보충 전 `strip`으로 센다(결정 ③). 순위는 쓰지 않는다(3-1).
  */
@@ -37,38 +36,29 @@ export function YearsSection({ scope, insight }: { scope: InsightScope; insight:
   const row = current.data?.months.find((m) => m.month === scope.month) ?? null;
   const bars = withCurrentYear(strip, year, row === null ? null : { value: row.value, status: row.status });
 
-  if (bars === null) {
-    return (
-      <div className="grid grid-cols-2 items-start gap-x-4 gap-y-8">
-        <Card className="flex flex-col gap-6">
-          <SectionHeading eyebrow={t.years.eyebrow} title={t.years.title(scope.monthName)} />
-          <SectionError kind="other" onRetry={scope.retry} />
-        </Card>
-        <Card className="flex flex-col gap-6">
-          <SectionHeading eyebrow={t.detected.eyebrow} title={t.detected.title} />
-          <SectionError kind="other" onRetry={scope.retry} />
-        </Card>
-      </div>
-    );
-  }
+  const section = (children: ReactNode) => (
+    <InsightSection id="years" index="02" title={t.years.eyebrow} lead={t.years.title(scope.monthName)}>
+      {children}
+    </InsightSection>
+  );
+  if (bars === null) return section(<SectionError kind="other" onRetry={scope.retry} />);
 
-  return (
-    <div className="grid grid-cols-2 items-start gap-x-4 gap-y-8">
-      <YearBars scope={scope} bars={bars} year={year} />
-      <DetectedTable scope={scope} insight={insight} bars={bars} year={year} />
+  return section(
+    <div className="flex flex-col gap-6">
+      <YearBars scope={scope} insight={insight} bars={bars} year={year} />
       {needs && current.isError && (
-        <p role="alert" className="col-span-2 flex items-center gap-3 text-sm text-muted">
+        <p role="alert" className="flex items-center gap-3 text-sm text-muted">
           {t.years.currentFailed}
           <Button size="sm" onClick={() => void current.refetch()}>
             {retryText}
           </Button>
         </p>
       )}
-    </div>
+    </div>,
   );
 }
 
-function YearBars({ scope, bars, year }: { scope: InsightScope; bars: YearBar[]; year: number }) {
+function YearBars({ scope, insight, bars, year }: { scope: InsightScope; insight: Insight; bars: YearBar[]; year: number }) {
   const t = useMessages().insight;
   const locale = useLocale();
   const max = niceMax(bars.map((bar) => bar.v));
@@ -78,63 +68,40 @@ function YearBars({ scope, bars, year }: { scope: InsightScope; bars: YearBar[];
     name: String(bar.year),
     value: bar.v,
     valueText: formatFireDays(bar.v, locale),
-    title: `${bar.year} · ${formatFireDays(bar.v, locale)}${bar.partial ? ` · ${t.years.partialBar}` : ""}`,
+    // 고른 해는 색만이 아니라 읽는 이름에도 밝힌다(예전 표의 "선택 연도" 열 대신)
+    title: `${bar.year} · ${formatFireDays(bar.v, locale)}${bar.partial ? ` · ${t.years.partialBar}` : ""}${bar.year === year ? ` · ${t.years.selectedBar}` : ""}`,
     tone: bar.year === year ? "accent" : "base",
     partial: bar.partial,
   }));
   const from = summary?.from ?? year;
   const to = summary?.to ?? year;
-
-  return (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading
-        eyebrow={t.years.eyebrow}
-        title={t.years.title(scope.monthName)}
-        lead={t.years.lead(from, to, scope.monthName, formatFireDays(max, locale))}
-      />
-      <BarChart label={t.years.chartLabel(scope.monthName)} bars={chartBars} max={max} formatTick={(v) => formatFireDays(v, locale)} />
-      {summary !== null && (
-        <div className="text-sm text-muted">
-          <p>
-            {summary.current !== null
-              ? t.years.summary(year, scope.monthName, formatFireDays(summary.current, locale), summary.previousYears, formatFireDays(summary.previousSum, locale))
-              : t.years.summaryAll(from, to, formatFireDays(summary.previousSum, locale))}
-          </p>
-          <p>{t.years.zeroNote}</p>
-        </div>
-      )}
-      <p className="rounded-card bg-wash px-6 py-4 text-sm text-muted">{t.years.note(from, to, scope.monthName)}</p>
-    </Card>
-  );
-}
-
-function DetectedTable({ scope, insight, bars, year }: { scope: InsightScope; insight: Insight; bars: YearBar[]; year: number }) {
-  const t = useMessages().insight;
-  const locale = useLocale();
   const count = yearsCount(insight.years.strip);
-  const rows = detectedYears(bars, year);
 
   return (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading
-        eyebrow={t.detected.eyebrow}
-        title={t.detected.title}
-        lead={count === null ? undefined : t.detected.lead(count.total, count.detected)}
-      />
-      {rows.length === 0 ? (
-        <p className="text-sm text-muted">{t.detected.empty}</p>
-      ) : (
-        <InsightTable
-          caption={t.detected.eyebrow}
-          head={[t.detected.year, t.detected.value(scope.monthName), t.detected.note]}
-          rows={rows.map((r) => ({
-            key: String(r.year),
-            highlight: r.selected,
-            cells: [r.year, formatFireDays(r.v, locale), r.selected ? t.detected.selected : t.detected.detected],
-          }))}
-        />
-      )}
-      {showSparseNote(insight.head.region_type) && <p className="text-sm text-muted">{t.detected.sparseNote}</p>}
-    </Card>
+    <InsightFigureRow
+      figure={
+        <InsightPanel>
+          <BarChart label={t.years.chartLabel(scope.monthName)} bars={chartBars} max={max} formatTick={(v) => formatFireDays(v, locale)} />
+        </InsightPanel>
+      }
+      aside={
+        <>
+          <p>{t.years.lead(from, to, scope.monthName, formatFireDays(max, locale))}</p>
+          {count !== null && <p className="text-ink">{t.detected.countLine(count.total, count.detected)}</p>}
+          {summary !== null && (
+            <>
+              <p>
+                {summary.current !== null
+                  ? t.years.summary(year, scope.monthName, formatFireDays(summary.current, locale), summary.previousYears, formatFireDays(summary.previousSum, locale))
+                  : t.years.summaryAll(from, to, formatFireDays(summary.previousSum, locale))}
+              </p>
+              <p>{t.years.zeroNote}</p>
+            </>
+          )}
+          <p>{t.years.note(from, to, scope.monthName)}</p>
+          {showSparseNote(insight.head.region_type) && <p>{t.detected.sparseNote}</p>}
+        </>
+      }
+    />
   );
 }

@@ -187,7 +187,6 @@
   --color-heat-dot: rgba(8, 9, 11, 0.27); /* 센서 환산값 점무늬(시안 `.converted`) */
   --color-heat-hatch: #7d7d81; /* 관측 자료 없음 빗금 선, 바탕은 border */
   /* 집계 중 진한 갈색 점선. 시안에 없는 칸이라, 밝은 달력 칸 8단계 모두에서 3:1 이상 보이게 진하게 정했다 */
-  --color-heat-partial: #3d1f0a;
   /* 집계 중 점 바깥 점선 고리(어두운 바탕 위라 밝은 앰버, 시안 보정 후 글자색) */
   --color-heat-partial-ring: #e99a60;
   --color-heat-future: #737d89; /* 아직 집계 전 점선(시안 `.future`) */
@@ -229,6 +228,24 @@
   text-transform: uppercase;
   &:lang(en) {
     letter-spacing: 0.08em;
+  }
+}
+
+/*
+ * 숫자 올라가기(`components/CountUp.tsx`, 참고 소스 `.count-up`): 최종 글자를 같은 칸에 숨겨 폭을 잡고,
+ * 숫자 폭을 고정해 올라가는 동안 흔들리지 않게 한다. 숨긴 글자는 `::before`라 읽히지도 선택되지도 않는다
+ */
+@utility count-up {
+  display: inline-grid;
+  font-variant-numeric: tabular-nums;
+  &::before {
+    content: attr(data-final);
+    visibility: hidden;
+    grid-area: 1 / 1;
+  }
+  & > span {
+    grid-area: 1 / 1;
+    justify-self: start;
   }
 }
 
@@ -513,7 +530,7 @@
 }
 
 /*
- * 기법 페이지에서만 목차·해시 이동을 부드럽게 (`plans/method-page.md` 1절, 시안 `html{scroll-behavior:smooth}`).
+ * 기법 페이지에서만 목차·해시 이동을 부드럽게(월간 인사이트 목차는 `useActiveSection(…, { smooth: false })`로 끈다) (`plans/method-page.md` 1절, 시안 `html{scroll-behavior:smooth}`).
  * 라우터 스크롤 복원이 해시 절로 `scrollIntoView()`를 부르므로 문서 스크롤 방식만 바꾼다. 페이지가 사라지면 함께 꺼진다.
  * 움직임 줄이기면 바로 이동한다.
  */

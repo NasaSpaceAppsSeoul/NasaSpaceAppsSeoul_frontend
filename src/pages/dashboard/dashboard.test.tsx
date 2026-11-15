@@ -1,3 +1,4 @@
+import { fullText } from "../../test/fullText";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderRoute } from "../../test/render";
@@ -15,19 +16,19 @@ describe("숫자 카드 (목: 백엔드 기대값)", () => {
   it("전국 2025-03: 일반 분기, 칩·배수·순위, 누적 카드", async () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     const c = await card();
-    expect(c.getByText("1,093")).toBeTruthy();
+    expect(c.getByText(fullText("1,093"))).toBeTruthy();
     expect(c.getByText("매우 이례적")).toBeTruthy();
     expect(c.getByText("평소 3월 중앙값 174의 6.28배입니다.")).toBeTruthy();
     expect(c.getByText("같은 달 2001–2025년 25개 해 중 1위입니다.")).toBeTruthy();
     expect(c.getByText(/범위 95.6–294.8/)).toBeTruthy();
     expect(c.queryByText("센서 환산값")).toBeNull();
-    expect(await screen.findByText("1,157 화재 감지일")).toBeTruthy();
+    expect(await screen.findByText(fullText("1,157 화재 감지일"))).toBeTruthy();
   });
 
   it("의성 2025-03: 드문 지역, 경북 기준 줄, 감지 날짜 수 자리, 누적 줄", async () => {
     renderRoute(`/dashboard/KOR/${UISEONG}?month=2025-03`);
     const c = await card();
-    expect(c.getByText("384")).toBeTruthy();
+    expect(c.getByText(fullText("384"))).toBeTruthy();
     expect(c.getByText("평소 불이 드문 지역")).toBeTruthy();
     expect(c.getByText("경북 기준 · 매우 이례적 · 25개 해 중 1위")).toBeTruthy();
     expect(c.getByText(/불이 감지된 날짜 수 · 준비 중/)).toBeTruthy();
@@ -38,7 +39,7 @@ describe("숫자 카드 (목: 백엔드 기대값)", () => {
   it("의성 2010-05: 값 없음과 2012년 2월 전 문구. 없는 값에는 센서 환산 배지를 붙이지 않는다", async () => {
     renderRoute(`/dashboard/KOR/${UISEONG}?month=2010-05`);
     const c = await card();
-    expect(c.getByText("—")).toBeTruthy();
+    expect(c.getByText(fullText("—"))).toBeTruthy();
     expect(c.getByText("2012년 2월 이전은 이 단위의 값이 없습니다.")).toBeTruthy();
     expect(c.queryByText("센서 환산값")).toBeNull();
   });
@@ -66,7 +67,7 @@ describe("숫자 카드 (목: 백엔드 기대값)", () => {
   it("군포 2025-04: 감지 기록 없는 지역은 값이 있어도 그 값과 성격 칩", async () => {
     renderRoute(`/dashboard/KOR/${GUNPO}?month=2025-04`);
     const c = await card();
-    expect(c.getByText("1")).toBeTruthy();
+    expect(c.getByText(fullText("1"))).toBeTruthy();
     expect(c.getByText("감지 기록이 없는 지역")).toBeTruthy();
   });
 

@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestQueryClient, renderRoute } from "../test/render";
@@ -29,7 +29,7 @@ describe("라우트 오류 화면", () => {
     );
     expect(screen.getByText("boom in page")).toBeTruthy();
     expect(screen.getByRole("group", { name: "Language" })).toBeTruthy();
-    expect(screen.getByText("Burnline · NASA Space Apps Challenge 2026")).toBeTruthy();
+    expect(within(screen.getByRole("contentinfo")).getByText("Data source: NASA FIRMS")).toBeTruthy();
     consoleError.mockRestore();
   });
 });
@@ -49,7 +49,7 @@ describe("서버를 흉내 낸 앱 틀 (live)", () => {
     fetchMock.mockReset();
   });
 
-  it("/meta가 5xx로 두 번 실패하면 요청은 정확히 2번이고, 푸터의 출처 줄만 빠진 채 화면은 그대로다", async () => {
+  it("/meta가 5xx로 두 번 실패하면 요청은 정확히 2번이고, 화면과 푸터는 그대로다", async () => {
     fetchMock.mockImplementation(async () => new Response("error code: 1033", { status: 530 }));
     renderRoute("/");
     // 소개 화면은 다른 요청(나라별 /meta, /regions, /landing)도 하므로 한국 /meta만 센다
@@ -58,18 +58,18 @@ describe("서버를 흉내 낸 앱 틀 (live)", () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(korMetaCalls()).toBe(2);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("화재를,\n더 길게 보다.");
-    expect(screen.getByText("Burnline · NASA Space Apps Challenge 2026")).toBeTruthy();
-    expect(screen.queryByText(/^출처:/)).toBeNull();
+    expect(within(screen.getByRole("contentinfo")).getByText("자료 출처: NASA FIRMS")).toBeTruthy();
     expect(screen.queryByRole("note")).toBeNull();
   });
 
-  it("/meta의 generated_at이 null이어도 화면이 깨지지 않고 처리일 줄만 빠진다", async () => {
+  it("/meta의 generated_at이 null이어도 화면이 깨지지 않는다", async () => {
     const { korMeta } = await import("../api/mock/kor");
     fetchMock.mockImplementation(
       async () => new Response(JSON.stringify({ ...korMeta, generated_at: null }), { status: 200 }),
     );
     renderRoute("/");
-    expect(await screen.findByText(/^출처:/)).toBeTruthy();
-    expect(screen.queryByText(/^데이터 처리일/)).toBeNull();
+    expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("화재를,\n더 길게 보다.");
+    expect(within(screen.getByRole("contentinfo")).getByText("Burnline")).toBeTruthy();
   });
+
 });

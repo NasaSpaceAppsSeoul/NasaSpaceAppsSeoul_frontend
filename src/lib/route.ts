@@ -11,7 +11,7 @@ export type RouteInfo = {
 };
 
 /**
- * 언어 접두사를 뗀 경로로 화면과 나라를 읽는다. 머리글·푸터처럼 화면 바깥의 틀이 쓴다.
+ * 언어 접두사를 뗀 경로로 화면과 나라를 읽는다. 지금 화면 코드에서는 쓰지 않는다(머리글 메뉴·푸터 출처가 빠진 뒤, 지울지 사용자 확인 대기).
  * 경로가 `/dashboard/:country`·`/insight/:country/...` 모양일 때만 나라를 읽는다.
  */
 export function routeInfo(pathname: string): RouteInfo {

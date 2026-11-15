@@ -12,9 +12,21 @@ export type TocItem = { id: string; index: string; label: string };
 /** 목차 위 돌아가기 링크. `shown`은 머리의 같은 링크가 화면 위로 나갔을 때만 참 */
 export type TocBack = { href: string; label: string; shown: boolean };
 
-type MethodTocProps = { label: string; items: readonly TocItem[]; active: string | null; back?: TocBack };
+type MethodTocProps = {
+  label: string;
+  items: readonly TocItem[];
+  active: string | null;
+  back?: TocBack;
+  /** 해시만 바꿀 때 유지할 쿼리(인사이트의 `?month=`). 없으면 기법 페이지처럼 해시만 */
+  search?: string;
+  /**
+   * 문서 스크롤을 부드럽게 켜지 않은 화면(월간 인사이트)에서 목차를 누를 때만 그 절로 부드럽게 옮긴다.
+   * 라우터 스크롤 복원은 막고(`preventScrollReset`) 직접 `scrollIntoView`한다. 움직임 줄이기면 바로 옮긴다
+   */
+  smoothClick?: boolean;
+};
 
-export function MethodToc({ label, items, active, back }: MethodTocProps) {
+export function MethodToc({ label, items, active, back, search, smoothClick = false }: MethodTocProps) {
   return (
     <nav aria-label={label} className="sticky top-8 self-start">
       {/*
@@ -41,8 +53,17 @@ export function MethodToc({ label, items, active, back }: MethodTocProps) {
           return (
             <li key={item.id}>
               <Link
-                to={{ hash: `#${item.id}` }}
+                to={search === undefined ? { hash: `#${item.id}` } : { search, hash: `#${item.id}` }}
                 replace
+                preventScrollReset={smoothClick}
+                onClick={
+                  smoothClick
+                    ? () => {
+                        const reduce = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                        document.getElementById(item.id)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+                      }
+                    : undefined
+                }
                 aria-current={on ? "location" : undefined}
                 className={
                   "-ml-px flex gap-3 border-l py-1.75 pl-4.5 text-[0.90625rem] transition-colors duration-200 " +

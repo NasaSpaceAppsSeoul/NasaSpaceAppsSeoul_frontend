@@ -1,6 +1,6 @@
+import type { ReactNode } from "react";
 import type { Insight } from "../../../api/types";
-import { SectionHeading } from "../../../components/about/SectionHeading";
-import { Card } from "../../../components/Card";
+import { InsightPanel, InsightSection } from "../../../components/insight/InsightSection";
 import { DayCalendar, DayLegend } from "../../../components/insight/DayCalendar";
 import { InsightTable } from "../../../components/insight/InsightTable";
 import { SectionError } from "../../../components/SectionError";
@@ -17,15 +17,12 @@ export function CalendarSection({ scope, insight }: { scope: InsightScope; insig
   const t = useMessages().insight;
   const locale = useLocale();
   const { calendar, head } = insight;
-  const heading = <SectionHeading eyebrow={t.calendar.eyebrow} title={t.calendar.title(scope.monthName)} />;
-  if (calendar === null) {
-    return (
-      <Card className="flex flex-col gap-6">
-        {heading}
-        <SectionError kind="other" onRetry={scope.retry} />
-      </Card>
-    );
-  }
+  const section = (children: ReactNode, note?: ReactNode) => (
+    <InsightSection first id="calendar" index="01" title={t.calendar.eyebrow} lead={t.calendar.title(scope.monthName)} note={note}>
+      {children}
+    </InsightSection>
+  );
+  if (calendar === null) return section(<SectionError kind="other" onRetry={scope.retry} />);
 
   const cluster = calendar.main_cluster;
   const { leading, cells } = calendarCells({
@@ -63,29 +60,28 @@ export function CalendarSection({ scope, insight }: { scope: InsightScope; insig
   // 밑줄이 하나도 없으면(묶음 없음, 묶음 기간에 이 지역 감지 없음) 밑줄 설명을 뺀다
   const underlined = cells.some((cell) => cell.inCluster);
 
-  return (
-    <Card className="flex flex-col gap-6">
-      <SectionHeading
-        eyebrow={t.calendar.eyebrow}
-        title={t.calendar.title(scope.monthName)}
-        lead={
-          cluster === null || !underlined
-            ? t.calendar.lead
-            : t.calendar.leadCluster(formatDayRange(cluster.start, cluster.end, locale))
-        }
-      />
+  return section(
+    <>
       {head.reason === "PRE_2012_DISTRICT" && <p className="text-sm text-muted">{t.calendar.modis}</p>}
-      <DayCalendar
-        leading={leading}
-        cells={cells}
-        weekdays={t.calendar.weekdays}
-        valueText={(cell) => cellsText(cell.value)}
-        label={label}
-        peakText={t.calendar.peak}
-        futureText={t.calendar.future}
-      />
-      <DayLegend note={underlined ? t.calendar.legendNote : t.calendar.legendNoteBasic} />
+      <InsightPanel>
+        <DayCalendar
+          leading={leading}
+          cells={cells}
+          weekdays={t.calendar.weekdays}
+          valueText={(cell) => cellsText(cell.value)}
+          label={label}
+          peakText={t.calendar.peak}
+          futureText={t.calendar.future}
+        />
+        <DayLegend
+          title={t.calendar.legendTitle}
+          future={t.calendar.future}
+          cluster={underlined ? t.calendar.legendCluster : null}
+          note={t.calendar.legendBins}
+        />
+      </InsightPanel>
       <InsightTable
+          framed
         caption={t.calendar.eyebrow}
         head={[t.calendar.summary.fireDays, t.calendar.summary.peak, t.calendar.summary.clusters, t.calendar.summary.near50]}
         rows={[{ key: "summary", cells: summary }]}
@@ -93,6 +89,7 @@ export function CalendarSection({ scope, insight }: { scope: InsightScope; insig
         fixed
         alignRight={[1, 2, 3]}
       />
-    </Card>
+    </>,
+    cluster === null || !underlined ? t.calendar.lead : t.calendar.leadCluster(formatDayRange(cluster.start, cluster.end, locale)),
   );
 }

@@ -188,12 +188,12 @@ export const ko = {
     body: "페이지를 다시 불러와 주세요. 문제가 계속되면 처음 화면에서 다시 시작해 주세요.",
     reload: "다시 불러오기",
   },
-  // 디자인 푸터. 출처와 데이터 처리일은 `/meta` 값으로 채운다
+  // 푸터(참고 소스 `burnline-landing 6` 첫 화면 문구 그대로, 2026-11-15)
   footer: {
-    title: "Burnline · NASA Space Apps Challenge 2026",
-    sources: "출처",
-    unit: "화재 감지일은 약 1 km 격자에서 하루 동안 불이 한 번 이상 감지되면 1로 셉니다. 화재 건수나 피해 면적이 아닙니다.",
-    processed: "데이터 처리일",
+    brand: "Burnline",
+    source: "자료 출처: NASA FIRMS",
+    si: "디자인 및 웹 구현 과정에서 SI를 활용했습니다.",
+    note: "과거 화재 활동 기록 · 실시간 경보 서비스가 아닙니다",
   },
   common: {
     retry: "다시 시도",
@@ -250,6 +250,10 @@ export const ko = {
   dashboard: {
     unit: "화재 감지일",
     // 시·도 목록 3곳(5장, `decisions.md` 6-1·6-3). 디자인 "3월 화재 감지일 순위"는 백엔드 정렬(그 지역 같은 달 순위 → 값)과 뜻이 달라 고쳐 씀
+    // 지도 아래 목록 머리 오른쪽 지역 수(참고 소스 `.db-region-meta`, 2026-11-15)
+    regionCount: (n: number) => `${n}개 지역`,
+    listExpand: (n: number) => `${n}개 지역 모두 보기`,
+    listCollapse: (n: number) => `상위 ${n}개만 보기`,
     top: {
       title: "평소보다 두드러진 곳",
       sub: (lv2: string) => `각 ${lv2}의 지난 같은 달 기록과 비교해 두드러진 순서입니다.`,
@@ -577,6 +581,8 @@ export const ko = {
   },
   // 월간 인사이트(7장). 디자인의 "데모·합성·예시·가상" 문구는 빼고, 사실관계는 백엔드 기준으로 고쳤다(`plans/insight.md` 4절)
   insight: {
+    // 왼쪽 목차(기법 페이지와 같은 `MethodToc`, 2026-11-15 사용자)
+    tocLabel: "목차",
     back: "같은 지역·월로 돌아가기 →",
     toDashboard: "대시보드로",
     eyebrow: "월간 인사이트",
@@ -594,11 +600,14 @@ export const ko = {
     partialFailure: "일부 정보를 불러오지 못했습니다.",
     refetchFailed: "다시 불러오지 못했습니다. 받아 둔 정보로 보여 줍니다.",
     tiles: {
+      label: "요약 숫자",
       total: "이번 달 합계 · 화재 감지일",
       years: (monthName: string) => `${monthName}에 감지가 있던 해`,
       yearsValue: (detected: number, total: number) => `${detected} / ${total}년`,
       days: "감지된 날 / 최대 활동일",
       daysValue: (days: number, date: string | null) => (date === null ? `${days}일` : `${days}일 / ${date}`),
+      // 값 뒤에 따로 붙이는 가장 많은 날(숫자 올라가기에서 뺀다)
+      daysDate: (date: string) => ` / ${date}`,
       daysSub: (cells: string) => `최대 하루 ${cells}칸`,
       cluster: "최대 감지 묶음 합계",
       cells: (cells: string) => `${cells}칸`,
@@ -621,8 +630,10 @@ export const ko = {
       peak: "최대 활동일",
       future: "집계 전",
       inCluster: "최대 감지 묶음 기간",
-      legendNote: "화재 칸 · 파란 밑줄: 최대 감지 묶음 중 이 지역에서 감지된 날",
-      legendNoteBasic: "화재 칸",
+      // 범례(참고안 `.in-legend` 모양, 2026-11-15): 이름, 밑줄 견본 이름, 아래 줄 색 구간 설명
+      legendTitle: "날짜별 화재 칸",
+      legendCluster: "최대 감지 묶음 중 이 지역 감지일(파란 밑줄)",
+      legendBins: "색 구간: 그날 이 지역에서 감지된 화재 칸 수(0, 1, 2, 3, 4칸 이상).",
       summary: {
         fireDays: "불이 감지된 날",
         peak: "활동 격자가 가장 많았던 날",
@@ -650,19 +661,13 @@ export const ko = {
         `이 비교는 ${from}–${to}년의 ${monthName} 기록만 사용합니다. 모든 값은 NOAA-20 기준 화재 감지일입니다.`,
       currentFailed: "올해 값을 불러오지 못했습니다.",
       partialBar: "집계 중",
+      selectedBar: "선택 연도",
       chartLabel: (monthName: string) => `해마다 ${monthName}의 화재 감지일 막대 그래프`,
     },
     detected: {
-      eyebrow: "불이 감지된 해",
-      title: "불이 감지된 해부터 살펴보세요.",
-      lead: (total: number, detected: number) => `${total}개년 중 감지가 있었던 ${detected}개년입니다.`,
-      year: "연도",
-      value: (monthName: string) => `${monthName} 감지일`,
-      note: "안내",
-      selected: "선택 연도",
-      detected: "감지 있음",
+      // 02 글 칸의 개수 한 줄과 드문 지역 안내(감지된 해 표는 2026-11-15에 뺐다)
+      countLine: (total: number, detected: number) => `${total}개년 중 ${detected}개년에 감지가 있었습니다.`,
       sparseNote: "감지가 드문 지역은 배수나 순위보다 실제 감지된 해와 선택한 달을 먼저 살펴보세요.",
-      empty: "감지된 해가 없습니다.",
     },
     official: {
       eyebrow: "공식 기록 대조",

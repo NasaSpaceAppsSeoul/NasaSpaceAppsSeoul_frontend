@@ -1,3 +1,4 @@
+import { CountUp } from "../CountUp";
 import { useLocale, useMessages } from "../../i18n";
 import { formatFireDays, formatMonthName, formatRatio } from "../../lib/format";
 import { numberSize, type JudgementView, type NumberSize, type RankLine } from "../../lib/judgementView";
@@ -24,7 +25,9 @@ export function JudgementHead({ view }: { view: JudgementView }) {
   return (
     // 숫자와 칩·단위는 늘 한 줄(줄바꿈 없음). 숫자 크기를 글자 수로 줄여 좁은 칸에 맞춘다
     <div className="flex items-end gap-4">
-      <p className={`shrink-0 font-light text-ink ${NUMBER_CLASS[numberSize(text)]}`}>{text}</p>
+      <p className={`shrink-0 font-light text-ink ${NUMBER_CLASS[numberSize(text)]}`}>
+        <CountUp text={text} />
+      </p>
       <div className="flex min-w-0 flex-col items-start gap-2 pb-1">
         {view.chip !== null && <Chip value={view.chip} />}
         {view.kind === "sparse" && <ToneBadge tone="yellow">{t.card.sparse}</ToneBadge>}

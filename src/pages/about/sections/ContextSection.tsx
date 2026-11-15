@@ -1,3 +1,4 @@
+import { countIn } from "../../../components/CountUp";
 import { useState } from "react";
 import { MonthlyBars, type BarView } from "../../../components/about/MonthlyBars";
 import { NumberedHeading } from "../../../components/about/NumberedHeading";
@@ -135,12 +136,17 @@ function ContextChart({ country, ytd }: { country: Country; ytd: Ytd }) {
           <dd className="text-base">
             {current === undefined
               ? c.noValue
-              : withPending(`${current.label} · ${current.valueText === null ? c.noValue : `${current.valueText} ${c.unit}`}`, current.pendingText)}
+              : current.valueText === null
+                ? withPending(`${current.label} · ${c.noValue}`, current.pendingText)
+                : // 값 숫자만 올라가기(달 이름의 숫자는 그대로, 모든 화면 공통)
+                  countIn((v) => withPending(`${current.label} · ${v} ${c.unit}`, current.pendingText), current.valueText)}
           </dd>
         </div>
         <div className="flex flex-col gap-2">
           <dt className="font-mono text-xs tracking-[0.08em] text-muted uppercase">{c.total(range)}</dt>
-          <dd className="text-base">{withPending(`${formatFireDays(ytd.total, locale)} ${c.unit}`, pendingLabel(ytd.totalPending))}</dd>
+          <dd className="text-base">
+            {countIn((v) => withPending(`${v} ${c.unit}`, pendingLabel(ytd.totalPending)), formatFireDays(ytd.total, locale))}
+          </dd>
         </div>
       </dl>
     </div>

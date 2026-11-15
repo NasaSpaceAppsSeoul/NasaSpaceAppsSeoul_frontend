@@ -1,3 +1,4 @@
+import { fullText } from "../../test/fullText";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockGet } from "../../api/mock";
@@ -171,7 +172,7 @@ describe("히트맵 (3장)", () => {
     renderRoute("/dashboard/KOR?month=2025-03");
     await grid();
     // 선택한 달 줄(상태 칩 "선택한 달"과 이름이 같아 줄 안에서 찾는다)
-    const row = screen.getByText("1,093 화재 감지일 · 보정 후").parentElement as HTMLElement;
+    const row = screen.getByText(fullText("1,093 화재 감지일 · 보정 후")).parentElement as HTMLElement;
     expect(within(row).getByText("선택한 달")).toBeTruthy();
     expect(within(row).getByText("2025년 3월")).toBeTruthy();
     const chip = screen.getByRole("button", { name: "관측 자료 없음" });
@@ -185,7 +186,7 @@ describe("히트맵 (3장)", () => {
   it("집계 중인 달을 고르면 선택한 달 줄에 집계 중", async () => {
     renderRoute("/dashboard/KOR?month=2026-11");
     await grid();
-    expect(await screen.findByText(/^[\d,.]+ 화재 감지일 · 보정 후 · 집계 중$/)).toBeTruthy();
+    expect(await screen.findByText(fullText(/^[\d,.]+ 화재 감지일 · 보정 후 · 집계 중$/))).toBeTruthy();
   });
 
   it("각주: data_end가 달 중간이면 그 달은 집계 중(캘리포니아 목 11-09, 영문)", async () => {
@@ -278,7 +279,7 @@ describe("히트맵 보정 전 (9장 2차, 서버 값)", () => {
     expect(cell(g, "대한민국 · 2011년 3월").getAttribute("aria-label")).not.toContain("센서 환산값");
     expect(screen.getByText("해 → · 달 ↓ · 위성이 남긴 원래 기록")).toBeTruthy();
     expect(screen.getByText("2012년 2월 S-NPP / 2018년 4월 NOAA-20 — 위성이 바뀌면 감지 감도도 달라집니다")).toBeTruthy();
-    expect(screen.getByText(/547 화재 감지일 · 보정 전/)).toBeTruthy();
+    expect(screen.getByText(fullText(/547 화재 감지일 · 보정 전/))).toBeTruthy();
     expect(screen.queryByText("이 지역은 보정 전 값이 없습니다")).toBeNull();
     // 상태 범례에서 환산 칩이 빠지고, 집계 중·선택한 달 견본 안쪽은 파랑 계열(9장 3차)
     expect(screen.queryByRole("button", { name: "센서 환산값" })).toBeNull();

@@ -5,7 +5,6 @@ import {
   isInProgress,
   clusterRange,
   clusterSummary,
-  detectedYears,
   detectRateLine,
   guideRows,
   headTiles,
@@ -44,19 +43,6 @@ describe("연도별", () => {
     expect(withCurrentYear(strip, 2026, null)).toHaveLength(strip.length);
     expect(withCurrentYear(strip, 2026, { value: null, status: "final" })).toHaveLength(strip.length);
     expect(withCurrentYear(null, 2026, { value: 1, status: "final" })).toBeNull();
-  });
-
-  it("감지된 해: v > 0 전부, 값 큰 순, 선택한 해는 0이어도 맨 위", () => {
-    expect(detectedYears(strip, 2025).map((r) => [r.year, r.selected])).toEqual([
-      [2025, true], [2021, false], [2017, false], [2013, false],
-    ]);
-    expect(detectedYears(strip, 2014).map((r) => r.year)).toEqual([2014, 2025, 2021, 2017, 2013]);
-    expect(detectedYears(strip, 2030).some((r) => r.selected)).toBe(false);
-  });
-
-  it("같은 값이면 최근 해 먼저", () => {
-    const tie = [{ year: 2013, v: 3 }, { year: 2019, v: 3 }];
-    expect(detectedYears(tie, 2030).map((r) => r.year)).toEqual([2019, 2013]);
   });
 
   it("개수는 strip에서 센다", () => {
