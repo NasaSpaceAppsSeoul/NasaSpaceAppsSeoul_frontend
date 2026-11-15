@@ -41,7 +41,13 @@ export const grc: CountryMock = {
     },
     sources: ["NASA FIRMS", "geoBoundaries (EuroGeographics, CC BY 4.0)", "그리스 소방청"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },
-    external_validation: { ...korMeta.external_validation, source: "그리스 소방청" },
+    // 서버 `/GRC/meta` 응답(2026-11-15 재적재 뒤) 그대로
+    external_validation: {
+      available: true,
+      source: "그리스 소방청 산림 화재 기록 (Hellenic Fire Service, 2000~2024)",
+      records: 238090,
+      period: ["2001-01-01", "2024-12-31"],
+    },
   },
   regions,
   geo,
