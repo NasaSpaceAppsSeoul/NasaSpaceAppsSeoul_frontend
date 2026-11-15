@@ -564,6 +564,7 @@ export const en: Messages = {
       yearsValue: (detected: number, total: number) => `${detected} / ${total} years`,
       days: "Active dates / peak date",
       daysValue: (days: number, date: string | null) => (date === null ? `${days} days` : `${days} days / ${date}`),
+      daysDate: (date: string) => ` / ${date}`,
       daysSub: (cells: string) => `Peak: ${cells} cells in a day`,
       cluster: "Largest detection cluster",
       cells: (cells: string) => `${cells} cells`,

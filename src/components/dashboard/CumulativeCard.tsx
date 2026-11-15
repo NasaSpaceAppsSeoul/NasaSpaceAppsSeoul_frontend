@@ -1,3 +1,4 @@
+import { CountUp } from "../CountUp";
 import { useLocale, useMessages } from "../../i18n";
 import { formatFireDays, formatMonthName } from "../../lib/format";
 import { monthNumber, monthYear } from "../../lib/month";
@@ -39,7 +40,7 @@ export function CumulativeCard({ month, from, sum, usual, partial, stale }: Cumu
       <h2 className="text-base font-medium">{title}</h2>
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-title-lg font-light">
-          {formatFireDays(sum, locale)} {t.dashboard.unit}
+          <CountUp text={formatFireDays(sum, locale)} /> {t.dashboard.unit}
         </p>
         {partial && <Badge tone="sand">{t.dashboard.card.partial}</Badge>}
       </div>

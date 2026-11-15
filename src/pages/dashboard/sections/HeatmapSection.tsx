@@ -1,3 +1,4 @@
+import { countIn } from "../../../components/CountUp";
 import { useState } from "react";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -162,7 +163,7 @@ export function HeatmapSection({ scope, navigate, openDialog, mockMode }: Heatma
         <span className="ml-auto">
           {selectedValue === null
             ? t.heatmap.states.noData.title
-            : t.heatmap.selection.detail(formatFireDays(selectedValue, locale), t.dashboard.unit, basisLabel, selectedCollecting)}
+            : countIn((v) => t.heatmap.selection.detail(v, t.dashboard.unit, basisLabel, selectedCollecting), formatFireDays(selectedValue, locale))}
         </span>
       </p>
       <div className="mt-6 flex flex-col gap-6">

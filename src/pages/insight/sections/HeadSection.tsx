@@ -72,10 +72,16 @@ export function HeadSection({ scope, insight }: { scope: InsightScope; insight: 
           label={it.tiles.days}
           {...tileText(
             tiles.days,
-            (v) => it.tiles.daysValue(v.fireDays, v.dmaxDate === null ? null : formatDayDate(v.dmaxDate, locale)),
+            (v) => it.tiles.daysValue(v.fireDays, null),
             (v) => (v.dmax === null ? null : it.tiles.daysSub(formatCount(v.dmax, locale))),
             noneText,
           )}
+          // 가장 많은 날의 날짜는 올라가지 않게 값 뒤에 따로 붙인다(숫자 올라가기는 감지일 수에만)
+          extra={
+            tiles.days.kind === "value" && tiles.days.value.dmaxDate !== null
+              ? it.tiles.daysDate(formatDayDate(tiles.days.value.dmaxDate, locale))
+              : undefined
+          }
         />
         <StatTile
           label={it.tiles.cluster}

@@ -602,6 +602,8 @@ export const ko = {
       yearsValue: (detected: number, total: number) => `${detected} / ${total}년`,
       days: "감지된 날 / 최대 활동일",
       daysValue: (days: number, date: string | null) => (date === null ? `${days}일` : `${days}일 / ${date}`),
+      // 값 뒤에 따로 붙이는 가장 많은 날(숫자 올라가기에서 뺀다)
+      daysDate: (date: string) => ` / ${date}`,
       daysSub: (cells: string) => `최대 하루 ${cells}칸`,
       cluster: "최대 감지 묶음 합계",
       cells: (cells: string) => `${cells}칸`,

@@ -1,3 +1,4 @@
+import { CountUp } from "../CountUp";
 import { Link } from "react-router-dom";
 
 /*
@@ -52,7 +53,9 @@ export function MethodHero({ backHref, back, watchBack, eyebrow, title, lead, st
           <li key={stat.id} className="px-7 py-6.5">
             <p className="text-[2.125rem] leading-[1.1] font-medium tracking-tight text-ink">
               {stat.value.before}
-              <em className="text-fire not-italic">{stat.value.accent}</em>
+              <em className="text-fire not-italic">
+                <CountUp text={stat.value.accent} />
+              </em>
               {stat.value.after}
             </p>
             <p className="mt-2 text-[0.90625rem] leading-normal text-muted">{stat.sub}</p>

@@ -232,6 +232,24 @@
   }
 }
 
+/*
+ * 숫자 올라가기(`components/CountUp.tsx`, 참고 소스 `.count-up`): 최종 글자를 같은 칸에 숨겨 폭을 잡고,
+ * 숫자 폭을 고정해 올라가는 동안 흔들리지 않게 한다. 숨긴 글자는 `::before`라 읽히지도 선택되지도 않는다
+ */
+@utility count-up {
+  display: inline-grid;
+  font-variant-numeric: tabular-nums;
+  &::before {
+    content: attr(data-final);
+    visibility: hidden;
+    grid-area: 1 / 1;
+  }
+  & > span {
+    grid-area: 1 / 1;
+    justify-self: start;
+  }
+}
+
 /* 히트맵 점 무늬. 센서 환산값 점무늬는 16px 점 안에 들어가게 시안 `.converted` 값(0.65px 점, 4px 간격) */
 @utility heat-dots {
   background-image: radial-gradient(var(--color-heat-dot) 0.65px, transparent 0.8px);

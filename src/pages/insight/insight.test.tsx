@@ -1,3 +1,4 @@
+import { fullText } from "../../test/fullText";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../api/client";
@@ -64,10 +65,10 @@ describe("월간 인사이트", () => {
   it("의성 2025-03: 머리 숫자 4개와 빌린 판정, 드문 지역이라 자기 순위 문장 없음", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
     const card = await headCard();
-    expect(card.getByText("384")).toBeTruthy();
-    expect(card.getByText("7일 / 3월 26일")).toBeTruthy();
+    expect(card.getByText(fullText("384"))).toBeTruthy();
+    expect(card.getByText(fullText("7일 / 3월 26일"))).toBeTruthy();
     expect(card.getByText("최대 하루 108칸")).toBeTruthy();
-    expect(card.getByText("919칸")).toBeTruthy();
+    expect(card.getByText(fullText("919칸"))).toBeTruthy();
     expect(card.getByText("3월 22–29일 · 인접 지역 포함")).toBeTruthy();
     expect(card.getByText("평소 불이 드문 지역")).toBeTruthy();
     expect(await card.findByText("경북 기준 매우 이례적")).toBeTruthy();
@@ -134,7 +135,7 @@ describe("월간 인사이트", () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
     const card = await headCard();
     expect(await card.findByText("판정을 불러오지 못했습니다.")).toBeTruthy();
-    expect(card.getByText("384")).toBeTruthy();
+    expect(card.getByText(fullText("384"))).toBeTruthy();
   });
 
   it("2026년 달: /series 한 달을 받아 막대와 표에 2026을 붙인다", async () => {
@@ -232,7 +233,7 @@ describe("월간 인사이트", () => {
   it("영어 화면도 같은 구역을 그린다", async () => {
     renderRoute(`/en/insight/KOR/${UISEONG}?month=2025-03`);
     expect(await screen.findByRole("heading", { name: "Uiseong-gun · March 2025 fire insight" })).toBeTruthy();
-    expect(screen.getByText("7 days / Mar 26")).toBeTruthy();
+    expect(screen.getByText(fullText("7 days / Mar 26"))).toBeTruthy();
   });
 });
 

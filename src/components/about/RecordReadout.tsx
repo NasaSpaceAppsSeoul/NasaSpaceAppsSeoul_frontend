@@ -1,3 +1,4 @@
+import { CountUp } from "../CountUp";
 import type { ReactNode } from "react";
 import { useMessages } from "../../i18n";
 
@@ -57,7 +58,9 @@ function ReadoutValue({ term, tone, value, unit, description }: ReadoutValueProp
     <dl className="flex min-w-0 flex-col">
       <dt className={`font-mono text-xs tracking-widest uppercase ${tone}`}>{term}</dt>
       <dd className="mt-3 flex flex-col gap-2">
-        <span className="text-6xl leading-none font-normal">{value}</span>
+        <span className="text-6xl leading-none font-normal">
+          <CountUp text={value} />
+        </span>
         <span className="text-sm text-muted">{unit}</span>
         <span className="mt-2 text-sm text-muted">{description}</span>
       </dd>
