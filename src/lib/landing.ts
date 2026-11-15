@@ -28,7 +28,9 @@ export type Readout = { year: number; before: number; after: number };
  * 01 비교 카드 값: `READOUT_YEAR`의 연간 보정 전 → 후. 그 해가 없거나 어느 한쪽이라도 0이면 `null` = "값 없음".
  * 0은 자료 없는 해다(9-5). 보정 전과 후는 출처가 달라(전: 위성 원값, 후: 나라 시계열 합) 한쪽만 0일 수 있는데,
  * 그대로 보이면 "302 → 0"처럼 보정이 값을 지운 것으로 읽힌다.
- * 9장에서 `/series` `raw_before`의 최근 달 값으로 바꾼다(roadmap 9장).
+ * 처음에는 9장에서 `/series` `raw_before`의 최근 달 값으로 바꾸려 했지만 그대로 둔다(2026-11-15 사용자): 2018-04부터는
+ * NOAA-20이 보정 기준 위성이라 보정 전과 후가 늘 같다(서버 확인, 한국 2026-10 76 → 76). 이 해의 값은 `/series`
+ * `raw_before` 2011년 합(302)과도 같다.
  */
 export function readoutYear(annual: AnnualInput): Readout | null {
   const bar = annualBars(annual).find((b) => b.year === READOUT_YEAR);
