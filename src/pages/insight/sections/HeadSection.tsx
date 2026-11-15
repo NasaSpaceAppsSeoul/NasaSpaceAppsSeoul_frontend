@@ -59,7 +59,8 @@ export function HeadSection({ scope, insight }: { scope: InsightScope; insight: 
         {/* 단위 안내: 상자 없이 흐린 글자 한 줄 */}
         <p className="text-sm text-muted">{it.unitNote}</p>
       </div>
-      <ul aria-label={it.tiles.label} className="glass mt-2 grid grid-cols-4 divide-x divide-line overflow-hidden rounded-card border border-line">
+      {/* 참고안 `.in-stats`(2026-11-15 디자이너): 판 없이 위아래 흰 14% 선, 칸 사이 흰 8% 세로선 */}
+      <ul aria-label={it.tiles.label} className="mt-2 grid grid-cols-4 divide-x divide-white/8 border-y border-white/14">
         <StatTile
           label={it.tiles.total}
           {...tileText(tiles.total, (v) => formatFireDays(v, locale), () => `${scope.name} · ${scope.monthLabel}`, noneText)}
