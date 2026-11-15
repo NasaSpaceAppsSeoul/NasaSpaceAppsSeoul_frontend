@@ -48,6 +48,15 @@ export function frame(parts: Part[], progress: number): string {
     .join("");
 }
 
+/**
+ * 시작한 뒤 흐른 시간의 진행률(0~1). `requestAnimationFrame`이 주는 시각은 그 프레임이 시작된 때라
+ * `performance.now()`로 잡은 시작 시각보다 앞설 수 있다. 그대로 쓰면 진행률이 음수가 돼 첫 프레임에 음수가 그려진다
+ * (숨겨진 탭에서는 그 프레임에 멈춰 "-594"처럼 보였다, 2026-11-15). 그래서 0 아래로 내려가지 않게 자른다.
+ */
+export function progressAt(now: number, start: number): number {
+  return Math.min(1, Math.max(0, (now - start) / DURATION));
+}
+
 export function CountUp({ text }: { text: string }) {
   const live = useRef<HTMLSpanElement>(null);
 
@@ -68,7 +77,7 @@ export function CountUp({ text }: { text: string }) {
       const start = performance.now();
       const tick = (now: number) => {
         if (!alive) return;
-        const p = Math.min(1, (now - start) / DURATION);
+        const p = progressAt(now, start);
         if (p < 1) {
           el.textContent = frame(parts, 1 - Math.pow(1 - p, 3));
           raf = requestAnimationFrame(tick);
