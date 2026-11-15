@@ -32,7 +32,8 @@ export function JudgementCard({ view, regionLabel, refName, showYtd, showDetecti
     <section
       aria-labelledby={titleId}
       aria-busy={stale}
-      className={`flex flex-col gap-5 glass rounded-card border border-line p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
+      // 판 없는 묶음(2026-11-15 디자이너: 카드가 많아 난잡 → 인사이트 절처럼 선으로). 칸 맨 위라 위 선은 없다(사용자). 자리는 그대로
+      className={`flex flex-col gap-5 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
     >
       <header className="flex flex-col gap-3">
         <p className="text-xs text-muted">{t.dashboard.card.heading(regionLabel, month)}</p>

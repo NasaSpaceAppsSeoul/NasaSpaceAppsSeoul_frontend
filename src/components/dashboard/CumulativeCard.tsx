@@ -35,7 +35,8 @@ export function CumulativeCard({ month, from, sum, usual, partial, stale }: Cumu
   return (
     <section
       aria-busy={stale}
-      className={`flex flex-col gap-4 glass rounded-card border border-line p-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
+      // 판 없이 위 가는 선으로 이번 달 묶음과 나눈다(2026-11-15 디자이너)
+      className={`flex flex-col gap-4 border-t border-line pt-6 text-ink transition-opacity ${stale ? "opacity-60" : ""}`}
     >
       <h2 className="text-base font-medium">{title}</h2>
       <div className="flex flex-wrap items-center gap-3">
