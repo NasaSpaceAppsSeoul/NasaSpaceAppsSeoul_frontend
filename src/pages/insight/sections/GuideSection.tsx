@@ -4,12 +4,12 @@ import { InsightSection } from "../../../components/insight/InsightSection";
 import { InsightTable } from "../../../components/insight/InsightTable";
 import { useLocale, useMessages } from "../../../i18n";
 import { dashboardPath } from "../../../lib/dashboardPath";
-import { guideRows, type GuideKey } from "../../../lib/insight";
+import { guideRows, serverName, type GuideKey } from "../../../lib/insight";
 import { ownName, parentOf, regionNameById } from "../../../lib/region";
 import type { InsightScope } from "../scope";
 
 /*
- * 읽는 법 표와 아래 버튼 2개. 드문 지역 설명 세 줄은 충분 지역이 아닐 때만. 출처는 `/meta`의 `sources`.
+ * 읽는 법 표와 아래 버튼 2개. 드문 지역 설명 세 줄은 충분 지역이 아닐 때만. 출처는 `/meta`의 `sources`(한글로만 오는 이름은 화면 문구의 이름 표로 옮긴다).
  * 뒤 버튼은 상위 지역(한국은 시·도, CAL·BC는 나라)의 같은 달 대시보드.
  */
 export function GuideSection({ scope, insight }: { scope: InsightScope; insight: Insight }) {
@@ -21,7 +21,7 @@ export function GuideSection({ scope, insight }: { scope: InsightScope; insight:
   const refName = insight.ref === null ? parentName : regionNameById(insight.ref.id, insight.ref.label_ko, scope.index, locale);
 
   const meaning = (key: GuideKey): string => {
-    if (key === "sources") return scope.meta.sources.join(" · ");
+    if (key === "sources") return scope.meta.sources.map((source) => serverName(source, t.serverNames.sources)).join(" · ");
     if (key === "alternative") return t.guide.rows.alternative.meaning(refName ?? "");
     return t.guide.rows[key].meaning;
   };

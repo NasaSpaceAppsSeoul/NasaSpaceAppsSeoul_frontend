@@ -7,6 +7,9 @@ function objectParticle(word: string): "을" | "를" {
   return (code - 0xac00) % 28 === 0 ? "를" : "을";
 }
 
+/** 서버가 한글로 주는 이름의 번역표 자리. 한글 화면은 받은 그대로 쓰므로 비어 있다(영문은 `en.ts`) */
+const AS_RECEIVED: Readonly<Record<string, string>> = {};
+
 export const ko = {
   brand: "Burnline",
   language: {
@@ -669,6 +672,8 @@ export const ko = {
       countLine: (total: number, detected: number) => `${total}개년 중 ${detected}개년에 감지가 있었습니다.`,
       sparseNote: "감지가 드문 지역은 배수나 순위보다 실제 감지된 해와 선택한 달을 먼저 살펴보세요.",
     },
+    // 서버가 한글로만 주는 이름(공식 기록 출처·원인, `/meta` 출처 줄)을 화면 언어로 바꾸는 표. 표에 없는 값은 받은 그대로(`lib/insight` `serverName`)
+    serverNames: { sources: AS_RECEIVED, causes: AS_RECEIVED },
     official: {
       eyebrow: "공식 기록 대조",
       title: "같은 달의 공식 산불 기록입니다.",

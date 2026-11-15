@@ -340,13 +340,21 @@ export type OfficialRow = { key: string; date: string; place: string; cause: str
  */
 export const SMALL_AREA_HA = 0.1;
 
-/** 면적 0은 "모름"일 수 있어 빈칸(`null`, 8-4). 기록에 ID가 없어 key는 날짜·장소·순번 */
-export function officialRows(items: readonly OfficialLike[]): OfficialRow[] {
+/**
+ * 서버가 한글로만 주는 이름(공식 기록 출처·원인, `/meta` 출처)을 화면 문구 표(`i18n` `insight.serverNames`)에서 찾는다.
+ * 표에 없으면 받은 그대로(한글 화면의 표는 비어 있다).
+ */
+export function serverName(value: string, names: Readonly<Record<string, string>>): string {
+  return Object.hasOwn(names, value) ? (names[value] ?? value) : value;
+}
+
+/** 면적 0은 "모름"일 수 있어 빈칸(`null`, 8-4). 기록에 ID가 없어 key는 날짜·장소·순번. 원인은 이름 표로 옮긴다(장소는 고유 이름이라 그대로) */
+export function officialRows(items: readonly OfficialLike[], causes: Readonly<Record<string, string>>): OfficialRow[] {
   return items.map((item, i) => ({
     key: `${item.date}|${item.place}|${i}`,
     date: item.date,
     place: item.place,
-    cause: item.cause,
+    cause: serverName(item.cause, causes),
     area: item.area_ha > 0 ? item.area_ha : null,
   }));
 }
