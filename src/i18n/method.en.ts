@@ -341,8 +341,9 @@ export const methodEn: MethodMessages = {
           "As the MODIS satellites aged, the ratio could change from year to year. We compared a coefficient from the whole overlap " +
             "with one from a 5-year window around each year (2 years either side) by leave-one-year-out error. The window fit better " +
             "in South Korea (14.9% annual error vs 20.5% fixed) and BC (8.6% vs 8.8%), while in California the fixed ratio did slightly " +
-            "better (6.8% vs 7.4% for the window). The k_MS annual errors in the table above are the window values the server provides. " +
-            "Years before 2012 use the earliest window (2012–2016).",
+            "better (6.8% vs 7.4% for the window), so California uses the fixed ratio. The k_MS annual errors in the table above are " +
+            "the window values the server provides, so the California cell (7.4%) is the error of the method it does not use. " +
+            "Regions that use the window apply the earliest one (2012–2016) to years before 2012.",
         ],
       },
       {
@@ -413,7 +414,7 @@ export const methodEn: MethodMessages = {
         satellite: "2012 break between satellites, before → after [95% range]",
         loyo: "Leave-one-year-out annual error (MODIS → S-NPP)",
         official: "2012 break against official fire counts, before → after",
-        rank: "Rank correlation of annual fire cells with official records (counts / burned area, 2012–2025)",
+        rank: "Rank correlation of annual fire cells with official records (counts / burned area, from 2012; Greece and Chile to 2024)",
         large: "Rank correlation of burned area and fire cells, fires over 100 ha",
       },
       inconclusive: " · inconclusive",
@@ -487,8 +488,10 @@ export const methodEn: MethodMessages = {
       title: "Why Greece is \"inconclusive\"",
       body: [
         "Against official fire counts, the 2012 break goes from 1.96× before harmonization to 0.71× after, outside the range we treat " +
-          "as a successful correction (0.75–1.33×). Greek official records run to 2024. We have not yet confirmed the cause and will " +
-          "add it here once we have.",
+          "as a successful correction (0.75–1.33×). Official counts do not differ much before and after 2012 (roughly 10,500 → 9,500 " +
+          "a year on average). The test averages each year's \"fire cells ÷ official count\", and the values for 2001 (0.67) and 2007 " +
+          "(0.97, a year of very large fires) are higher than those of the other pre-2012 years (0.24–0.54), which raises the earlier " +
+          "average. A test based on averages is sensitive to these two extreme years. Greek official records run to 2024.",
       ],
     },
     change: {
@@ -863,7 +866,10 @@ export const methodEn: MethodMessages = {
       },
       {
         title: "Official records differ",
-        body: ["Agencies count differently and their records change over time. This is why the BC and Greece official-record tests are inconclusive."],
+        body: [
+          "Agencies count differently and their records change over time. This is why the BC official-record test is inconclusive. " +
+            "In Greece the counts do not differ much; the test is inconclusive because of two extreme years (section 05).",
+        ],
       },
       {
         title: "Months in progress",
