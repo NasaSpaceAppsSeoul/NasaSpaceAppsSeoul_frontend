@@ -40,6 +40,19 @@ export const nsw: CountryMock = {
     sources: ["NASA FIRMS", "geoBoundaries (ABS, CC BY 4.0)", "NSW NPWS"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },
     external_validation: { ...korMeta.external_validation, source: "NSW NPWS" },
+    // 서버 `/NSW/meta` 응답(2026-11-15, 백엔드 dfea737) 그대로
+    validation: { break_test_ratio: 1.03, break_test_ci95: [0.98, 1.08], official_break: { before: 2.92, after: 1.05, inconclusive: false } },
+    method_stats: {
+      grid_sensitivity: [
+        { "월별 R²": 0.802, "격자(도)": 0.1, "연간 오차 %": 10.0 },
+        { "월별 R²": 0.766, "격자(도)": 0.05, "연간 오차 %": 10.2 },
+        { "월별 R²": 0.795, "격자(도)": 0.02, "연간 오차 %": 10.0 },
+        { "월별 R²": 0.839, "격자(도)": 0.01, "연간 오차 %": 9.5 },
+      ],
+      loocv_annual_error_pct: 9.5,
+      calibration_error_pct: { terra_to_modis: 22.5, snpp_to_noaa20: 1.8, noaa21_to_noaa20: 1.2 },
+      rank_corr: { annual_vs_count: 0.75, annual_vs_area: 0.9, big_fires_vs_cells: 0.6 },
+    },
   },
   regions,
   geo,

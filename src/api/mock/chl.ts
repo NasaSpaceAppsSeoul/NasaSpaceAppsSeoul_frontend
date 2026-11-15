@@ -42,6 +42,19 @@ export const chl: CountryMock = {
     sources: ["NASA FIRMS", "geoBoundaries (BCN, CC BY 3.0 IGO)", "CONAF"],
     time_basis: { code: "solar", label_ko: "픽셀 경도 기준 태양시" },
     external_validation: { ...korMeta.external_validation, source: "CONAF" },
+    // 서버 `/CHL/meta` 응답(2026-11-15, 백엔드 dfea737) 그대로
+    validation: { break_test_ratio: 1.02, break_test_ci95: [0.99, 1.06], official_break: { before: 2.38, after: 0.96, inconclusive: false } },
+    method_stats: {
+      grid_sensitivity: [
+        { "월별 R²": 0.904, "격자(도)": 0.1, "연간 오차 %": 7.4 },
+        { "월별 R²": 0.885, "격자(도)": 0.05, "연간 오차 %": 7.9 },
+        { "월별 R²": 0.864, "격자(도)": 0.02, "연간 오차 %": 9.2 },
+        { "월별 R²": 0.875, "격자(도)": 0.01, "연간 오차 %": 10.5 },
+      ],
+      loocv_annual_error_pct: 10.5,
+      calibration_error_pct: { terra_to_modis: 11.4, snpp_to_noaa20: 1.8, noaa21_to_noaa20: 7.4 },
+      rank_corr: { annual_vs_count: 0.71, annual_vs_area: 0.6, big_fires_vs_cells: 0.46 },
+    },
   },
   regions,
   geo,

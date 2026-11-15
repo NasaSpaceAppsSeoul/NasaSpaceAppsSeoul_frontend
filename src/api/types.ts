@@ -1,5 +1,5 @@
 // Burnline API 응답 타입. 이 파일이 원본이다(`.claude/reference/api-types.ts`에서 옮김, 2026-11-14).
-// 백엔드 코드(7dff960 → abfd9fe)를 읽고 작성했고, 2026-11-15 abfd9fe 서버의 실제 응답과 대조했다
+// 백엔드 코드(7dff960 → abfd9fe → dfea737)를 읽고 작성했고, 2026-11-15 dfea737 서버의 실제 응답과 대조했다
 // (`.claude/reference/samples/`, roadmap 9장). 백엔드가 바뀌면 다시 대조한다.
 
 import type { Country } from "../lib/country";
@@ -46,6 +46,24 @@ export interface Meta {
   external_validation: { available: boolean; source: string | null; records: number | null; period: unknown };
   filters: unknown[];                   // 원본 그대로인 배열. 화면에서 쓰지 않는다
   source_products: unknown;             // 화면에서 쓰지 않는다
+  method_stats: MethodStats | null;     // 기법 페이지 03·04·05 표 숫자(백엔드 dfea737 `CatalogService.methodStats`)
+}
+
+/** 칸 크기 비교 한 줄. 키는 파이프라인 `meta.json` 그대로라 한글이다 */
+export interface GridSensitivityRow {
+  "격자(도)": number;
+  "월별 R²": number | null;
+  "연간 오차 %": number | null;
+  "2022년 3월 배수"?: number | null;  // 화면에서 쓰지 않는다
+  "2025년 3월 배수"?: number | null;  // 화면에서 쓰지 않는다
+}
+/** `/meta` `method_stats`. 원천에 없는 값은 `null`이다 */
+export interface MethodStats {
+  grid_sensitivity: GridSensitivityRow[] | null;
+  /** 한 해씩 빼고 맞힌 MODIS → S-NPP 연간 오차 %(파이프라인 `validation.B` = 5년 창. CAL은 노트북의 고정 6.8%가 아니라 7.4%) */
+  loocv_annual_error_pct: number | null;
+  calibration_error_pct: Record<"terra_to_modis" | "snpp_to_noaa20" | "noaa21_to_noaa20", number | null>;
+  rank_corr: Record<"annual_vs_count" | "annual_vs_area" | "big_fires_vs_cells", number | null>;
 }
 
 // ---- /regions, /regions/{id}
@@ -214,7 +232,7 @@ export interface Landing {
   stats: LandingStat[];                                   // key로 찾아 쓴다
   annual: { years: number[]; before: number[]; after: number[] };   // 자료 없는 해는 0
   official_break: { source: string; before: number | null; after: number | null; inconclusive: boolean };
-  break_test: { before: BreakRatio; after: BreakRatio; jump_raw: number | null };
+  break_test: { before: BreakRatio; after: BreakRatio; jump_raw: number | null };   // jump_raw는 소수 둘째 자리(dfea737부터)
   detect_by_size: { bin: string; n: number; detected: number | null; chance: number | null }[];
   detect_n: number;
 }

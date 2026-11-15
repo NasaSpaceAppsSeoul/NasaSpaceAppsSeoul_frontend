@@ -73,6 +73,18 @@ export const korMeta: Meta = {
   external_validation: { available: true, source: "산림청", records: 6213, period: ["2012", "2025"] },
   filters: [],
   source_products: null,
+  // 서버 `/KOR/meta` 응답(2026-11-15, 백엔드 dfea737) 그대로
+  method_stats: {
+    grid_sensitivity: [
+      { "월별 R²": 0.74, "격자(도)": 0.1, "연간 오차 %": 16.3 },
+      { "월별 R²": 0.784, "격자(도)": 0.05, "연간 오차 %": 15.8 },
+      { "월별 R²": 0.891, "격자(도)": 0.02, "연간 오차 %": 14.4 },
+      { "월별 R²": 0.923, "격자(도)": 0.01, "연간 오차 %": 14.9 },
+    ],
+    loocv_annual_error_pct: 14.9,
+    calibration_error_pct: { terra_to_modis: 11.2, snpp_to_noaa20: 6.2, noaa21_to_noaa20: 23.4 },
+    rank_corr: { annual_vs_count: 0.69, annual_vs_area: 0.54, big_fires_vs_cells: 0.75 },
+  },
 };
 
 function korGeoList(): MockGeo[] {
