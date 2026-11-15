@@ -195,13 +195,13 @@ export const methodEn: MethodMessages = {
       "Over the overlap period (2012–2025) we predicted S-NPP values from MODIS values and compared four cell sizes. The better " +
       "the fit, the more the two satellites count the same thing at that size.",
     gridTable: {
-      caption: "Fit of S-NPP values predicted from MODIS values, by cell size",
-      head: ["Cell", "South Korea monthly R² · annual error", "California", "BC"],
+      caption: "Fit of S-NPP values predicted from MODIS values, by cell size (monthly R² · annual error)",
+      head: "Cell (monthly R² · annual error)",
       rows: [
-        { key: "0.1", cells: ["0.1° (about 10 km)", "0.74 · 16.3%", "0.95 · 7.3%", "0.98 · 5.3%"] },
-        { key: "0.05", cells: ["0.05°", "0.78 · 15.8%", "0.97 · 6.8%", "0.98 · 5.7%"] },
-        { key: "0.02", cells: ["0.02°", "0.89 · 14.4%", "0.98 · 7.2%", "0.98 · 7.1%"] },
-        { key: "0.01", cells: ["0.01° (used)", "0.92 · 14.9%", "0.98 · 7.4%", "0.96 · 8.6%"], highlight: true },
+        { key: "0.1", degree: 0.1, label: "0.1° (about 10 km)" },
+        { key: "0.05", degree: 0.05, label: "0.05°" },
+        { key: "0.02", degree: 0.02, label: "0.02°" },
+        { key: "0.01", degree: 0.01, label: "0.01° (used)", highlight: true },
       ],
     },
     gridBody: [
@@ -299,12 +299,12 @@ export const methodEn: MethodMessages = {
     formulaNote: "K = ratio over the whole period",
     coefTable: {
       caption: "Overlap period and leave-one-year-out annual error for each coefficient",
-      head: ["Coefficient", "Overlap", "Annual error (South Korea · California · BC)"],
+      head: ["Coefficient", "Overlap"],
       rows: [
-        { key: "kT", cells: ["k_T: Terra → Terra or Aqua", "2003–2011", "11.2% · 4.6% · 2.6%"] },
-        { key: "kMS", cells: ["k_MS: MODIS → S-NPP", "2012–2025", "14.9% · 6.8% · 8.6%"] },
-        { key: "kSN", cells: ["k_SN: S-NPP → NOAA-20", "2019–2025", "6.2% · 5.1% · 4.7%"] },
-        { key: "kN21", cells: ["k_N21: NOAA-21 → NOAA-20 (backup)", "2024–2025", "23.4% · 1.5% · 1.8%"] },
+        { key: "kT", stat: "terra_to_modis", label: "k_T: Terra → Terra or Aqua", overlap: "2003–2011" },
+        { key: "kMS", stat: "loocv", label: "k_MS: MODIS → S-NPP", overlap: "2012–2025" },
+        { key: "kSN", stat: "snpp_to_noaa20", label: "k_SN: S-NPP → NOAA-20", overlap: "2019–2025" },
+        { key: "kN21", stat: "noaa21_to_noaa20", label: "k_N21: NOAA-21 → NOAA-20 (backup)", overlap: "2024–2025" },
       ],
     },
     whyTitle: "Why this way",
@@ -339,9 +339,10 @@ export const methodEn: MethodMessages = {
         title: "A 5-year window for sensor ageing",
         body: [
           "As the MODIS satellites aged, the ratio could change from year to year. We compared a coefficient from the whole overlap " +
-            "with one from a 5-year window around each year (2 years either side) by leave-one-year-out error, and chose the smaller " +
-            "error for each region: South Korea uses the window (14.9% annual error vs 20.5% fixed), California the fixed ratio (6.8% " +
-            "vs 7.4%), BC the window (8.6% vs 8.8%). Years before 2012 use the earliest window (2012–2016).",
+            "with one from a 5-year window around each year (2 years either side) by leave-one-year-out error. The window fit better " +
+            "in South Korea (14.9% annual error vs 20.5% fixed) and BC (8.6% vs 8.8%), while in California the fixed ratio did slightly " +
+            "better (6.8% vs 7.4% for the window). The k_MS annual errors in the table above are the window values the server provides. " +
+            "Years before 2012 use the earliest window (2012–2016).",
         ],
       },
       {
@@ -407,31 +408,16 @@ export const methodEn: MethodMessages = {
       "the satellites, and hiding one year at a time. Ranges and the cases that did not fit are reported alongside each number.",
     resultTable: {
       caption: "Validation results by region",
-      head: ["Test", "South Korea", "California", "BC", "Greece", "Chile", "NSW"],
-      rows: [
-        {
-          key: "satellite",
-          cells: [
-            "2012 break between satellites, before → after [95% range]",
-            "2.6 → 0.99 [0.92–1.05]",
-            "2.0 → 1.02 [0.98–1.06]",
-            "2.4 → 1.00 [0.97–1.03]",
-            "2.8 → 1.01 [0.98–1.04]",
-            "2.8 → 1.02 [0.99–1.06]",
-            "3.0 → 1.03 [0.98–1.08]",
-          ],
-        },
-        { key: "loyo", cells: ["Leave-one-year-out annual error (MODIS → S-NPP)", "14.9%", "6.8%", "8.6%", "—", "—", "—"] },
-        {
-          key: "official",
-          cells: ["2012 break against official fire counts, before → after", "2.67 → 1.04", "2.54 → 1.25", "4.99 → 2.14 · inconclusive", "1.96 → 0.71 · inconclusive", "2.38 → 0.96 (records of 200 ha and over)", "2.92 → 1.05"],
-        },
-        {
-          key: "rank",
-          cells: ["Rank correlation of annual fire cells with official records (counts / burned area, 2012–2025)", "0.69 / 0.54", "0.40 / 0.93", "0.58 / 0.92", "—", "—", "—"],
-        },
-        { key: "large", cells: ["Rank correlation of burned area and fire cells, fires over 100 ha", "0.75", "0.58", "0.38", "—", "—", "—"] },
-      ],
+      head: "Test",
+      rows: {
+        satellite: "2012 break between satellites, before → after [95% range]",
+        loyo: "Leave-one-year-out annual error (MODIS → S-NPP)",
+        official: "2012 break against official fire counts, before → after",
+        rank: "Rank correlation of annual fire cells with official records (counts / burned area, 2012–2025)",
+        large: "Rank correlation of burned area and fire cells, fires over 100 ha",
+      },
+      inconclusive: " · inconclusive",
+      chlOfficial: " (records of 200 ha and over)",
     },
     figure: {
       title: "Detection by fire size",
@@ -495,6 +481,14 @@ export const methodEn: MethodMessages = {
         "Since about 2014, BC has had fewer small fires and many more megafires, so the official record itself changed (even after " +
           "harmonization, the change point in the official-count ratio is 2014). Dividing by counts gives 2.14×, by area 0.40×, so " +
           "the conclusions disagree. We show this as it is.",
+      ],
+    },
+    grc: {
+      title: "Why Greece is \"inconclusive\"",
+      body: [
+        "Against official fire counts, the 2012 break goes from 1.96× before harmonization to 0.71× after, outside the range we treat " +
+          "as a successful correction (0.75–1.33×). Greek official records run to 2024. We have not yet confirmed the cause and will " +
+          "add it here once we have.",
       ],
     },
     change: {
@@ -869,7 +863,7 @@ export const methodEn: MethodMessages = {
       },
       {
         title: "Official records differ",
-        body: ["Agencies count differently and their records change over time. This is why BC's official-record test is inconclusive."],
+        body: ["Agencies count differently and their records change over time. This is why the BC and Greece official-record tests are inconclusive."],
       },
       {
         title: "Months in progress",
@@ -966,7 +960,7 @@ export const methodEn: MethodMessages = {
         title: "Prefer fewer false alarms",
         body: ["Widening the usual range raised agreement between satellites from 64% to 81%, and the cost (short, large fires) is stated (section 06)."],
       },
-      { title: "Show inconclusive results", body: ["BC's official-record test is shown as inconclusive, as it is (section 05)."] },
+      { title: "Show inconclusive results", body: ["The BC and Greece official-record tests are shown as inconclusive, as they are (section 05)."] },
     ],
   },
   end: {
