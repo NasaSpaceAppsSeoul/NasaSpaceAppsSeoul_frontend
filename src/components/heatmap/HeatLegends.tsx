@@ -47,15 +47,27 @@ export function HeatLegend({ items, basis }: { items: LegendItem[]; basis: Basis
 
 type StateKey = "zero" | "converted" | "noData" | "partial" | "selected" | "future";
 
-/** 각 상태의 견본 칸. 칸과 같은 유틸리티·토큰을 쓴다 */
-const STATE_SWATCH: Record<StateKey, string> = {
-  zero: "border border-white/10 bg-heat-0",
-  converted: "border border-white/10 bg-heat-3 heat-dots",
-  noData: "border border-white/10 heat-hatch",
-  partial: "border border-white/10 bg-heat-3 outline-1 outline-offset-3 outline-dashed outline-heat-partial-ring",
-  selected: "border border-white/10 bg-heat-3 outline-2 outline-offset-3 outline-solid outline-selection",
-  future: "bg-transparent border border-dashed border-heat-future",
-};
+/** 집계 중·선택한 달 견본의 안쪽 색: 보정 전이면 파랑 계열 가운데 단계(칸 색과 같은 계열, 9장 3차 사용자) */
+const SWATCH_FILL: Record<Basis, string> = { harmonized: "bg-heat-3", raw: "bg-heat-raw-4" };
+
+/** 각 상태의 견본 칸. 칸과 같은 유틸리티·토큰을 쓴다. 집계 중 고리는 칸처럼 두 화면 모두 주황 */
+function stateSwatch(key: StateKey, basis: Basis): string {
+  const fill = SWATCH_FILL[basis];
+  switch (key) {
+    case "zero":
+      return "border border-white/10 bg-heat-0";
+    case "converted":
+      return "border border-white/10 bg-heat-3 heat-dots";
+    case "noData":
+      return "border border-white/10 heat-hatch";
+    case "partial":
+      return `border border-white/10 ${fill} outline-1 outline-offset-3 outline-dashed outline-heat-partial-ring`;
+    case "selected":
+      return `border border-white/10 ${fill} outline-2 outline-offset-3 outline-solid outline-selection`;
+    case "future":
+      return "bg-transparent border border-dashed border-heat-future";
+  }
+}
 
 /** 시안 순서(집계 중 → 감지 없음 → 환산 → 선택 → 집계 전)에 "관측 자료 없음"을 환산 뒤에 */
 const STATE_ORDER: StateKey[] = ["partial", "zero", "converted", "noData", "selected", "future"];
@@ -76,7 +88,7 @@ export function StateLegend({ basis }: { basis: Basis }) {
             triggerClassName="flex cursor-help items-center gap-2 rounded-sm text-[10px] text-[#9ca7b7] hover:text-ink"
           >
             {/* 견본은 히트맵 점과 같은 16px 원. 고리(outline)가 붙는 견본도 옆 글자와 겹치지 않게 여백 */}
-            <span aria-hidden="true" className={`m-1 size-4 shrink-0 rounded-full ${STATE_SWATCH[key]}`} />
+            <span aria-hidden="true" className={`m-1 size-4 shrink-0 rounded-full ${stateSwatch(key, basis)}`} />
             {s[key].title}
           </InfoTip>
         </li>

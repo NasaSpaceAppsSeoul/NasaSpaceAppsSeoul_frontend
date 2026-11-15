@@ -280,9 +280,14 @@ describe("히트맵 보정 전 (9장 2차, 서버 값)", () => {
     expect(screen.getByText("2012년 2월 S-NPP / 2018년 4월 NOAA-20 — 위성이 바뀌면 감지 감도도 달라집니다")).toBeTruthy();
     expect(screen.getByText(/547 화재 감지일 · 보정 전/)).toBeTruthy();
     expect(screen.queryByText("이 지역은 보정 전 값이 없습니다")).toBeNull();
-    // 상태 범례에서 환산 칩이 빠진다
+    // 상태 범례에서 환산 칩이 빠지고, 집계 중·선택한 달 견본 안쪽은 파랑 계열(9장 3차)
     expect(screen.queryByRole("button", { name: "센서 환산값" })).toBeNull();
+    const swatch = (name: string) => screen.getByRole("button", { name }).querySelector("span")?.className ?? "";
+    expect(swatch("집계 중")).toContain("bg-heat-raw-4");
+    expect(swatch("선택한 달")).toContain("bg-heat-raw-4");
+    expect(swatch("집계 중")).toContain("outline-heat-partial-ring");
     fireEvent.click(screen.getByRole("button", { name: "보정 후" }));
     expect(cell(g, "대한민국 · 2025년 3월").getAttribute("aria-label")).toContain("1,093 화재 감지일");
+    expect(swatch("선택한 달")).toContain("bg-heat-3");
   });
 });
