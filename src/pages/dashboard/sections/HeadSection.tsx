@@ -52,11 +52,14 @@ export function HeadSection({ scope }: { scope: DashboardScope }) {
   );
 }
 
-/** 머리(머리말·제목·부제)와 자료 카드(세 단계 공통). 시안 간격: 제목 → 부제 12, 머리 → 카드 32, 카드 → 선택 줄 24 */
+/**
+ * 머리(머리말·제목·부제)와 자료 안내 줄(세 단계 공통). 간격: 제목 → 부제 12, 머리 → 안내 32,
+ * 안내 → 구분선 20 → 선택 줄 24(참고 `.db-demo-notice` 아래 20, `.db-filter-card` 위 선·위 24, 사용자 2026-11-15)
+ */
 function Head({ overline, title, dataEnd }: { overline: string; title: string; dataEnd: string | null }) {
   const t = useMessages();
   return (
-    // 바깥 `main`의 칸 사이가 32라 카드 아래만 8 줄여 선택 줄과 24를 맞춘다
+    // 바깥 `main`의 칸 사이가 32라 구분선 아래만 8 줄여 선택 줄과 24를 맞춘다
     <div className="-mb-2 flex flex-col gap-8">
       <header className="flex flex-col gap-4">
         <Overline>{overline}</Overline>
@@ -73,7 +76,8 @@ function Head({ overline, title, dataEnd }: { overline: string; title: string; d
 const NOTICE_TAG = "shrink-0 font-mono text-[9px] uppercase [&:lang(en)]:tracking-[0.06em]";
 
 /**
- * 자료 카드 (시안 v11 `.db-demo-notice.db-data-notice`, 값 그대로). 다른 카드의 `glass`와 달리 푸른 알림 재료라 이 자리만 쓴다.
+ * 자료 안내 줄 (참고 소스 `burnline-landing 4` `dashboard-open.css` `.db-demo-notice`, UI 다듬기 2026-11-15):
+ * 바탕·테두리·둥근 모서리·흐림 없이 배경 위 한 줄, 사이 12, 아래 20에 흰 14% 구분선(선택 줄과 나눈다). 오른쪽 이름표는 `dashboard-glass.css` 색 #adbdce.
  * 날짜는 `/meta` `data_end`. 그 날이 달의 마지막 날이 아니면 그 달은 아직 수집 중이라고 붙이고, 날짜가 없으면 잠정치 문장만 둔다.
  */
 function DataNotice({ dataEnd }: { dataEnd: string | null }) {
@@ -83,10 +87,10 @@ function DataNotice({ dataEnd }: { dataEnd: string | null }) {
   const collecting =
     dataEnd === null || isLastDayOfMonth(dataEnd) ? null : formatMonthName(Number(dataEnd.slice(5, 7)), locale);
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-md border border-[#263444] bg-[rgba(17,24,32,0.54)] px-4 py-3 text-[11px] leading-[1.5] text-[#abb9c8] backdrop-blur-[14px]">
+    <div className="flex flex-wrap items-center gap-3 border-b border-white/14 pb-5 text-[11px] leading-[1.5] text-[#abb9c8]">
       <span className={`${NOTICE_TAG} text-[#86b5ee]`}>{t.dashboard.dataNotice.label}</span>
       <p>{t.dashboard.dataNotice.text(date, collecting)}</p>
-      <span className={`${NOTICE_TAG} ml-auto whitespace-nowrap text-[#7f929f]`}>{t.dashboard.dataNotice.reference}</span>
+      <span className={`${NOTICE_TAG} ml-auto whitespace-nowrap text-[#adbdce]`}>{t.dashboard.dataNotice.reference}</span>
     </div>
   );
 }
