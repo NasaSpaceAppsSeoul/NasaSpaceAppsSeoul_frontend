@@ -85,6 +85,15 @@ export const en: Messages = {
       legendHelpLabel: "What dashed and solid bars mean",
       legendHelp:
         "Dashed bars are months whose values are not final yet. Either the month has not ended (in progress), or the value comes from fast near-real-time processing before the final archive, so it may change later. Solid bars are final values.",
+      chipsLabel: "Choose a region",
+      coverage: {
+        KOR: "All of South Korea (17 provinces, 229 districts).",
+        CAL: "California only within the United States; other states are not supplied.",
+        BC: "British Columbia only within Canada; other provinces are not supplied.",
+        GRC: "All of Greece (14 regions, 325 municipalities).",
+        CHL: "All of Chile (16 regions, 345 municipalities).",
+        NSW: "New South Wales only within Australia; other states are not supplied.",
+      },
     },
     limits: {
       index: "03 / Trust & limits",

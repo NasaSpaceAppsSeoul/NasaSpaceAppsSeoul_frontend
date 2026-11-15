@@ -146,6 +146,40 @@ describe("소개 화면 (목)", () => {
     expect(section.getByRole("tooltip", { hidden: true }).textContent).toMatch(/^점선 막대는 값이 아직 확정되지 않은 달입니다/);
   });
 
+  it("02 나라 칩: 처음은 대한민국, 칩을 누르면 제목·범위 문구가 그 나라로, 선택한 달은 마지막 달로(UI 다듬기)", async () => {
+    renderRoute("/");
+    const section = within(await screen.findByRole("region", { name: "한 달만 보지 말고\n흐름을 보세요." }));
+    const chips = within(section.getByRole("group", { name: "지역 고르기" }));
+    expect(chips.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "대한민국",
+      "캘리포니아",
+      "브리티시컬럼비아",
+      "그리스",
+      "칠레",
+      "뉴사우스웨일스",
+    ]);
+    expect(chips.getByRole("button", { name: "대한민국" }).getAttribute("aria-pressed")).toBe("true");
+    expect(section.getByText("대한민국 전체(시·도 17, 시·군·구 229)입니다.")).toBeTruthy();
+    expect(await section.findByRole("heading", { name: /^대한민국 · / })).toBeTruthy();
+    // 한국에서 1월을 골라 두고 나라를 바꾸면 그 나라의 마지막 달로 되돌아간다
+    const korBars = within(section.getByRole("group", { name: /월별 막대 그래프$/ })).getAllByRole("button");
+    fireEvent.click(korBars[0] as HTMLElement);
+    expect((korBars[0] as HTMLElement).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(chips.getByRole("button", { name: "브리티시컬럼비아" }));
+    expect(chips.getByRole("button", { name: "브리티시컬럼비아" }).getAttribute("aria-pressed")).toBe("true");
+    expect(chips.getByRole("button", { name: "대한민국" }).getAttribute("aria-pressed")).toBe("false");
+    expect(section.getByText("캐나다 가운데 브리티시컬럼비아만 제공합니다. 다른 주의 자료는 없습니다.")).toBeTruthy();
+    expect(await section.findByRole("heading", { name: /^브리티시컬럼비아 · 20\d\d년 1–\d+월$/ })).toBeTruthy();
+    const bcBars = within(section.getByRole("group", { name: /^브리티시컬럼비아 .*월별 막대 그래프$/ })).getAllByRole("button");
+    expect((bcBars[bcBars.length - 1] as HTMLElement).getAttribute("aria-pressed")).toBe("true");
+    // 이미 받은 나라로 돌아가도(회색 판 없이 바로 그려짐) 선택은 그 나라의 마지막 달
+    fireEvent.click(bcBars[0] as HTMLElement);
+    fireEvent.click(chips.getByRole("button", { name: "대한민국" }));
+    const korAgain = within(section.getByRole("group", { name: /^대한민국 .*월별 막대 그래프$/ })).getAllByRole("button");
+    expect((korAgain[0] as HTMLElement).getAttribute("aria-pressed")).toBe("false");
+    expect((korAgain[korAgain.length - 1] as HTMLElement).getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("'스크롤해서 읽기'는 주소를 바꾸지 않고 01로 초점을 옮긴다(언어 전환이 01로 끌고 가지 않게)", async () => {
     const { router } = renderRoute("/");
     const cue = screen.getByRole("link", { name: "스크롤해서 읽기" });
