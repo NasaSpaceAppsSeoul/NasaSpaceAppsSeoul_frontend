@@ -78,12 +78,11 @@ describe("소개 화면 (목)", () => {
     await waitFor(() => expect(router.state.location.pathname).toBe("/en/dashboard/CAL"));
   });
 
-  it("예시 지역은 그 시·군·구 대시보드 링크다", async () => {
+  it("검색 줄 아래 예시 줄은 없다(UI 다듬기)", async () => {
     renderRoute("/");
-    const examples = within(await screen.findByRole("navigation", { name: "예시 지역" }));
-    const links = examples.getAllByRole("link");
-    expect(links.map((a) => a.textContent)).toEqual(["경북 의성군", "강원 고성군", "대구 중구"]);
-    links.forEach((a) => expect(a.getAttribute("href")).toMatch(/^\/dashboard\/KOR\/.+/));
+    await waitFor(() => expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(false));
+    expect(screen.queryByRole("navigation", { name: "예시 지역" })).toBeNull();
+    expect(screen.queryByText(/^예: /)).toBeNull();
   });
 
   it("검색 칸을 누르면 검색 대화상자, 지역을 고르면 그 대시보드", async () => {
@@ -392,7 +391,5 @@ describe("소개 화면 (서버 에러)", () => {
     renderRoute("/");
     expect(await screen.findByText("서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "지역 찾기, 국가·시·도·시·군·구 검색" }).hasAttribute("disabled")).toBe(true);
-    expect(screen.queryByText("예: 경북 의성 · 강원 고성 · 대구 중구")).toBeNull();
-    expect(screen.queryByRole("navigation", { name: "예시 지역" })).toBeNull();
   });
 });

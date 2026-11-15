@@ -37,10 +37,6 @@ export const ko = {
       scrollCue: "스크롤해서 읽기",
       // 검색 줄 오른쪽 밝은 칸(장식, 줄 전체가 검색 버튼). 예전 "지역 둘러보기"는 검색에 합쳤다(about-revise 11절)
       find: "지역 찾기",
-      // 예시 줄: 앞말 + 지역 링크(받기 전에는 `examples` 글 그대로)
-      examplesLead: "예:",
-      examples: "예: 경북 의성 · 강원 고성 · 대구 중구",
-      examplesLabel: "예시 지역",
       countriesLabel: "나라별 대시보드",
       countryLink: (country: string) => `${country} →`,
       countryNotReady: (country: string) => `${country} · 준비 중`,
