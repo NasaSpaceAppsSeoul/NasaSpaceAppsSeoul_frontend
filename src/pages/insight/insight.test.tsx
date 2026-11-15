@@ -89,6 +89,21 @@ describe("월간 인사이트", () => {
     expect(screen.getByText(/공식 기록 41건 중 17건을 위성이 2일 안에 감지했습니다\(41%\)/)).toBeTruthy();
   });
 
+  it("공식 기록 면적: 0은 빈칸, 0.1 ha 미만은 \"0.1 미만\"(반올림하면 0으로 보여서, 9장 2차)", async () => {
+    const insight = (await mockGet(`/KOR/insight/${UISEONG}?month=2025-03`)) as Insight;
+    insight.official = [
+      { date: "2025-03-22", place: "큰 불", cause: "원인 미상", area_ha: 52707.3, region_id: UISEONG },
+      { date: "2025-03-23", place: "작은 불", cause: "원인 미상", area_ha: 0.03, region_id: UISEONG },
+      { date: "2025-03-24", place: "경계", cause: "원인 미상", area_ha: 0.1, region_id: UISEONG },
+      { date: "2025-03-24", place: "면적 모름", cause: "원인 미상", area_ha: 0, region_id: UISEONG },
+    ];
+    override = (path) => (path.includes("/insight/") ? json(insight) : null);
+    renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
+    const table = await screen.findByRole("table", { name: "공식 기록 대조" });
+    const areas = within(table).getAllByRole("row").slice(1).map((r) => r.lastElementChild?.textContent);
+    expect(areas).toEqual(["52,707.3", "0.1 미만", "0.1", ""]);
+  });
+
   it("/insight는 항상 cache: reload로 보낸다", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2025-03`);
     await headCard();

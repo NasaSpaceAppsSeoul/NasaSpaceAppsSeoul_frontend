@@ -25,9 +25,9 @@ export const methodEn: MethodMessages = {
     },
     {
       id: "detection",
-      value: { before: "", accent: "86–97%", after: "" },
+      value: { before: "", accent: "80–97%", after: "" },
       sub:
-        "Share of official fires over 100 ha seen by satellite within 2 days (the five regions with official records; Chile 200 ha and over). " +
+        "Share of official fires over 100 ha seen by satellite within 2 days (the six regions with official records; Chile 200 ha and over). " +
         "Shifting the dates by 30 days gives 3–59%, " +
         "so the gap is what to read",
     },
@@ -139,9 +139,9 @@ export const methodEn: MethodMessages = {
           key: "BC",
           cells: ["British Columbia", "28 regional districts", "BC Wildfire Service records, 42,170 (2001-01 – 2026-03)"],
         },
-        { key: "GRC", cells: ["Greece", "14 admin regions · 325 municipalities", "Hellenic Fire Service fire records"] },
-        { key: "CHL", cells: ["Chile", "16 admin regions · 345 municipalities", "CONAF large-fire records (200 ha and over)"] },
-        { key: "NSW", cells: ["New South Wales", "129 local government areas", "NSW NPWS fire history (wildfires only)"] },
+        { key: "GRC", cells: ["Greece", "14 admin regions · 325 municipalities", "Hellenic Fire Service fire records, 238,090 (2001-01 – 2024-12)"] },
+        { key: "CHL", cells: ["Chile", "16 admin regions · 345 municipalities", "CONAF large-fire records (200 ha and over), 1,400 (2001-01 – 2024-03)"] },
+        { key: "NSW", cells: ["New South Wales", "129 local government areas", "NSW NPWS fire history (wildfires only), 9,044 (2001-01 – 2026-10)"] },
       ],
     },
   },
@@ -424,7 +424,7 @@ export const methodEn: MethodMessages = {
         { key: "loyo", cells: ["Leave-one-year-out annual error (MODIS → S-NPP)", "14.9%", "6.8%", "8.6%", "—", "—", "—"] },
         {
           key: "official",
-          cells: ["2012 break against official fire counts, before → after", "2.67 → 1.04", "2.54 → 1.25", "4.99 → 2.14 · inconclusive", "Official records pending", "2.38 → 0.96 (records of 200 ha and over)", "2.92 → 1.05"],
+          cells: ["2012 break against official fire counts, before → after", "2.67 → 1.04", "2.54 → 1.25", "4.99 → 2.14 · inconclusive", "1.96 → 0.71 · inconclusive", "2.38 → 0.96 (records of 200 ha and over)", "2.92 → 1.05"],
         },
         {
           key: "rank",
@@ -439,6 +439,11 @@ export const methodEn: MethodMessages = {
       note:
         "Share of official fires since April 2018 with a fire cell in the same area within 2 days. The vertical line is the share " +
         "with dates shifted by 30 days (chance level).",
+      noteChl:
+        "Chile's CONAF official records cover only fires of 200 ha and over; smaller fires are not in the official data. " +
+        "The four smaller bins are therefore empty, and the last bin holds fires of 200 ha and over.",
+      chlLargeBin: "200 ha and over",
+      noRecord: "No official records",
       caption: (country: string) => `${country} · NOAA-20 · official fire records · /landing detect_by_size`,
       binHead: "Fire size",
       detectedHead: "Detected",
@@ -741,7 +746,7 @@ export const methodEn: MethodMessages = {
           key: "risk",
           cells: [
             "Risk season",
-            "Add monthly shares from the largest down until 50% is passed. South Korea Feb–Apr (64%), California Aug–Oct (60%), BC Jul–Aug (51%), Chile Mar–May (51%), NSW Apr·May·Aug·Sep·Dec (55%), Greece pending",
+            "Add monthly shares from the largest down until 50% is passed. South Korea Feb–Apr (64%), California Aug–Oct (60%), BC Jul–Aug (51%), Chile Mar–May (51%), NSW Apr·May·Aug·Sep·Dec (55%), Greece Aug–Oct (58%)",
             "The data, not a calendar, sets each region's season",
           ],
         },

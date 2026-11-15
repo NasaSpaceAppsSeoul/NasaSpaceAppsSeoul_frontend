@@ -230,9 +230,9 @@ describe("기법 페이지 05·06", () => {
     const section = within(await screen.findByRole("region", { name: "보정이 맞는지 어떻게 아나" }));
     const results = section.getByRole("table", { name: "지역별 검증 결과" });
     expect(results.querySelectorAll("tbody tr")).toHaveLength(5);
-    // 여섯 지역 열(2026-11-15 서버 대조). 그리스는 공식 기록이 없어 그 칸을 밝힌다
+    // 여섯 지역 열(2026-11-15 서버 대조). 그리스 공식 기록 단절은 재적재 뒤 서버 값(판단 보류)
     expect(results.querySelectorAll("thead th")).toHaveLength(7);
-    expect(within(results).getByText("공식 기록 준비 중")).toBeTruthy();
+    expect(within(results).getByText("1.96 → 0.71 · 판단 보류")).toBeTruthy();
     const values = await section.findByRole("table", { name: "한국 산불 크기별 위성 감지율과 우연 기준" });
     expect(within(values).getAllByRole("rowheader").map((h) => h.textContent)).toEqual([
       "0.1 ha 미만",
@@ -244,6 +244,18 @@ describe("기법 페이지 05·06", () => {
     fireEvent.click(within(section.getByRole("group", { name: "나라 고르기" })).getByRole("button", { name: "BC" }));
     expect(await section.findByRole("img", { name: "BC 산불 크기별 위성 감지율과 우연 기준" })).toBeTruthy();
     expect(section.getByText("BC를 \"판단 보류\"로 둔 이유")).toBeTruthy();
+    // 칠레 탭에만 200 ha 기준 안내, 마지막 칸 이름 "200 ha 이상", 0건 칸은 "공식 기록 없음"(9장 2차)
+    const chileNote = /칠레 CONAF 공식 기록은 200 ha 이상 산불만 담고 있어/;
+    expect(section.queryByText(chileNote)).toBeNull();
+    expect(section.queryAllByText("공식 기록 없음")).toHaveLength(0);
+    fireEvent.click(within(section.getByRole("group", { name: "나라 고르기" })).getByRole("button", { name: "칠레" }));
+    expect(await section.findByText(chileNote)).toBeTruthy();
+    // 주석은 탭을 바꾸면 바로, 표는 칠레 `/landing`을 받은 뒤에 그려진다
+    const chile = await section.findByRole("table", { name: "칠레 산불 크기별 위성 감지율과 우연 기준" });
+    const chileRows = within(chile).getAllByRole("row").slice(1).map((r) => r.textContent);
+    expect(chileRows[0]).toBe("0.1 ha 미만공식 기록 없음——");
+    expect(chileRows[4]).toContain("200 ha 이상");
+    expect(within(chile).queryByText("100 ha 이상")).toBeNull();
   });
 
   it("06: 사이트와 같은 칩 네 개, 대표 달 제목(배수·순위), 같은 달 25개 해", async () => {

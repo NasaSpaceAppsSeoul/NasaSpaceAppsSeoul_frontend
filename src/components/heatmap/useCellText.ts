@@ -22,6 +22,7 @@ export function useCellText(regionLabel: string, bandFor: BandFor) {
     const value = cell.value !== null ? `${formatFireDays(cell.value, locale)} ${t.dashboard.unit}` : null;
     const metaParts = [
       cell.state === "partial" ? card.partial : null,
+      cell.sensor !== null ? h.tooltip.sensor(cell.sensor) : null,
       cell.estimated ? h.tooltip.estimated : null,
       cell.converted ? card.converted : null,
       cell.quality !== null ? card.quality[cell.quality] : null,

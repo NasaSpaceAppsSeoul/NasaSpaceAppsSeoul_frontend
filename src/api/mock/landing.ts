@@ -86,7 +86,7 @@ function korLanding(): Landing {
  * 그리스·칠레·NSW (9장): `annual`, `detect_by_size`, `official_break`, `break_test`, 위험 시기는 서버 `/landing` 응답
  * (2026-11-15, 백엔드 `abfd9fe` 서버, `.claude/reference/samples/*-landing.json`). 대표 달은 `LandingService.java`의 달
  * (GRC 2007-08·CHL 2023-02·NSW 2019-12)이고 배수·칸·순위도 그 응답 값이다.
- * 그리스는 공식 기록 단절 비율·감지율·위험 시기가 비어 온다(`null`, 빈 배열, `months: null`).
+ * 그리스의 공식 기록 단절 비율·감지율·위험 시기는 2026-11-15 재적재 뒤 응답 값이다.
  */
 const DETECT_BINS = ["0.1 ha 미만", "0.1~1", "1~10", "10~100", "100 ha 이상"];
 const detect = (rows: readonly (readonly [number, number | null, number | null])[]): Landing["detect_by_size"] =>
@@ -139,13 +139,13 @@ const REGION_LANDING = {
   GRC: {
     before: [1638, 725, 1359, 1826, 1523, 1186, 4874, 2298, 1407, 754, 2265, 4199, 3899, 2975, 3064, 3655, 2949, 1833, 2478, 2452, 3309, 2313, 3665, 2022, 1899],
     after: [10323.5, 2342, 3672.1, 4957.7, 4316.9, 3172.2, 11642.9, 6218, 3513.3, 2005.8, 6126, 4460.2, 4129.8, 3163.1, 3281.4, 3902.5, 3170.4, 1978.3, 2617, 2580, 3606, 2506, 3706, 2284, 1928],
-    detect: detect([]),
-    official: { source: "그리스 소방청", before: null, after: null, inconclusive: false },
+    detect: detect([[40012, 0.12, 0.06], [18416, 0.18, 0.08], [6009, 0.29, 0.1], [1032, 0.49, 0.1], [218, 0.8, 0.05]]),
+    official: { source: "그리스 소방청", before: 1.96, after: 0.71, inconclusive: true },
     breakTest: { before: { ratio: 0.98, ci95: [0.95, 1.02] }, after: { ratio: 1.01, ci95: [0.98, 1.04] }, jump_raw: 2.8 },
     stats: [
       { key: "burned_area_record", year: null, value: null, source: "그리스 소방청", unit: "ha" },
       { key: "case_month_ratio", month: "2007-08", value: 11.47, cells: 5091.9, rank: 1, n: 25 },
-      { key: "risk_share", value: null, months: null },
+      { key: "risk_share", value: 0.58, months: [8, 9, 10] },
     ],
   },
   CHL: {

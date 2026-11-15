@@ -21,7 +21,9 @@ export function csvFileName(country: string, id: string): string {
   return `burnline_${country}_${unsafe(id)}.csv`;
 }
 
-/** 달력 PNG 파일 이름: `burnline_{나라}_{지역 ID}_calendar.png` */
-export function calendarFileName(country: string, id: string): string {
-  return `burnline_${country}_${unsafe(id)}_calendar.png`;
+/**
+ * 달력 PNG 파일 이름: `burnline_{나라}_{지역 ID}_calendar.png`. 보정 전 그림은 `_calendar_raw.png`로 둘을 구분한다(9장 2차)
+ */
+export function calendarFileName(country: string, id: string, basis: "harmonized" | "raw" = "harmonized"): string {
+  return `burnline_${country}_${unsafe(id)}_calendar${basis === "raw" ? "_raw" : ""}.png`;
 }
