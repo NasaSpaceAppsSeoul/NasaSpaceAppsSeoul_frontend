@@ -166,10 +166,10 @@ export const en: Messages = {
     reload: "Reload",
   },
   footer: {
-    title: "Burnline · NASA Space Apps Challenge 2026",
-    sources: "Sources",
-    unit: "A fire grid-day is one approximately 1 km cell with fire detected on one day. It is not a fire incident count or burned area.",
-    processed: "Data processed",
+    brand: "Burnline",
+    source: "Data source: NASA FIRMS",
+    si: "SI was used in the design and development of this website.",
+    note: "Historical fire activity · not a real-time alert service",
   },
   common: {
     retry: "Try again",

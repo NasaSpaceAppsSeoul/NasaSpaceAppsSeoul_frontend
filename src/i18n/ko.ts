@@ -189,11 +189,12 @@ export const ko = {
     reload: "다시 불러오기",
   },
   // 디자인 푸터. 출처와 데이터 처리일은 `/meta` 값으로 채운다
+  // 푸터(참고 소스 `burnline-landing 6` 첫 화면 문구 그대로, 2026-11-15)
   footer: {
-    title: "Burnline · NASA Space Apps Challenge 2026",
-    sources: "출처",
-    unit: "화재 감지일은 약 1 km 격자에서 하루 동안 불이 한 번 이상 감지되면 1로 셉니다. 화재 건수나 피해 면적이 아닙니다.",
-    processed: "데이터 처리일",
+    brand: "Burnline",
+    source: "자료 출처: NASA FIRMS",
+    si: "디자인 및 웹 구현 과정에서 SI를 활용했습니다.",
+    note: "과거 화재 활동 기록 · 실시간 경보 서비스가 아닙니다",
   },
   common: {
     retry: "다시 시도",

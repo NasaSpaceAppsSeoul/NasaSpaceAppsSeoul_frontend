@@ -153,17 +153,20 @@ describe("머리글", () => {
 });
 
 describe("푸터", () => {
-  it("푸터에 /meta의 출처와 처리일을 넣고, 목 모드 표시 줄은 없다(2026-11-14 사용자가 뺌)", async () => {
+  it("참고안 문구 세 칸(Burnline · 자료 출처·SI · 서비스 성격), 목 모드 표시 줄은 없다", async () => {
     renderAt("/dashboard/CAL");
     await heading();
     expect(screen.queryByRole("note")).toBeNull();
-    expect(await screen.findByText("출처: NASA FIRMS · geoBoundaries USA (미국 인구조사국, 퍼블릭 도메인) · CAL FIRE")).toBeTruthy();
-    expect(screen.getByText("데이터 처리일 2026-11-11")).toBeTruthy();
+    const footer = within(screen.getByRole("contentinfo"));
+    expect(footer.getByText("Burnline")).toBeTruthy();
+    expect(footer.getByText("자료 출처: NASA FIRMS")).toBeTruthy();
+    expect(footer.getByText("디자인 및 웹 구현 과정에서 SI를 활용했습니다.")).toBeTruthy();
+    expect(footer.getByText("과거 화재 활동 기록 · 실시간 경보 서비스가 아닙니다")).toBeTruthy();
   });
 
-  it("나라가 없는 소개 화면의 푸터는 한국 /meta를 쓴다", async () => {
+  it("영어 화면은 영어 문구", async () => {
     renderAt("/en");
     await heading();
-    expect(await screen.findByText("Sources: NASA FIRMS · geoBoundaries (CC BY 3.0) · 산림청")).toBeTruthy();
+    expect(within(screen.getByRole("contentinfo")).getByText("Data source: NASA FIRMS")).toBeTruthy();
   });
 });

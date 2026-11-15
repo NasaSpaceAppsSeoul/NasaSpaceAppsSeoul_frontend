@@ -3,19 +3,13 @@ import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import { anchorHash, PageAnchorContext, type PageAnchor } from "../hooks/usePageAnchor";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
-import { useMeta } from "../hooks/useMeta";
 import { LocaleProvider } from "../i18n";
-import { DEFAULT_COUNTRY } from "../lib/country";
 import { localizePath, switchLocalePath, type Locale } from "../lib/locale";
-import { routeInfo } from "../lib/route";
 import { CosmicBackdrop } from "../components/CosmicBackdrop";
 
 /** 머리글·화면·푸터(목 모드 표시 줄은 2026-11-14 사용자가 뺌, `decisions.md` 10-9). 머리글과 푸터에 넘길 값은 여기서 주소로 만든다(컴포넌트는 주소를 읽지 않는다). */
 function Shell({ locale }: { locale: Locale }) {
   const { pathname, search, hash } = useLocation();
-  const { country } = routeInfo(pathname);
-  // 푸터의 출처·처리일: 주소의 나라, 나라가 없는 화면(소개 등)은 한국 (2026-11-14 사용자 결정)
-  const meta = useMeta(country ?? DEFAULT_COUNTRY);
   // 화면이 알려 준 지금 보는 절(기법 페이지 목차, `hooks/usePageAnchor`). 없으면 주소의 해시
   const [anchor, setAnchor] = useState<PageAnchor>(undefined);
 
@@ -39,7 +33,7 @@ function Shell({ locale }: { locale: Locale }) {
           <Outlet />
         </PageAnchorContext.Provider>
       </div>
-      <Footer sources={meta.data?.sources} processedOn={meta.data?.generated_at?.slice(0, 10)} />
+      <Footer />
       {/*
        * 새 주소는 맨 위, 뒤로 가기는 보던 위치(`plans/about-revise.md` 10절 ⑥).
        * 대시보드·인사이트 안에서 달·지역을 고르는 이동은 `preventScrollReset`으로 위치를 그대로 둔다
