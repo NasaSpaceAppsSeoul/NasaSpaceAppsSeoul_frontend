@@ -3,9 +3,15 @@ import type { ClientErrorCode, ErrorCode } from "./types";
 /** 요청 하나의 기본 제한 시간. `/insight`는 호출하는 쪽에서 20초를 준다. */
 export const DEFAULT_TIMEOUT_MS = 10_000;
 
-/** 개발 서버(localhost)는 백엔드 CORS가 허용하므로 터널을 직접 부른다. */
+/** 개발 서버(localhost)는 백엔드 CORS가 허용하므로 API를 직접 부른다. */
 const DEV_BASE = "https://burnline-api.unzipp.cloud/api/v1";
-/** 배포에서는 같은 출처의 `/api/v1`을 호스팅의 rewrite로 터널에 넘긴다(CORS 없음, 8장). */
+/**
+ * 배포(Vercel)에서는 같은 출처의 `/api/v1`을 부르고, `vercel.json`의 rewrite가 API 서버로 넘긴다.
+ * 브라우저에는 같은 출처 요청이라 CORS가 필요 없고, 배포 도메인이 바뀌어도 백엔드 설정을 고치지 않는다.
+ * API 주소가 바뀌면 `vercel.json`의 destination과 위 `DEV_BASE`를 함께 고친다.
+ * Vercel CDN이 API 응답을 따로 캐시하지 않게 `vercel.json`에서 꺼 두었다(`x-vercel-enable-rewrite-caching: 0`).
+ * 서버가 지난 달 응답과 `/meta`·`/regions`·`/baseline` 같은 기준 자료 응답에 `max-age=86400`을 붙여서, 켜 두면 재적재한 값이나 다시 받아야 할 응답이 하루까지 옛 것으로 나온다.
+ */
 const DEPLOY_BASE = "/api/v1";
 
 export type ApiMode = "mock" | "live";
