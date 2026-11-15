@@ -16,14 +16,14 @@ export function saveFile(blob: Blob, fileName: string): void {
 
 const unsafe = (id: string) => id.replace(/[\\/:*?"<>|\s]+/g, "_");
 
-/** CSV 파일 이름: `burnline_{나라}_{지역 ID}.csv`(서버 `Content-Disposition`과 같은 모양). 파일 이름에 못 쓰는 글자는 `_` */
+/** CSV 파일 이름: `hwaruruk_{나라}_{지역 ID}.csv`. 서버 `Content-Disposition`은 옛 이름(`burnline_…`)으로 오지만, 받은 바이트를 이 이름으로 저장하므로 쓰이지 않는다. 파일 이름에 못 쓰는 글자는 `_` */
 export function csvFileName(country: string, id: string): string {
-  return `burnline_${country}_${unsafe(id)}.csv`;
+  return `hwaruruk_${country}_${unsafe(id)}.csv`;
 }
 
 /**
- * 달력 PNG 파일 이름: `burnline_{나라}_{지역 ID}_calendar.png`. 보정 전 그림은 `_calendar_raw.png`로 둘을 구분한다(9장 2차)
+ * 달력 PNG 파일 이름: `hwaruruk_{나라}_{지역 ID}_calendar.png`. 보정 전 그림은 `_calendar_raw.png`로 둘을 구분한다(9장 2차)
  */
 export function calendarFileName(country: string, id: string, basis: "harmonized" | "raw" = "harmonized"): string {
-  return `burnline_${country}_${unsafe(id)}_calendar${basis === "raw" ? "_raw" : ""}.png`;
+  return `hwaruruk_${country}_${unsafe(id)}_calendar${basis === "raw" ? "_raw" : ""}.png`;
 }

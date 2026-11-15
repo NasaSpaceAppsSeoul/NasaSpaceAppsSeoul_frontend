@@ -69,7 +69,7 @@ describe("서버를 흉내 낸 앱 틀 (live)", () => {
     );
     renderRoute("/");
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("화재를,\n더 길게 보다.");
-    expect(within(screen.getByRole("contentinfo")).getByText("Burnline")).toBeTruthy();
+    expect(within(screen.getByRole("contentinfo")).getByText("Hwaruruk")).toBeTruthy();
   });
 
 });

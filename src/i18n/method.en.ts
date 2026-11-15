@@ -6,7 +6,7 @@ export const methodEn: MethodMessages = {
   eyebrow: "How it works",
   title: "One scale for 25 years of fire.",
   lead:
-    "When the satellites changed in 2012, the same fires began to be detected far more often. Burnline puts MODIS and VIIRS " +
+    "When the satellites changed in 2012, the same fires began to be detected far more often. Hwaruruk puts MODIS and VIIRS " +
     "on one scale, and every region goes through the same notebook and the same validation. It currently covers South Korea, " +
     "California, British Columbia, Greece, Chile and New South Wales. A new region runs the same computation from its boundaries, satellite data and one " +
     "line of settings, and is then added to the server and the site by its region code.",
@@ -80,7 +80,7 @@ export const methodEn: MethodMessages = {
       title: "When each satellite is used",
       sub: "The same periods apply to every region",
       label:
-        "Periods each satellite is used in Burnline: Terra from November 2000, Aqua together with it from July 2002 to " +
+        "Periods each satellite is used in Hwaruruk: Terra from November 2000, Aqua together with it from July 2002 to " +
         "January 2012, S-NPP from February 2012 to March 2018, NOAA-20 from April 2018 to now, NOAA-21 as a backup from March 2023",
       backup: "backup",
       caption:
