@@ -1,3 +1,5 @@
+import { isLastDayOfMonth } from "./month";
+
 /*
  * 소개 화면 계산 (`H-landing.md` H-3, H-5). `lib`은 `api`를 가져오지 않으므로 필요한 필드만 구조 타입으로 둔다.
  */
@@ -28,7 +30,9 @@ export type Readout = { year: number; before: number; after: number };
  * 01 비교 카드 값: `READOUT_YEAR`의 연간 보정 전 → 후. 그 해가 없거나 어느 한쪽이라도 0이면 `null` = "값 없음".
  * 0은 자료 없는 해다(9-5). 보정 전과 후는 출처가 달라(전: 위성 원값, 후: 나라 시계열 합) 한쪽만 0일 수 있는데,
  * 그대로 보이면 "302 → 0"처럼 보정이 값을 지운 것으로 읽힌다.
- * 9장에서 `/series` `raw_before`의 최근 달 값으로 바꾼다(roadmap 9장).
+ * 처음에는 9장에서 `/series` `raw_before`의 최근 달 값으로 바꾸려 했지만 그대로 둔다(2026-11-15 사용자): 2018-04부터는
+ * NOAA-20이 보정 기준 위성이라 보정 전과 후가 늘 같다(서버 확인, 한국 2026-10 76 → 76). 이 해의 값은 `/series`
+ * `raw_before` 2011년 합(302)과도 같다.
  */
 export function readoutYear(annual: AnnualInput): Readout | null {
   const bar = annualBars(annual).find((b) => b.year === READOUT_YEAR);
@@ -166,4 +170,24 @@ export function detectRows(items: readonly DetectInput[], names: Readonly<Record
 export function clampRatio(value: number | null): number {
   if (value === null || !Number.isFinite(value)) return 0;
   return Math.min(1, Math.max(0, value));
+}
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * 03 안내의 자료 기준일(UI 다듬기 2026-11-15): 여러 지역 `/meta` `data_end` 중 가장 이른 날과 늦은 날,
+ * 가장 최근 달이 집계 중인지(그 달에서 멈춘 지역 가운데 하나라도 달 끝 전이면 `true`).
+ * 하나라도 받지 못했거나(`undefined`) 값이 없거나 날짜 모양이 아니면 `null`: 일부 지역만으로 범위를 좁게 말하지 않는다.
+ */
+export function dataEndSpan(
+  ends: readonly (string | null | undefined)[],
+): { first: string; last: string; collecting: boolean } | null {
+  if (ends.length === 0 || !ends.every((d): d is string => typeof d === "string" && DATE.test(d))) return null;
+  const dates = [...ends].sort();
+  const first = dates[0];
+  const last = dates[dates.length - 1];
+  if (first === undefined || last === undefined) return null;
+  const lastMonth = last.slice(0, 7);
+  const collecting = dates.some((d) => d.startsWith(lastMonth) && !isLastDayOfMonth(d));
+  return { first, last, collecting };
 }

@@ -13,7 +13,7 @@ import { CosmicBackdrop } from "../components/CosmicBackdrop";
 /** 머리글·화면·푸터(목 모드 표시 줄은 2026-11-14 사용자가 뺌, `decisions.md` 10-9). 머리글과 푸터에 넘길 값은 여기서 주소로 만든다(컴포넌트는 주소를 읽지 않는다). */
 function Shell({ locale }: { locale: Locale }) {
   const { pathname, search, hash } = useLocation();
-  const { section, country } = routeInfo(pathname);
+  const { country } = routeInfo(pathname);
   // 푸터의 출처·처리일: 주소의 나라, 나라가 없는 화면(소개 등)은 한국 (2026-11-14 사용자 결정)
   const meta = useMeta(country ?? DEFAULT_COUNTRY);
   // 화면이 알려 준 지금 보는 절(기법 페이지 목차, `hooks/usePageAnchor`). 없으면 주소의 해시
@@ -30,8 +30,6 @@ function Shell({ locale }: { locale: Locale }) {
     <div className="mx-auto flex min-h-screen max-w-344 flex-col px-8 min-[1121px]:px-12">
       <Header
         homeHref={localizePath("/", locale)}
-        hrefs={{ about: localizePath("/", locale), dashboard: localizePath("/dashboard", locale) }}
-        current={section}
         locale={locale}
         localeHrefs={{ ko: localeHref("ko"), en: localeHref("en") }}
       />

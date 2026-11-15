@@ -33,7 +33,9 @@ export function SensorDiagram() {
     <div
       role="img"
       aria-label={c.diagramLabel}
-      className="grid grid-cols-[minmax(7rem,1fr)_2rem_minmax(7.5rem,1fr)_2rem_minmax(7.5rem,1fr)] items-center"
+      // 칸 폭을 다 채운다(참고 `.sensor-diagram`은 칸 자체가 격자). 안 채우면 글자 길이만큼만 넓어져
+      // 한글(라벨이 짧음)과 영어의 폭이 달라지고 오른쪽 카드와 틈이 벌어진다(UI 다듬기 2026-11-15 사용자)
+      className="grid w-full grid-cols-[minmax(7rem,1fr)_2rem_minmax(7.5rem,1fr)_2rem_minmax(7.5rem,1fr)] items-center"
     >
       <div className="flex flex-col gap-2">
         <div className={`${NODE} min-h-18 border-l-2 border-l-muted`}>

@@ -14,7 +14,7 @@ function heading() {
 describe("routes", () => {
   it("/는 한글 소개 화면이다", async () => {
     renderAt("/");
-    expect((await heading()).textContent).toBe("더 길게 보는\n화재 기록.");
+    expect((await heading()).textContent).toBe("화재를,\n더 길게 보다.");
   });
 
   it("/en은 영어 소개 화면이다", async () => {
@@ -136,18 +136,19 @@ describe("머리글", () => {
     expect(link.getAttribute("href")).toBe(`/dashboard/KOR/${encoded}?month=2025-03`);
   });
 
-  it("메뉴는 지금 화면을 표시한다. 월간 인사이트는 대시보드로 본다", async () => {
+  it("머리글은 워드마크(첫 화면)와 언어 전환만 둔다. 가운데 메뉴는 뺐다(UI 다듬기 2026-11-15)", async () => {
     renderAt("/en/insight/KOR/abc?month=2025-03");
     await heading();
-    const nav = screen.getByRole("navigation", { name: "Main menu" });
-    expect(within(nav).getByRole("link", { name: "Dashboard" }).getAttribute("aria-current")).toBe("page");
-    expect(within(nav).getByRole("link", { name: "About" }).getAttribute("aria-current")).toBeNull();
+    // 첫 banner가 사이트 머리글(화면 안 `header`도 banner로 잡힌다)
+    const header = within(screen.getAllByRole("banner")[0] as HTMLElement);
+    expect(header.queryByRole("navigation")).toBeNull();
+    expect(header.getByRole("link", { name: "Burnline" }).getAttribute("href")).toBe("/en");
+    expect(header.getByRole("group", { name: "Language" })).toBeTruthy();
     cleanup();
 
     renderAt("/");
     await heading();
-    const koNav = screen.getByRole("navigation", { name: "주 메뉴" });
-    expect(within(koNav).getByRole("link", { name: "소개" }).getAttribute("aria-current")).toBe("page");
+    expect(within(screen.getAllByRole("banner")[0] as HTMLElement).queryByRole("navigation")).toBeNull();
   });
 });
 

@@ -3,11 +3,6 @@ import type { Messages } from "./ko";
 /** 영어 문구. 디자인 영문판에서 그대로 옮긴다. */
 export const en: Messages = {
   brand: "Burnline",
-  nav: {
-    label: "Main menu",
-    about: "About",
-    dashboard: "Dashboard",
-  },
   language: {
     label: "Language",
     ko: "KR",
@@ -24,16 +19,12 @@ export const en: Messages = {
     hero: {
       eyebrow: "MODIS + VIIRS fire records",
       title: "A longer view\nof fire.",
-      lead: "Explore South Korea’s fire history—from the whole country to individual districts—and compare each month with its past.",
+      lead: "Explore satellite fire records across six countries. Move from the available study areas to local places, and compare each month with its past.",
       howItWorks: "See how it works",
       scrollCue: "Scroll to read",
-      find: "Find a region",
-      examplesLead: "Try",
-      examples: "Try Uiseong, Gyeongbuk · Goseong, Gangwon · Jung-gu, Daegu",
-      examplesLabel: "Example regions",
-      countriesLabel: "Country dashboards",
-      countryLink: (country: string) => `${country} →`,
-      countryNotReady: (country: string) => `${country} · Coming soon`,
+      find: "Find a place",
+      searchPrompt: "Find a place: Uiseong, California, Attica…",
+      dashboard: "Explore dashboard",
       countryRowSub: "Country dashboard",
       dataEnd: (date: string) => `Data through ${date}`,
     },
@@ -85,12 +76,27 @@ export const en: Messages = {
       legendHelpLabel: "What dashed and solid bars mean",
       legendHelp:
         "Dashed bars are months whose values are not final yet. Either the month has not ended (in progress), or the value comes from fast near-real-time processing before the final archive, so it may change later. Solid bars are final values.",
+      chipsLabel: "Choose a region",
+      coverage: {
+        KOR: "All of South Korea (17 provinces, 229 districts).",
+        CAL: "California only within the United States; other states are not supplied.",
+        BC: "British Columbia only within Canada; other provinces are not supplied.",
+        GRC: "All of Greece (14 regions, 325 municipalities).",
+        CHL: "All of Chile (16 regions, 345 municipalities).",
+        NSW: "New South Wales only within Australia; other states are not supplied.",
+      },
     },
     limits: {
       index: "03 / Trust & limits",
       title: "Read the record.\nKnow its limits.",
       body: "Satellite records can miss fires. One fire grid-day counts a roughly 1 km cell with fire detected on one day. It is not a fire incident count or burned area.",
-      guidance: "Check the sensor basis and data coverage before interpreting a change.",
+      guidance: {
+        date: (span: string, varies: boolean) => `Snapshot: ${span}${varies ? " (varies by region)" : ""}.`,
+        collecting: (month: string) => `${month} is incomplete and NRT records are provisional.`,
+        provisional: "NRT records are provisional.",
+        coverage:
+          "United States, Canada and Australia currently cover California, British Columbia and New South Wales respectively. Check local coverage before interpreting a change.",
+      },
       dashboard: "Explore dashboard",
     },
     earth: {
@@ -326,6 +332,10 @@ export const en: Messages = {
       noResults: "No matching regions.",
       truncated: "Many results. Type more to narrow them down.",
       searchHint: "Type a name to find cities, counties and districts.",
+      chipsLabel: "Choose a country",
+      chipAll: "All",
+      chipParent: { CAL: "United States", BC: "Canada", NSW: "Australia" },
+      searchKeys: "↑ ↓ to move · Enter to open · Esc to close",
       monthTitle: "Choose reference month",
       monthDescription: (first: string, last: string) => `You can choose from ${first} to ${last}.`,
       previousYear: "Previous year",
@@ -399,21 +409,27 @@ export const en: Messages = {
       image: {
         title: (name: string, from: number, to: number) => `${name} · Fire calendar by year and month ${from}–${to}`,
         sub: "Fire grid-days · harmonized to NOAA-20 · one dot per month",
+        subRaw: "Fire grid-days · raw (original sensor records) · one dot per month",
         source: (dataEnd: string) => `Source: NASA FIRMS · data through ${dataEnd} · Burnline`,
         period: (from: number, to: number) => `Color bands: 50·75·90th percentiles of this area's non-zero months · usual period ${from}–${to}`,
+        periodRaw: (from: number, to: number) =>
+          `Color bands: 50·75·90th percentiles of this area's non-zero harmonized months (same bands on the raw view) · usual period ${from}–${to}`,
       },
     },
     csvMock: "Downloads are not available with mock data",
+    rawUnavailable: "No raw values for this area",
     monthCorner: "Month",
     monthHead: (m: number) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1] ?? String(m),
     empty: "There is no monthly data for this region.",
     gridLabel: "Fire calendar by year and month. Use the arrow keys to move between cells and Enter to open that month.",
     caption: "Years → · Months ↓ · Common comparison basis",
+    captionRaw: "Years → · Months ↓ · Original sensor records",
     divider: {
       snpp: "Feb 2012 S-NPP",
       noaa20: "Apr 2018 NOAA-20",
     },
     dividerTail: "dotted values are converted to the NOAA-20 basis",
+    dividerTailRaw: "sensor sensitivity changes with each satellite",
     legend: {
       below: (to: string) => `under ${to}`,
       between: (from: string, to: string) => `${from}–${to}`,
@@ -437,6 +453,7 @@ export const en: Messages = {
       future: { title: "Not yet available", body: "After the last month of data · gray dashes" },
     },
     tooltip: {
+      sensor: (name: string) => `Original ${name} record`,
       estimated: "Estimated",
       noData: "No value because observations are missing.",
       future: "Not counted yet.",
@@ -620,6 +637,7 @@ export const en: Messages = {
       place: "Location",
       cause: "Cause",
       area: "Area (ha)",
+      areaSmall: "<0.1",
       empty: "No official record this month. A fire spanning several regions is recorded in only one of them.",
       rate: (since: string, n: string, detected: string, days: number, percent: number) =>
         `Since ${since}, satellites detected ${detected} of ${n} official records within ${days} days (${percent}%).`,

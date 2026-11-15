@@ -91,16 +91,10 @@
   --color-row-selected: rgba(76, 158, 255, 0.16);
 
   /*
-   * 색: 머리글 세그먼트 두 개(소개·대시보드 알약 `nav*`, EN/KR 전환 `segment*`). 시안 v9 `.primary-nav`·`.language-switch` 값.
-   * 우주 배경이 비치도록 반투명으로 둔다(투명도를 다시 거는 사용처가 없는 머리글 전용 토큰이라 괜찮다).
-   * `nav-line`은 알약 윤곽(ring, 자리 차지 없음)
+   * 색: 머리글 EN/KR 전환(`segment*`, 시안 v9 `.language-switch` 값). 우주 배경이 비치도록 반투명으로 둔다.
+   * 소개·대시보드 알약 메뉴는 뺐다(UI 다듬기 2026-11-15). `nav-hover`는 버튼 누름 색으로 남는다
    */
-  --color-nav: rgba(255, 255, 255, 0.08);
   --color-nav-hover: rgba(255, 255, 255, 0.12);
-  --color-nav-ink: #f4f4f1;
-  --color-nav-line: rgba(255, 255, 255, 0.08);
-  --color-nav-active: #ffffff;
-  --color-nav-active-ink: #080809;
   --color-segment: rgba(255, 255, 255, 0.06);
   --color-segment-line: rgba(255, 255, 255, 0.11);
   /* 시안은 #68696e지만 바탕 대비 3.4:1이라 읽기 기준(4.5:1)에 못 미쳐 muted(약 6:1)로 둔다(2026-11-14 사용자) */
@@ -123,6 +117,11 @@
   --color-heat-5: #ca8547;
   --color-heat-6: #be7037;
   --color-heat-7: #ae5b2b;
+  /* 보정 전(원래 기록) 점 4단계. 시안 v9 `calendarTheme.ts` raw 8색 중 보정 후와 같은 자리(2·4·5·7). 0단계는 heat-0 공용 */
+  --color-heat-raw-2: #accde4;
+  --color-heat-raw-4: #76a7cc;
+  --color-heat-raw-5: #6095bf;
+  --color-heat-raw-7: #3972a4;
 
   /* 색: 지도 면 5단계 (시안 v9 `mapData.ts` cellColors) */
   --color-map-0: #465260;
@@ -237,6 +236,54 @@
 @utility heat-dots {
   background-image: radial-gradient(var(--color-heat-dot) 0.65px, transparent 0.8px);
   background-size: 4px 4px;
+}
+
+/*
+ * 기법 페이지 나라 탭 그림의 그리기 효과(2026-11-15 사용자: 탭을 바꾸면 바로 바뀌어 딱딱함). 탭을 바꾸면 그림을 새로 붙여(`key`)
+ * 다시 재생된다. 선은 왼쪽부터 그려지고(`pathLength=1`), 막대는 바닥(세로)·왼쪽(가로)부터 자라며, 점·값 글자는 조금 늦게 나타난다.
+ * 움직임 줄이기면 바로 보인다.
+ */
+@keyframes chart-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes chart-grow {
+  from {
+    transform: scale(var(--chart-from-x, 1), var(--chart-from-y, 1));
+  }
+}
+@keyframes chart-fade {
+  from {
+    opacity: 0;
+  }
+}
+@utility chart-draw {
+  stroke-dasharray: 1;
+  animation: chart-draw 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@utility chart-grow-x {
+  transform-box: fill-box;
+  transform-origin: left center;
+  --chart-from-x: 0;
+  animation: chart-grow 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@utility chart-grow-y {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  --chart-from-y: 0;
+  animation: chart-grow 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@utility chart-fade {
+  animation: chart-fade 320ms ease 450ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chart-draw,
+  .chart-grow-x,
+  .chart-grow-y,
+  .chart-fade {
+    animation: none;
+  }
 }
 
 @utility heat-hatch {

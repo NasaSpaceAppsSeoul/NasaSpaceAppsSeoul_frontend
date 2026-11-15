@@ -13,7 +13,7 @@ import { useCsvDownload } from "../../../hooks/useCsvDownload";
 import { useSeries } from "../../../hooks/useSeries";
 import { useLocale, useMessages } from "../../../i18n";
 import { errorKind } from "../../../lib/errorKind";
-import { buildGrid, heatLegend, startYearFor, type YearMode } from "../../../lib/heatmap";
+import { basisValue, buildGrid, hasRawValues, heatLegend, startYearFor, type Basis, type YearMode } from "../../../lib/heatmap";
 import { formatDayDate, formatFireDays, formatFullDate, formatMonth } from "../../../lib/format";
 import { isLastDayOfMonth, monthYear } from "../../../lib/month";
 import { regionName } from "../../../lib/region";
@@ -22,8 +22,9 @@ import type { ControlsDialog, DashboardNavigate, DashboardScope } from "../scope
 
 /*
  * 연도별·월별 화재 달력 (3장). `/series`(그 지역 전체)와 `/baseline`을 함께 기다린다.
- * 화면이 `key={region.id}`로 그려서 지역이 바뀌면 표시 연도가 기본으로 돌아간다.
- * 내려받기(9장): "월별 CSV"는 서버 `/export.csv`, "달력 PNG"는 지금 보이는 격자(표시 연도·보정 후)를 Canvas로 그린다.
+ * 화면이 `key={region.id}`로 그려서 지역이 바뀌면 표시 연도와 보정 전/후가 기본으로 돌아간다.
+ * 보정 전/후(9장 2차): 보정 전은 `/series` `raw_before`. 값이 하나도 없는 지역(시·도, 목 모드)은 보정 후로 고정하고 이유를 보인다.
+ * 내려받기(9장): "월별 CSV"는 서버 `/export.csv`, "달력 PNG"는 지금 보이는 격자(표시 연도·보정 전/후)를 Canvas로 그린다.
  * 둘 다 확인 대화상자를 거친다(`ExportDialog`).
  */
 type HeatmapSectionProps = {
@@ -40,6 +41,7 @@ export function HeatmapSection({ scope, navigate, openDialog, mockMode }: Heatma
   const series = useSeries(country, region.id);
   const baseline = useBaseline(country, region.id);
   const [mode, setMode] = useState<YearMode>("all");
+  const [chosenBasis, setBasis] = useState<Basis>("harmonized");
   const [exporting, setExporting] = useState<"csv" | "png" | null>(null);
   const csv = useCsvDownload(country, region.id);
   const [png, setPng] = useState<{ busy: boolean; failed: boolean }>({ busy: false, failed: false });
@@ -76,11 +78,14 @@ export function HeatmapSection({ scope, navigate, openDialog, mockMode }: Heatma
   const firstYear = monthYear(first.month);
   const lastYear = monthYear(last.month);
   const startYear = startYearFor(mode, firstYear, district ? base.period[0] : null);
-  const rows = buildGrid({ months, bins: base.heat_bins, startYear, selected: scope.month, clickRange: scope.range });
+  const rawAvailable = hasRawValues(months);
+  const basis: Basis = rawAvailable ? chosenBasis : "harmonized";
+  const basisLabel = basis === "raw" ? t.heatmap.raw : t.heatmap.harmonized;
+  const rows = buildGrid({ months, bins: base.heat_bins, basis, startYear, selected: scope.month, clickRange: scope.range });
   const label = regionName(region, index, locale);
   // 선택한 달 줄: 그 달 값과 집계 중 여부(칸 상태와 같은 기준 `status === "partial"`). 표시 연도 밖이어도 보인다
   const selectedRow = months.find((m) => m.month === scope.month);
-  const selectedValue = selectedRow?.value ?? null;
+  const selectedValue = selectedRow === undefined ? null : basisValue(selectedRow, basis);
   const selectedCollecting = selectedRow?.status === "partial";
   // 각주의 집계 중 문장: 자료 마지막 날(`data_end`)이 달 중간이면 그 달은 아직 모으는 중(머리 자료 카드와 같은 기준)
   const dataEnd = scope.meta.data_end;
@@ -93,30 +98,36 @@ export function HeatmapSection({ scope, navigate, openDialog, mockMode }: Heatma
   const downloadPng = () => {
     const ex = t.heatmap.exports.image;
     setPng({ busy: true, failed: false });
-    renderCalendarPng(rows, {
+    renderCalendarPng(
+      rows,
+      {
       title: ex.title(label, startYear, lastYear),
-      sub: ex.sub,
+      sub: basis === "raw" ? ex.subRaw : ex.sub,
       monthLabel: t.heatmap.monthHead,
       legendTitle: legend.title(t.dashboard.unit),
       levels: heatLegend(base.heat_bins).map((item) => ({ level: item.level, label: legendLabel(item, legend, n) })),
       states: {
-        converted: t.heatmap.states.converted.title,
+        converted: basis === "raw" ? null : t.heatmap.states.converted.title,
         noData: t.heatmap.states.noData.title,
         partial: t.heatmap.states.partial.title,
         future: t.heatmap.states.future.title,
       },
       source: ex.source(dataEnd === null ? "—" : formatFullDate(dataEnd, locale)),
-      period: ex.period(base.period[0], base.period[1]),
-    })
+      period: (basis === "raw" ? ex.periodRaw : ex.period)(base.period[0], base.period[1]),
+      },
+      basis,
+    )
       .then((blob) => {
-        saveFile(blob, calendarFileName(country, region.id));
+        saveFile(blob, calendarFileName(country, region.id, basis));
         setPng({ busy: false, failed: false });
         setExporting((cur) => (cur === "png" ? null : cur));
       })
       // 실패는 대화상자 안 글자로 보인다(콘솔에만 남기지 않음)
       .catch(() => setPng({ busy: false, failed: true }));
   };
+  // 평소 범위는 보정 후 기준이라 보정 전 값과 견주지 않는다(툴팁에서 그 줄을 뺀다)
   const bandFor = (m: number) => {
+    if (basis === "raw") return null;
     const row = base.by_month.find((b) => b.month === m);
     return row !== undefined && row.band_low !== null && row.band_high !== null ? { low: row.band_low, high: row.band_high } : null;
   };
@@ -126,6 +137,9 @@ export function HeatmapSection({ scope, navigate, openDialog, mockMode }: Heatma
     <Card className="flex flex-col p-8">
       <HeatmapHeader
         sub={t.heatmap.sub(startYear, lastYear, label)}
+        basis={basis}
+        onBasis={setBasis}
+        rawUnavailable={rawAvailable ? null : t.heatmap.rawUnavailable}
         yearMode={district ? null : mode}
         onYearMode={setMode}
         mockMode={mockMode}
@@ -139,7 +153,7 @@ export function HeatmapSection({ scope, navigate, openDialog, mockMode }: Heatma
           setExporting("png");
         }}
       />
-      <HeatmapGrid rows={rows} regionLabel={label} bandFor={bandFor} onSelect={navigate.toMonth} />
+      <HeatmapGrid rows={rows} basis={basis} regionLabel={label} bandFor={bandFor} onSelect={navigate.toMonth} />
       {/* 시안 `.db-calendar-selection`: 위아래 선, 위아래 16, 12px. 이름표 Mono 9, 달 이름은 굵게, 값은 오른쪽 끝 */}
       <p aria-live="polite" className="mt-6 flex flex-wrap items-center gap-4 border-y border-line py-4 text-xs text-[#bec5ce]">
         <span className="mono-tag text-[9px] text-[#9ba5b3]">{t.heatmap.selection.label}</span>
@@ -148,12 +162,12 @@ export function HeatmapSection({ scope, navigate, openDialog, mockMode }: Heatma
         <span className="ml-auto">
           {selectedValue === null
             ? t.heatmap.states.noData.title
-            : t.heatmap.selection.detail(formatFireDays(selectedValue, locale), t.dashboard.unit, t.heatmap.harmonized, selectedCollecting)}
+            : t.heatmap.selection.detail(formatFireDays(selectedValue, locale), t.dashboard.unit, basisLabel, selectedCollecting)}
         </span>
       </p>
       <div className="mt-6 flex flex-col gap-6">
-        <HeatLegend items={heatLegend(base.heat_bins)} />
-        <StateLegend />
+        <HeatLegend items={heatLegend(base.heat_bins)} basis={basis} />
+        <StateLegend basis={basis} />
       </div>
       {/* 시안 `.db-panel-footnote`: 11px, 줄 높이 1.6, 위 16 */}
       <p className="mt-4 text-[11px] leading-[1.6] text-[#8e99aa]">{t.heatmap.footnote(collecting)}</p>

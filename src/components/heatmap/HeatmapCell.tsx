@@ -1,4 +1,4 @@
-import type { HeatCell, HeatLevel } from "../../lib/heatmap";
+import type { Basis, HeatCell, HeatLevel } from "../../lib/heatmap";
 
 /*
  * 히트맵 칸 하나. 값 구간·상태·뜻은 지금 구현(백엔드 기준) 그대로, 모양은 시안 v9 달력 점(`.db-calendar-dot`, D8):
@@ -6,18 +6,17 @@ import type { HeatCell, HeatLevel } from "../../lib/heatmap";
  * 호버·포커스는 점이 조금 커지고 흰 고리, 고른 달은 파란 고리(시안 값).
  * 상태를 색만으로 전하지 않도록 칸의 읽는 이름(`label`)에 상태를 글로 넣는다.
  */
-const LEVEL_CLASS: Record<HeatLevel, string> = {
-  0: "bg-heat-0",
-  1: "bg-heat-2",
-  2: "bg-heat-4",
-  3: "bg-heat-5",
-  4: "bg-heat-7",
+/** 단계별 점 색. 보정 후는 주황, 보정 전은 파랑(시안 v9 raw 팔레트). 범례 견본도 같이 쓴다 */
+export const LEVEL_CLASS: Record<Basis, Record<HeatLevel, string>> = {
+  harmonized: { 0: "bg-heat-0", 1: "bg-heat-2", 2: "bg-heat-4", 3: "bg-heat-5", 4: "bg-heat-7" },
+  raw: { 0: "bg-heat-0", 1: "bg-heat-raw-2", 2: "bg-heat-raw-4", 3: "bg-heat-raw-5", 4: "bg-heat-raw-7" },
 };
 
 /** 점 테두리 흰 9%(시안 #ffffff18). 테두리로 상태를 그리는 집계 중·집계 전에는 쓰지 않는다(색이 겹쳐 덮인다) */
 const EDGE = "border border-white/10";
 
-function cellClass(cell: HeatCell): string {
+function cellClass(cell: HeatCell, basis: Basis): string {
+  const level = LEVEL_CLASS[basis][cell.level];
   switch (cell.state) {
     case "future":
       // 아직 집계 전: 빈 점선 고리(시안 `.future`)
@@ -28,14 +27,15 @@ function cellClass(cell: HeatCell): string {
       return `${EDGE} heat-hatch`;
     case "partial":
       // 집계 중: 점 바깥 점선 고리(16px 점 안에 굵은 점선을 그리면 톱니처럼 보인다). 고른 달이면 파란 고리가 덮는다
-      return `${EDGE} ${LEVEL_CLASS[cell.level]} outline-1 outline-offset-3 outline-dashed outline-heat-partial-ring`;
+      return `${EDGE} ${level} outline-1 outline-offset-3 outline-dashed outline-heat-partial-ring`;
     default:
-      return `${EDGE} ${LEVEL_CLASS[cell.level]}`;
+      return `${EDGE} ${level}`;
   }
 }
 
 type HeatmapCellProps = {
   cell: HeatCell;
+  basis: Basis;
   label: string;
   tooltipId: string | undefined;
   focusable: boolean;
@@ -45,7 +45,7 @@ type HeatmapCellProps = {
   buttonRef: (node: HTMLButtonElement | null) => void;
 };
 
-export function HeatmapCell({ cell, label, tooltipId, focusable, onActivate, onFocusCell, onHover, buttonRef }: HeatmapCellProps) {
+export function HeatmapCell({ cell, basis, label, tooltipId, focusable, onActivate, onFocusCell, onHover, buttonRef }: HeatmapCellProps) {
   return (
     <button
       ref={buttonRef}
@@ -76,7 +76,7 @@ export function HeatmapCell({ cell, label, tooltipId, focusable, onActivate, onF
               "group-focus-visible:outline-2 group-focus-visible:outline-offset-3 group-focus-visible:outline-solid group-focus-visible:outline-ink ") +
           (cell.converted ? "heat-dots " : "") +
           (cell.selected ? "outline-2 outline-offset-3 outline-solid outline-selection " : "") +
-          cellClass(cell)
+          cellClass(cell, basis)
         }
       />
     </button>

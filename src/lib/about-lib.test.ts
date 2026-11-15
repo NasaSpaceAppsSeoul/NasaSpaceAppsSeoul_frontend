@@ -1,8 +1,45 @@
 import { describe, expect, it } from "vitest";
 import { ko } from "../i18n/ko";
 import { en } from "../i18n/en";
-import { formatPercent } from "./format";
-import { annualBars, axisTicks, binLabel, clampRatio, detectRows, hasAnnualData, niceMax, readoutYear, ytdBars } from "./landing";
+import { formatDateSpan, formatPercent } from "./format";
+import {
+  annualBars,
+  axisTicks,
+  binLabel,
+  clampRatio,
+  dataEndSpan,
+  detectRows,
+  hasAnnualData,
+  niceMax,
+  readoutYear,
+  ytdBars,
+} from "./landing";
+
+describe("dataEndSpan·formatDateSpan (03 자료 기준일, UI 다듬기)", () => {
+  it("가장 이른 날·늦은 날. 한 곳이라도 못 받았거나 값이 없거나 이상하면 null(일부만으로 말하지 않음)", () => {
+    expect(dataEndSpan(["2026-11-14", "2026-11-11", "2026-11-13"])).toEqual({ first: "2026-11-11", last: "2026-11-14", collecting: true });
+    expect(dataEndSpan(["2026-11-14", "2026-11-14"])).toEqual({ first: "2026-11-14", last: "2026-11-14", collecting: true });
+    expect(dataEndSpan(["2026-11-14", undefined])).toBeNull();
+    expect(dataEndSpan(["2026-11-14", null])).toBeNull();
+    expect(dataEndSpan(["2026-11-14", "x"])).toBeNull();
+    expect(dataEndSpan([])).toBeNull();
+  });
+  it("집계 중: 가장 최근 달에서 멈춘 지역 가운데 하나라도 달 끝 전이면(가운데 지역 포함)", () => {
+    expect(dataEndSpan(["2026-10-20", "2026-11-20", "2026-11-30"])?.collecting).toBe(true);
+    expect(dataEndSpan(["2026-10-20", "2026-11-30"])?.collecting).toBe(false);
+    expect(dataEndSpan(["2026-11-30", "2026-11-30"])?.collecting).toBe(false);
+  });
+  it("날짜 범위: 같은 날·같은 달·같은 해·다른 해, 한글·영문", () => {
+    expect(formatDateSpan("2026-11-14", "2026-11-14", "ko")).toBe("2026년 11월 14일");
+    expect(formatDateSpan("2026-11-11", "2026-11-14", "ko")).toBe("2026년 11월 11–14일");
+    expect(formatDateSpan("2026-10-31", "2026-11-14", "ko")).toBe("2026년 10월 31일–11월 14일");
+    expect(formatDateSpan("2025-12-31", "2026-01-02", "ko")).toBe("2025년 12월 31일–2026년 1월 2일");
+    expect(formatDateSpan("2026-11-14", "2026-11-14", "en")).toBe("14 November 2026");
+    expect(formatDateSpan("2026-11-11", "2026-11-14", "en")).toBe("11–14 November 2026");
+    expect(formatDateSpan("2026-10-31", "2026-11-14", "en")).toBe("31 October–14 November 2026");
+    expect(formatDateSpan("2025-12-31", "2026-01-02", "en")).toBe("31 December 2025–2 January 2026");
+  });
+});
 
 describe("ytdBars (02 월별 막대)", () => {
   const m = (month: string, value: number | null, status = "final") => ({ month, value, status });

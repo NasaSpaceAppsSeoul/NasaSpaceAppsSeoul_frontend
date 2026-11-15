@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockGet } from "../../api/mock";
-import type { BaselineResponse } from "../../api/types";
+import type { BaselineResponse, SeriesResponse } from "../../api/types";
 import { formatFireDays } from "../../lib/format";
 import { renderRoute } from "../../test/render";
 
@@ -223,5 +223,71 @@ describe("히트맵 (3장)", () => {
     expect(screen.getByText("Feb 2012 S-NPP / Apr 2018 NOAA-20 — dotted values are converted to the NOAA-20 basis")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Year-by-month fire calendar" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "All years" }).getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("보정 전/후(9장 2차): 목 모드는 보정 전 값이 없어 \"보정 전\"을 막고 이유를 보인다", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    await grid();
+    const raw = screen.getByRole("button", { name: "보정 전" });
+    expect(raw.getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByText("이 지역은 보정 전 값이 없습니다")).toBeTruthy();
+    fireEvent.click(raw);
+    expect(screen.getByRole("button", { name: "보정 후" }).getAttribute("aria-pressed")).toBe("true");
+  });
+});
+
+/*
+ * 보정 전 화면은 서버 값이 있어야 보인다(목은 `raw_before`가 모두 null). live 모드에서 `fetch`를 목으로 돌리고
+ * `/series`에만 보정 전 값(보정 후의 절반, 지어낸 값)을 넣는다.
+ */
+describe("히트맵 보정 전 (9장 2차, 서버 값)", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+
+  beforeEach(() => {
+    vi.stubEnv("VITE_API_MODE", "live");
+    vi.stubEnv("VITE_API_BASE", "https://api.test/api/v1");
+    vi.stubGlobal("fetch", fetchMock);
+    fetchMock.mockImplementation(async (input) => {
+      const path = String(input).replace("https://api.test/api/v1", "");
+      const body = await mockGet(path);
+      if (path.includes("/series/")) {
+        const series = body as SeriesResponse;
+        series.months = series.months.map((m) => ({ ...m, raw_before: m.value === null ? null : Math.round(m.value / 2) }));
+      }
+      return new Response(JSON.stringify(body), { status: 200 });
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  it("보정 전을 고르면 보정 전 값·관측 위성으로 칠하고, 환산 표시와 평소 범위를 뺀다", async () => {
+    renderRoute("/dashboard/KOR?month=2025-03");
+    const g = await grid();
+    expect(cell(g, "대한민국 · 2025년 3월").getAttribute("aria-label")).toContain("1,093 화재 감지일");
+    expect(screen.getByRole("button", { name: "센서 환산값" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "보정 전" }));
+    expect(screen.getByRole("button", { name: "보정 전" }).getAttribute("aria-pressed")).toBe("true");
+    const label = cell(g, "대한민국 · 2025년 3월").getAttribute("aria-label") ?? "";
+    expect(label).toContain("547 화재 감지일");
+    expect(label).toContain("NOAA-20 원래 기록");
+    // 2011년은 MODIS 기록 그대로: 환산 표시 없음
+    expect(cell(g, "대한민국 · 2011년 3월").getAttribute("aria-label")).not.toContain("센서 환산값");
+    expect(screen.getByText("해 → · 달 ↓ · 위성이 남긴 원래 기록")).toBeTruthy();
+    expect(screen.getByText("2012년 2월 S-NPP / 2018년 4월 NOAA-20 — 위성이 바뀌면 감지 감도도 달라집니다")).toBeTruthy();
+    expect(screen.getByText(/547 화재 감지일 · 보정 전/)).toBeTruthy();
+    expect(screen.queryByText("이 지역은 보정 전 값이 없습니다")).toBeNull();
+    // 상태 범례에서 환산 칩이 빠지고, 집계 중·선택한 달 견본 안쪽은 파랑 계열(9장 3차)
+    expect(screen.queryByRole("button", { name: "센서 환산값" })).toBeNull();
+    const swatch = (name: string) => screen.getByRole("button", { name }).querySelector("span")?.className ?? "";
+    expect(swatch("집계 중")).toContain("bg-heat-raw-4");
+    expect(swatch("선택한 달")).toContain("bg-heat-raw-4");
+    expect(swatch("집계 중")).toContain("outline-heat-partial-ring");
+    fireEvent.click(screen.getByRole("button", { name: "보정 후" }));
+    expect(cell(g, "대한민국 · 2025년 3월").getAttribute("aria-label")).toContain("1,093 화재 감지일");
+    expect(swatch("선택한 달")).toContain("bg-heat-3");
   });
 });

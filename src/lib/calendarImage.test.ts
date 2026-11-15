@@ -10,13 +10,14 @@ const months = Array.from({ length: 12 * 3 }, (_, i) => {
   return {
     month: `${year}-${String(m).padStart(2, "0")}`,
     value: m === 2 ? null : m,
+    raw_before: m === 2 ? null : m,
     source: year < 2012 ? "MODIS→NOAA-20" : "NOAA-20",
     quality: "high" as const,
     estimated: false,
     status: "final" as const,
   };
 });
-const rows = buildGrid({ months, bins: [2, 5, 9], startYear: 2011, selected: "2012-03", clickRange: { first: "2011-01", last: "2013-12" } });
+const rows = buildGrid({ months, bins: [2, 5, 9], basis: "harmonized", startYear: 2011, selected: "2012-03", clickRange: { first: "2011-01", last: "2013-12" } });
 
 describe("달력 PNG 배치 (9장)", () => {
   it("해는 왼쪽부터 오래된 순, 달은 위가 1월, 칸은 해 × 12", () => {
@@ -44,6 +45,7 @@ describe("달력 PNG 배치 (9장)", () => {
   it("파일 이름: 나라·지역 ID, 파일에 못 쓰는 글자는 _", () => {
     expect(csvFileName("KOR", "경북")).toBe("burnline_KOR_경북.csv");
     expect(calendarFileName("CHL", "Región de Antofagasta")).toBe("burnline_CHL_Región_de_Antofagasta_calendar.png");
+    expect(calendarFileName("KOR", "KOR", "raw")).toBe("burnline_KOR_KOR_calendar_raw.png");
     expect(csvFileName("KOR", "a/b")).toBe("burnline_KOR_a_b.csv");
   });
 

@@ -34,7 +34,7 @@ describe("/meta", () => {
     const bcMeta = (await mockGet("/BC/meta")) as Meta;
     expect(bcMeta.labels).toMatchObject({ single: true, lv2: "지역구", bins: [2, 8, 47] });
     const grcMeta = (await mockGet("/GRC/meta")) as Meta;
-    expect(grcMeta.labels).toMatchObject({ lv1: "광역", lv2: "시군", official: "그리스 소방청", bins: [1, 2, 3] });
+    expect(grcMeta.labels).toMatchObject({ lv1: "주", lv2: "시군", official: "그리스 소방청", bins: [1, 2, 3] });
     const chlMeta = (await mockGet("/CHL/meta")) as Meta;
     expect(chlMeta.labels).toMatchObject({ lv1: "주", lv2: "시군", official: "CONAF", bins: [1, 2, 5] });
     const nswMeta = (await mockGet("/NSW/meta")) as Meta;

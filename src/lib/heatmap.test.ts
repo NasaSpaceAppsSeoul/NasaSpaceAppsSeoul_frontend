@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGrid, dividerAfter, heatLegend, heatLevel, startYearFor, type SeriesMonthLike } from "./heatmap";
+import { basisValue, buildGrid, dividerAfter, hasRawValues, heatLegend, heatLevel, startYearFor, type SeriesMonthLike } from "./heatmap";
 
 describe("색 단계 (4-1, 4-2)", () => {
   const bins = [5, 33, 160];
@@ -34,6 +34,7 @@ describe("색 단계 (4-1, 4-2)", () => {
 const m = (month: string, value: number | null, extra: Partial<SeriesMonthLike> = {}): SeriesMonthLike => ({
   month,
   value,
+  raw_before: value,
   source: "NOAA-20",
   quality: "high",
   estimated: false,
@@ -54,6 +55,7 @@ describe("격자와 칸 상태 (4-4, 4-5)", () => {
   const rows = buildGrid({
     months,
     bins: [1, 3, 6],
+    basis: "harmonized",
     startYear: 2012,
     selected: "2012-03",
     clickRange: { first: "2001-01", last: "2013-01" },
@@ -89,6 +91,45 @@ describe("격자와 칸 상태 (4-4, 4-5)", () => {
 
   it("빈칸·자료 없음에는 환산 표시를 붙이지 않는다", () => {
     expect(cell("2012-04")?.converted).toBe(false);
+  });
+});
+
+describe("보정 전 격자 (9장 2차)", () => {
+  // 시·군·구처럼 2012년 전 value는 null인데 raw_before는 0으로 온다(서버 2026-11-15)
+  const months: SeriesMonthLike[] = [
+    m("2011-12", null, { raw_before: 0, source: "MODIS→NOAA-20" }),
+    m("2012-02", 10, { raw_before: 4, source: "S-NPP→NOAA-20", estimated: true }),
+    m("2012-03", 8, { raw_before: null, source: "S-NPP→NOAA-20" }),
+    m("2018-04", 7, { raw_before: 7, source: "NOAA-20" }),
+  ];
+  const grid = (basis: "harmonized" | "raw") =>
+    buildGrid({ months, bins: [1, 3, 6], basis, startYear: 2011, selected: "2012-02", clickRange: { first: "2001-01", last: "2018-12" } });
+  const cell = (basis: "harmonized" | "raw", month: string) => grid(basis).flatMap((r) => r.cells).find((c) => c.month === month);
+
+  it("보정 전은 raw_before로 칠하고 같은 색 구간을 쓴다", () => {
+    expect(cell("harmonized", "2012-02")).toMatchObject({ value: 10, level: 4 });
+    expect(cell("raw", "2012-02")).toMatchObject({ value: 4, level: 3 });
+  });
+
+  it("보정 전에는 환산 점무늬·추정을 붙이지 않고, 관측 위성을 적는다", () => {
+    expect(cell("harmonized", "2012-02")).toMatchObject({ converted: true, estimated: true, sensor: null });
+    expect(cell("raw", "2012-02")).toMatchObject({ converted: false, estimated: false, sensor: "S-NPP" });
+    expect(cell("raw", "2018-04")?.sensor).toBe("NOAA-20");
+  });
+
+  it("보정 후 값이 없는 달은 raw_before가 0이어도 관측 자료 없음, 보정 전 값이 없으면 관측 자료 없음", () => {
+    expect(cell("raw", "2011-12")).toMatchObject({ state: "noData", value: null, sensor: null });
+    // 보정 전 값이 없어 칠하지는 않지만, 달 이동은 보정 후 값 기준이라 그대로 누를 수 있다
+    expect(cell("raw", "2012-03")).toMatchObject({ state: "noData", clickable: true });
+    expect(cell("raw", "2011-12")?.clickable).toBe(false);
+  });
+
+  it("보정 전 값이 한 달도 없으면(시·도) 전환할 수 없다", () => {
+    expect(hasRawValues(months)).toBe(true);
+    expect(hasRawValues(months.map((x) => ({ ...x, raw_before: null })))).toBe(false);
+    expect(basisValue(months[0] as SeriesMonthLike, "raw")).toBeNull();
+    // 보정 후 값이 없는 달의 보정 전 0만 있으면(시·군·구 2012년 전) 전환해도 빈 격자라 막는다
+    expect(hasRawValues([m("2011-12", null, { raw_before: 0 }), m("2012-02", 3, { raw_before: null })])).toBe(false);
   });
 });
 

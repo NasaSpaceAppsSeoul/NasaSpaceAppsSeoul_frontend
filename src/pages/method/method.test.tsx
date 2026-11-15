@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { mockGet } from "../../api/mock/index";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { resetEntryHashForTest } from "../../hooks/useActiveSection";
@@ -38,7 +38,7 @@ afterEach(() => {
 const title = () => screen.findByRole("heading", { level: 1 });
 
 describe("기법 페이지", () => {
-  it("머리 · 숫자 카드 3장 · 01~10 · 끝 줄 순서, 머리글은 소개가 켜진다", async () => {
+  it("머리 · 숫자 카드 3장 · 01~10 · 끝 줄 순서", async () => {
     renderRoute("/method");
     expect((await title()).textContent).toBe("25년의 불을 하나의 자로.");
     const stats = within(screen.getByRole("list", { name: "요약 숫자" })).getAllByRole("listitem");
@@ -57,8 +57,6 @@ describe("기법 페이지", () => {
       "만든 방법과 배운 것",
       "출처",
     ]);
-    const nav = screen.getByRole("navigation", { name: "주 메뉴" });
-    expect(within(nav).getByRole("link", { name: "소개" }).getAttribute("aria-current")).toBe("page");
     // 머리의 링크와 목차 위 자리(머리 링크가 화면 위로 나가기 전에는 숨김)
     const backs = screen.getAllByRole("link", { name: "← 소개로 돌아가기" });
     expect(backs.map((a) => a.getAttribute("href"))).toEqual(["/", "/"]);
@@ -202,6 +200,10 @@ describe("기법 페이지 03·04", () => {
     expect(cell.getByText("설명용 예시이며 실제 탐지가 아닙니다")).toBeTruthy();
     const used = cell.getByRole("rowheader", { name: "0.01° (사용)" }).closest("tr");
     expect(used?.className).toContain("bg-tone-orange");
+    // 칸 값은 여섯 지역 `/meta` `method_stats`(9장 3차): R²는 둘째 자리로, 연간 오차는 첫째 자리
+    const grid = cell.getByRole("table", { name: /칸 크기별로/ });
+    expect(grid.querySelectorAll("thead th")).toHaveLength(1 + COUNTRIES.length);
+    await waitFor(() => expect(used?.textContent).toBe("0.01° (사용)0.92 · 14.9%0.98 · 7.4%0.96 · 8.6%0.97 · 6.4%0.88 · 10.5%0.84 · 9.5%"));
     expect(cell.getByText("바뀐 과정: 고정 열원 마스크")).toBeTruthy();
   });
 
@@ -216,6 +218,12 @@ describe("기법 페이지 03·04", () => {
     expect(await section.findByRole("img", { name: "BC 연간 화재 칸 2001–2025, 보정 전과 보정 후" })).toBeTruthy();
     // 사슬 네 칸, 배제한 대안 10줄(머리 줄 제외)
     expect(within(section.getByRole("list", { name: /보정 사슬/ })).getAllByRole("listitem")).toHaveLength(4);
+    // 계수 표: 여섯 지역 연간 오차(서버 `method_stats`), k_MS는 한 해씩 빼고 맞힌 오차
+    const coef = section.getByRole("table", { name: "보정 계수별 겹침 기간과 한 해씩 빼고 맞힌 연간 오차" });
+    const kMS = within(coef).getByRole("rowheader", { name: "k_MS: MODIS → S-NPP" }).closest("tr");
+    await waitFor(() => expect(kMS?.textContent).toBe("k_MS: MODIS → S-NPP2012–202514.9%7.4%8.6%6.4%10.5%9.5%"));
+    const kN21 = within(coef).getByRole("rowheader", { name: "k_N21: NOAA-21 → NOAA-20(예비)" }).closest("tr");
+    expect(kN21?.textContent).toContain("23.4%1.5%1.8%14.0%7.4%1.2%");
     const excluded = section.getByRole("table", { name: "검토했지만 쓰지 않은 보정 방법과 이유" });
     expect(excluded.querySelectorAll("tbody tr")).toHaveLength(10);
     // 숨긴 값 표: 25개 해, 그림 설명에 고른 나라 이름
@@ -230,9 +238,17 @@ describe("기법 페이지 05·06", () => {
     const section = within(await screen.findByRole("region", { name: "보정이 맞는지 어떻게 아나" }));
     const results = section.getByRole("table", { name: "지역별 검증 결과" });
     expect(results.querySelectorAll("tbody tr")).toHaveLength(5);
-    // 여섯 지역 열(2026-11-15 서버 대조). 그리스는 공식 기록이 없어 그 칸을 밝힌다
+    // 여섯 지역 열. 칸은 모두 서버 값(9장 3차): 보정 전 단절은 `/landing` 소수 둘째 자리, 판단 보류·칠레 덧말은 프론트가 붙인다
     expect(results.querySelectorAll("thead th")).toHaveLength(7);
-    expect(within(results).getByText("공식 기록 준비 중")).toBeTruthy();
+    const row = (name: RegExp) => within(results).getByRole("rowheader", { name }).closest("tr")?.textContent;
+    await waitFor(() => expect(row(/^위성끼리/)).toContain("2.61 → 0.99 [0.92–1.05]"));
+    expect(row(/^위성끼리/)).toContain("2.80 → 1.01 [0.98–1.04]2.73 → 1.02 [0.99–1.06]3.00 → 1.03 [0.98–1.08]");
+    expect(within(results).getByText("1.96 → 0.71 · 판단 보류")).toBeTruthy();
+    expect(within(results).getByText("2.38 → 0.96(200 ha 이상 기록)")).toBeTruthy();
+    expect(row(/^한 해씩/)).toContain("14.9%7.4%8.6%6.4%10.5%9.5%");
+    expect(row(/^연도별/)).toContain("0.69 / 0.540.40 / 0.930.58 / 0.920.44 / 0.530.71 / 0.600.75 / 0.90");
+    expect(row(/^100 ha 이상/)).toContain("0.750.580.380.690.460.60");
+    expect(within(results).queryByText("—")).toBeNull();
     const values = await section.findByRole("table", { name: "한국 산불 크기별 위성 감지율과 우연 기준" });
     expect(within(values).getAllByRole("rowheader").map((h) => h.textContent)).toEqual([
       "0.1 ha 미만",
@@ -244,6 +260,19 @@ describe("기법 페이지 05·06", () => {
     fireEvent.click(within(section.getByRole("group", { name: "나라 고르기" })).getByRole("button", { name: "BC" }));
     expect(await section.findByRole("img", { name: "BC 산불 크기별 위성 감지율과 우연 기준" })).toBeTruthy();
     expect(section.getByText("BC를 \"판단 보류\"로 둔 이유")).toBeTruthy();
+    expect(section.getByText("그리스를 \"판단 보류\"로 둔 이유")).toBeTruthy();
+    // 칠레 탭에만 200 ha 기준 안내, 마지막 칸 이름 "200 ha 이상", 0건 칸은 "공식 기록 없음"(9장 2차)
+    const chileNote = /칠레 CONAF 공식 기록은 200 ha 이상 산불만 담고 있어/;
+    expect(section.queryByText(chileNote)).toBeNull();
+    expect(section.queryAllByText("공식 기록 없음")).toHaveLength(0);
+    fireEvent.click(within(section.getByRole("group", { name: "나라 고르기" })).getByRole("button", { name: "칠레" }));
+    expect(await section.findByText(chileNote)).toBeTruthy();
+    // 주석은 탭을 바꾸면 바로, 표는 칠레 `/landing`을 받은 뒤에 그려진다
+    const chile = await section.findByRole("table", { name: "칠레 산불 크기별 위성 감지율과 우연 기준" });
+    const chileRows = within(chile).getAllByRole("row").slice(1).map((r) => r.textContent);
+    expect(chileRows[0]).toBe("0.1 ha 미만공식 기록 없음——");
+    expect(chileRows[4]).toContain("200 ha 이상");
+    expect(within(chile).queryByText("100 ha 이상")).toBeNull();
   });
 
   it("06: 사이트와 같은 칩 네 개, 대표 달 제목(배수·순위), 같은 달 25개 해", async () => {
@@ -329,12 +358,86 @@ describe("기법 페이지 04 그림 (서버 에러)", () => {
     const section = within(await screen.findByRole("region", { name: "센서를 하나의 자로 맞추기" }));
     const retry = await section.findByRole("button", { name: "다시 시도" });
     expect(section.getByText("보정 사슬")).toBeTruthy();
-    expect(await screen.findAllByRole("button", { name: "다시 시도" })).toHaveLength(3);
+    // 그림 세 곳과 05 결과 표(위성끼리 단절의 보정 전이 `/landing`). 실패한 한국 칸은 "—"
+    expect(await screen.findAllByRole("button", { name: "다시 시도" })).toHaveLength(4);
+    const results = screen.getByRole("table", { name: "지역별 검증 결과" });
+    const satellite = within(results).getByRole("rowheader", { name: /^위성끼리/ }).closest("tr");
+    expect(satellite?.querySelectorAll("td")[0]?.textContent).toBe("—");
     down = false;
     fireEvent.click(retry);
     expect(await section.findByRole("img", { name: /한국 연간 화재 칸/ })).toBeTruthy();
     expect(await screen.findByRole("img", { name: /한국 산불 크기별 위성 감지율/ })).toBeTruthy();
     expect(await screen.findByRole("img", { name: /한국 2001–2025년 3월 화재 칸/ })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "다시 시도" })).toBeNull();
+  });
+
+  it("한 나라 /meta가 실패하면 03·04·05 표 아래에 다시 시도, 그 나라 칸만 —, 다시 시도하면 채워진다(9장 3차)", async () => {
+    vi.stubEnv("VITE_API_MODE", "live");
+    vi.stubEnv("VITE_API_BASE", "https://api.test/api/v1");
+    vi.stubGlobal("fetch", fetchMock);
+    let down = true;
+    fetchMock.mockImplementation(async (input) => {
+      const path = String(input).replace("https://api.test/api/v1", "");
+      if (down && path === "/GRC/meta") {
+        return new Response(JSON.stringify({ code: "UPSTREAM_UNAVAILABLE", message: "x" }), { status: 503 });
+      }
+      return new Response(JSON.stringify(await mockGet(path)), { status: 200 });
+    });
+    renderRoute("/method");
+    const retries = await screen.findAllByRole("button", { name: "다시 시도" });
+    expect(retries).toHaveLength(3);
+    const grid = screen.getByRole("table", { name: /칸 크기별로/ });
+    const used = within(grid).getByRole("rowheader", { name: "0.01° (사용)" }).closest("tr");
+    expect(used?.textContent).toBe("0.01° (사용)0.92 · 14.9%0.98 · 7.4%0.96 · 8.6%—0.88 · 10.5%0.84 · 9.5%");
+    down = false;
+    fireEvent.click(retries[0] as HTMLElement);
+    await waitFor(() => expect(used?.textContent).toContain("0.97 · 6.4%"));
+    expect(screen.queryByRole("button", { name: "다시 시도" })).toBeNull();
+  });
+});
+
+describe("기법 페이지 표 (옛 서버)", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    fetchMock.mockReset();
+  });
+
+  it("/meta에 method_stats가 없으면(백엔드 dfea737 전) 페이지가 깨지지 않고 그 칸만 —", async () => {
+    vi.stubEnv("VITE_API_MODE", "live");
+    vi.stubEnv("VITE_API_BASE", "https://api.test/api/v1");
+    vi.stubGlobal("fetch", fetchMock);
+    fetchMock.mockImplementation(async (input) => {
+      const path = String(input).replace("https://api.test/api/v1", "");
+      const body: unknown = await mockGet(path);
+      if (path === "/GRC/meta" && typeof body === "object" && body !== null) {
+        const old = { ...(body as Record<string, unknown>) };
+        delete old.method_stats;
+        return new Response(JSON.stringify(old), { status: 200 });
+      }
+      return new Response(JSON.stringify(body), { status: 200 });
+    });
+    renderRoute("/method");
+    const coef = await screen.findByRole("table", { name: "보정 계수별 겹침 기간과 한 해씩 빼고 맞힌 연간 오차" });
+    const kT = within(coef).getByRole("rowheader", { name: "k_T: Terra → Terra 또는 Aqua" }).closest("tr");
+    await waitFor(() => expect(kT?.textContent).toBe("k_T: Terra → Terra 또는 Aqua2003–201111.2%4.6%2.6%—11.4%22.5%"));
+    const grid = screen.getByRole("table", { name: /칸 크기별로/ });
+    expect(within(grid).getByRole("rowheader", { name: "0.01° (사용)" }).closest("tr")?.textContent).toContain("8.6%—0.88");
+    // 05: 단절 두 줄은 서버 값이 그대로, 노트북 숫자 줄만 —
+    const results = screen.getByRole("table", { name: "지역별 검증 결과" });
+    await waitFor(() => expect(within(results).getByText("2.80 → 1.01 [0.98–1.04]")).toBeTruthy());
+    expect(within(results).getByRole("rowheader", { name: /^한 해씩/ }).closest("tr")?.textContent).toContain("8.6%—10.5%");
+    expect(screen.queryByRole("button", { name: "다시 시도" })).toBeNull();
+  });
+});
+
+describe("기법 페이지 표 영어", () => {
+  it("05 결과 표: 판단 보류·칠레 덧말과 백분율이 영어로", async () => {
+    renderRoute("/en/method");
+    const results = await screen.findByRole("table", { name: "Validation results by region" });
+    await waitFor(() => expect(within(results).getByText("2.38 → 0.96 (records of 200 ha and over)")).toBeTruthy());
+    expect(within(results).getByText("1.96 → 0.71 · inconclusive")).toBeTruthy();
+    const loyo = within(results).getByRole("rowheader", { name: /^Leave-one-year-out/ }).closest("tr");
+    expect(loyo?.textContent).toContain("14.9%7.4%8.6%6.4%10.5%9.5%");
   });
 });
