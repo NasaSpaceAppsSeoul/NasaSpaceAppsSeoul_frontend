@@ -61,6 +61,10 @@ describe("목록 (5장)", () => {
     const items = within(card).getAllByRole("listitem");
     expect(items).toHaveLength(detail.neighbors.length);
     expect(within(card).getByRole("button", { name: "상위 5개만 보기" }).getAttribute("aria-expanded")).toBe("true");
+    // 다시 접으면 5곳
+    fireEvent.click(within(card).getByRole("button", { name: "상위 5개만 보기" }));
+    expect(within(card).getAllByRole("listitem")).toHaveLength(5);
+    fireEvent.click(within(card).getByRole("button", { name: `${detail.neighbors.length}개 지역 모두 보기` }));
     expect(within(card).getByRole("list").tagName).toBe("OL");
     // 한 줄: 순번 · 이름 · 값("1안동시220 화재 감지일")
     const nameOf = (li: HTMLElement) => li.querySelector("a")?.textContent ?? "";

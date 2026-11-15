@@ -68,7 +68,8 @@ function YearBars({ scope, insight, bars, year }: { scope: InsightScope; insight
     name: String(bar.year),
     value: bar.v,
     valueText: formatFireDays(bar.v, locale),
-    title: `${bar.year} · ${formatFireDays(bar.v, locale)}${bar.partial ? ` · ${t.years.partialBar}` : ""}`,
+    // 고른 해는 색만이 아니라 읽는 이름에도 밝힌다(예전 표의 "선택 연도" 열 대신)
+    title: `${bar.year} · ${formatFireDays(bar.v, locale)}${bar.partial ? ` · ${t.years.partialBar}` : ""}${bar.year === year ? ` · ${t.years.selectedBar}` : ""}`,
     tone: bar.year === year ? "accent" : "base",
     partial: bar.partial,
   }));

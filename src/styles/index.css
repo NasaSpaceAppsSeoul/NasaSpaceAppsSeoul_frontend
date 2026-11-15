@@ -187,7 +187,6 @@
   --color-heat-dot: rgba(8, 9, 11, 0.27); /* 센서 환산값 점무늬(시안 `.converted`) */
   --color-heat-hatch: #7d7d81; /* 관측 자료 없음 빗금 선, 바탕은 border */
   /* 집계 중 진한 갈색 점선. 시안에 없는 칸이라, 밝은 달력 칸 8단계 모두에서 3:1 이상 보이게 진하게 정했다 */
-  --color-heat-partial: #3d1f0a;
   /* 집계 중 점 바깥 점선 고리(어두운 바탕 위라 밝은 앰버, 시안 보정 후 글자색) */
   --color-heat-partial-ring: #e99a60;
   --color-heat-future: #737d89; /* 아직 집계 전 점선(시안 `.future`) */

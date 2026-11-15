@@ -188,7 +188,6 @@ export const ko = {
     body: "페이지를 다시 불러와 주세요. 문제가 계속되면 처음 화면에서 다시 시작해 주세요.",
     reload: "다시 불러오기",
   },
-  // 디자인 푸터. 출처와 데이터 처리일은 `/meta` 값으로 채운다
   // 푸터(참고 소스 `burnline-landing 6` 첫 화면 문구 그대로, 2026-11-15)
   footer: {
     brand: "Burnline",
@@ -254,7 +253,7 @@ export const ko = {
     // 지도 아래 목록 머리 오른쪽 지역 수(참고 소스 `.db-region-meta`, 2026-11-15)
     regionCount: (n: number) => `${n}개 지역`,
     listExpand: (n: number) => `${n}개 지역 모두 보기`,
-    listCollapse: "상위 5개만 보기",
+    listCollapse: (n: number) => `상위 ${n}개만 보기`,
     top: {
       title: "평소보다 두드러진 곳",
       sub: (lv2: string) => `각 ${lv2}의 지난 같은 달 기록과 비교해 두드러진 순서입니다.`,
@@ -662,21 +661,13 @@ export const ko = {
         `이 비교는 ${from}–${to}년의 ${monthName} 기록만 사용합니다. 모든 값은 NOAA-20 기준 화재 감지일입니다.`,
       currentFailed: "올해 값을 불러오지 못했습니다.",
       partialBar: "집계 중",
+      selectedBar: "선택 연도",
       chartLabel: (monthName: string) => `해마다 ${monthName}의 화재 감지일 막대 그래프`,
     },
     detected: {
-      eyebrow: "불이 감지된 해",
-      title: "불이 감지된 해부터 살펴보세요.",
-      lead: (total: number, detected: number) => `${total}개년 중 감지가 있었던 ${detected}개년입니다.`,
-      // 02 글 칸의 개수 한 줄(표를 뺀 뒤, 2026-11-15)
+      // 02 글 칸의 개수 한 줄과 드문 지역 안내(감지된 해 표는 2026-11-15에 뺐다)
       countLine: (total: number, detected: number) => `${total}개년 중 ${detected}개년에 감지가 있었습니다.`,
-      year: "연도",
-      value: (monthName: string) => `${monthName} 감지일`,
-      note: "안내",
-      selected: "선택 연도",
-      detected: "감지 있음",
       sparseNote: "감지가 드문 지역은 배수나 순위보다 실제 감지된 해와 선택한 달을 먼저 살펴보세요.",
-      empty: "감지된 해가 없습니다.",
     },
     official: {
       eyebrow: "공식 기록 대조",

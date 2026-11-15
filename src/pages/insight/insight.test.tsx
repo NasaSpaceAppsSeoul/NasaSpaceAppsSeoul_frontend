@@ -82,6 +82,9 @@ describe("월간 인사이트", () => {
     // 02: "감지된 해" 표는 뺐고(막대와 같은 숫자), 개수 한 줄만 글 칸에 남는다
     expect(screen.getByText(/^\d+개년 중 \d+개년에 감지가 있었습니다\.$/)).toBeTruthy();
     expect(screen.queryByRole("table", { name: "불이 감지된 해" })).toBeNull();
+    // 고른 해는 막대의 읽는 이름에도 밝힌다(표의 "선택 연도" 열 대신)
+    const years = screen.getByRole("region", { name: "다른 해의 같은 달" }).closest("section") as HTMLElement;
+    expect(within(years).getByRole("img").getAttribute("aria-label")).toContain("2025 · 384 · 선택 연도");
     expect(await screen.findByText("점은 의성군 안에서 감지된 칸만 표시합니다.")).toBeTruthy();
     expect(screen.getByText("경북의 계절 패턴 참고")).toBeTruthy();
     expect(screen.getByText(/공식 기록 41건 중 17건을 위성이 2일 안에 감지했습니다\(41%\)/)).toBeTruthy();

@@ -106,6 +106,7 @@ export function RegionListSection({ scope, navigate }: RegionListSectionProps) {
         />
       )}
     </div>,
-    { count: rows.length, month: data.month },
+    // 빈 목록이면 "0개 지역"을 말하지 않는다(빈 목록 문구가 대신 설명한다)
+    rows.length === 0 ? undefined : { count: rows.length, month: data.month },
   );
 }

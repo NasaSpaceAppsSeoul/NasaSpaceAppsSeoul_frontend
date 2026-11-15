@@ -73,9 +73,8 @@ export function DayCalendar({ leading, cells, weekdays, valueText, label, peakTe
 /**
  * 달력 범례 (참고안 `.in-legend`, 2026-11-15 디자이너): 한 줄에 이름 → 색 다섯 칸(우리 구간 0 / 1 / 2 / 3 / 4+) → 집계 전(점선)
  * → 파란 밑줄(최대 감지 묶음, 있을 때만), 아래 줄에 색 구간 설명. 12px, 견본 14px 둥근 3.
- * 구간 이름은 참고처럼 부등호로 쓴다(값은 우리 구간: 0 / ≤ 1 / ≤ 2 / ≤ 3 / > 3, 사용자).
+ * 구간 이름(부등호)은 `DAY_LEGEND`(`lib/insight`).
  */
-const LEGEND_LABEL: Record<HeatLevel, string> = { 0: "0", 1: "≤ 1", 2: "≤ 2", 3: "≤ 3", 4: "> 3" };
 type DayLegendProps = { title: string; future: string; cluster: string | null; note: string };
 
 export function DayLegend({ title, future, cluster, note }: DayLegendProps) {
@@ -88,7 +87,7 @@ export function DayLegend({ title, future, cluster, note }: DayLegendProps) {
             aria-hidden="true"
             className={`size-3.5 rounded-[3px] ${DAY_CLASS[item.level]} ${item.level === 0 ? "border border-white/14" : ""}`.trim()}
           />
-          {LEGEND_LABEL[item.level]}
+          {item.label}
         </span>
       ))}
       <span className="flex items-center gap-1.5">

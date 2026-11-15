@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
  * CSS `first:` 대신 `first`로 직접 정한다(감싸는 칸 구조와 상관없이 맨 위 절만 선이 없게). 제목·요지 크기는 대시보드 카드와 비슷하게
  * 기법 페이지보다 한 단계 작다(인사이트는 그림이 주인공이라 머리가 그림을 누르지 않게).
  * 예전 구역 머리의 작은 이름(eyebrow)이 절 제목, 질문 제목이 요지, 예전 설명(lead)은 요지 아래 흐린 본문(`note`)이다.
- * 카드는 그림(달력·막대·지도)에만 쓴다(`InsightPanel`). 표는 둥근 틀(`InsightTable framed`), 글은 판 없이 둔다.
+ * 참고안 테마(2026-11-15 디자이너): 그림 자리(`InsightPanel`)·표(`InsightTable framed`)·글 모두 판 없이 선과 글자색으로만 나눈다.
  */
 type InsightSectionProps = {
   id: string;

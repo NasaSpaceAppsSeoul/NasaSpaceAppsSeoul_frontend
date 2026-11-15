@@ -43,17 +43,6 @@ export function withCurrentYear(
   return [...bars, { year, v: current.value, partial: current.status === "partial" }].sort((a, b) => a.year - b.year);
 }
 
-export type DetectedYear = { year: number; v: number; selected: boolean };
-
-/** 감지된 해 표: `v > 0`인 해 전부(값 큰 순, 같으면 최근 해 먼저). 선택한 해는 0이어도 맨 위. 순위는 쓰지 않는다 */
-export function detectedYears(bars: readonly StripRow[], year: number): DetectedYear[] {
-  const selected = bars.find((row) => row.year === year);
-  const rest = bars
-    .filter((row) => row.year !== year && row.v > 0)
-    .sort((a, b) => b.v - a.v || b.year - a.year)
-    .map((row) => ({ year: row.year, v: row.v, selected: false }));
-  return selected === undefined ? rest : [{ year: selected.year, v: selected.v, selected: true }, ...rest];
-}
 
 export type YearsCount = { detected: number; total: number; from: number; to: number };
 
@@ -137,12 +126,13 @@ export function headTiles({ month, head, calendar, strip }: HeadInput): HeadTile
 
 /** 달력 칸 색 단계: 디자인 고정 0 / 1 / 2 / 3 / 4+ (결정 ①, 하루 칸 수의 척도는 백엔드에 없다) */
 export const DAY_BINS: readonly number[] = [2, 3, 4];
+/** 달력 범례 구간 이름(참고안처럼 부등호, 값은 그날 화재 칸 수 0 / 1 / 2 / 3 / 4 이상, 2026-11-15 사용자) */
 export const DAY_LEGEND: readonly { level: HeatLevel; label: string }[] = [
   { level: 0, label: "0" },
-  { level: 1, label: "1" },
-  { level: 2, label: "2" },
-  { level: 3, label: "3" },
-  { level: 4, label: "4+" },
+  { level: 1, label: "≤ 1" },
+  { level: 2, label: "≤ 2" },
+  { level: 3, label: "≤ 3" },
+  { level: 4, label: "> 3" },
 ];
 
 export type DayCell = {

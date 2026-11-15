@@ -23,7 +23,7 @@ type RegionListProps = {
   label: string;
   /** 펼치기·접기 버튼 글자 */
   expandLabel: (count: number) => string;
-  collapseLabel: string;
+  collapseLabel: (count: number) => string;
 };
 
 /** 접힌 상태에서 보이는 줄 수(참고 소스와 같이 5) */
@@ -39,14 +39,15 @@ export function RegionList({ rows: all, headLabel, unit, label, expandLabel, col
   const half = Math.ceil(rows.length / 2);
   // 참고 `.db-list-head`: 12px 흐린 색, 순번 칸(28)과 사이(12)만큼 들여 쓴다, 아래 흰 14% 선. 표 머리처럼 보이기만 하고 읽지 않는다
   const head = (
-    <div className="flex justify-between border-b border-white/14 pb-2 pl-10 text-xs text-[#aeb7c3]">
+    // `display: contents` 부모의 aria-hidden을 무시하는 브라우저가 있어 머리 줄마다 숨긴다
+    <div aria-hidden="true" className="flex justify-between border-b border-white/14 pb-2 pl-10 text-xs text-[#aeb7c3]">
       <span>{headLabel}</span>
       <span>{unit}</span>
     </div>
   );
   return (
     <div className={split ? "grid grid-cols-2 gap-x-12" : ""}>
-      <div aria-hidden="true" className={split ? "contents" : ""}>
+      <div className={split ? "contents" : ""}>
         {head}
         {split && head}
       </div>
@@ -91,7 +92,7 @@ export function RegionList({ rows: all, headLabel, unit, label, expandLabel, col
           onClick={() => setExpanded((v) => !v)}
           className={`${split ? "col-span-2" : ""} flex w-full cursor-pointer items-center justify-center gap-2 pt-5 text-[11px] text-[#9cb7d9] hover:text-[#d1e4ff] focus-visible:outline-2 focus-visible:outline-selection`}
         >
-          {expanded ? collapseLabel : expandLabel(all.length)}
+          {expanded ? collapseLabel(FOLDED) : expandLabel(all.length)}
           <ChevronDownIcon className={`size-2.75 transition-transform ${expanded ? "rotate-180" : ""}`} />
         </button>
       )}
