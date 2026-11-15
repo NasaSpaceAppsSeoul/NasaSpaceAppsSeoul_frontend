@@ -79,7 +79,9 @@ describe("월간 인사이트", () => {
     // 선으로 나눈 번호 절 01~07(2026-11-15). 절 제목은 예전 구역의 작은 이름이고, 질문은 요지 문단이다
     expect(titles).toEqual(["일별 화재 활동", "다른 해의 같은 달", "공식 기록 대조", "계절적 맥락", "화재 칸과 감지 위치", "주변 지역", "해석 안내"]);
     expect(screen.getByText("3월 중 언제 화재 활동이 집중됐을까요?")).toBeTruthy();
-    expect(screen.getByRole("heading", { level: 3, name: "불이 감지된 해부터 살펴보세요." })).toBeTruthy();
+    // 02: "감지된 해" 표는 뺐고(막대와 같은 숫자), 개수 한 줄만 글 칸에 남는다
+    expect(screen.getByText(/^\d+개년 중 \d+개년에 감지가 있었습니다\.$/)).toBeTruthy();
+    expect(screen.queryByRole("table", { name: "불이 감지된 해" })).toBeNull();
     expect(await screen.findByText("점은 의성군 안에서 감지된 칸만 표시합니다.")).toBeTruthy();
     expect(screen.getByText("경북의 계절 패턴 참고")).toBeTruthy();
     expect(screen.getByText(/공식 기록 41건 중 17건을 위성이 2일 안에 감지했습니다\(41%\)/)).toBeTruthy();
@@ -113,7 +115,7 @@ describe("월간 인사이트", () => {
     const calendar = screen.getByRole("region", { name: "일별 화재 활동" }).closest("section");
     expect(calendar).not.toBeNull();
     expect(within(calendar as HTMLElement).getByText("자료를 불러오지 못했습니다.")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "불이 감지된 해부터 살펴보세요." })).toBeTruthy();
+    expect(screen.getByText(/^\d+개년 중 \d+개년에 감지가 있었습니다\.$/)).toBeTruthy();
 
     const before = insightCalls().length;
     fireEvent.click(within(screen.getByText("일부 정보를 불러오지 못했습니다.").closest("div") as HTMLElement).getByRole("button", { name: "다시 시도" }));
@@ -127,7 +129,7 @@ describe("월간 인사이트", () => {
     override = (path) => (path.includes("/insight/") ? json({ code: "INVALID_PARAM", message: "x" }, 400) : null);
     fireEvent.click(within(band).getByRole("button", { name: "다시 시도" }));
     expect(await screen.findByText(/다시 불러오지 못했습니다/)).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "불이 감지된 해부터 살펴보세요." })).toBeTruthy();
+    expect(screen.getByText(/^\d+개년 중 \d+개년에 감지가 있었습니다\.$/)).toBeTruthy();
   });
 
   it("/judgement만 실패하면 배지 자리에 안내와 다시 시도, 숫자는 그린다", async () => {
@@ -138,13 +140,12 @@ describe("월간 인사이트", () => {
     expect(card.getByText(fullText("384"))).toBeTruthy();
   });
 
-  it("2026년 달: /series 한 달을 받아 막대와 표에 2026을 붙인다", async () => {
+  it("2026년 달: /series 한 달을 받아 막대에 2026을 붙인다", async () => {
     renderRoute(`/insight/KOR/${UISEONG}?month=2026-03`);
-    // 표만 본다(같은 절의 막대 그림에도 "2026" 글자가 있다)
-    const table = await screen.findByRole("table", { name: "불이 감지된 해" });
-    await waitFor(() => expect(within(table).getByText("선택 연도")).toBeTruthy());
+    // 막대 그림의 읽는 이름에 해마다 값이 들어 있다(표는 뺐다)
+    const years = (await screen.findByRole("region", { name: "다른 해의 같은 달" })).closest("section") as HTMLElement;
+    await waitFor(() => expect(within(years).getByRole("img").getAttribute("aria-label")).toMatch(/2026 · /));
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes(`/series/${UISEONG}?from=2026-03&to=2026-03`))).toBe(true);
-    expect(within(table).getByText("2026")).toBeTruthy();
   });
 
   it("왼쪽 목차(2026-11-15): 절 7개, 누르면 해시만 바뀌고 달은 그대로", async () => {

@@ -667,6 +667,8 @@ export const ko = {
       eyebrow: "불이 감지된 해",
       title: "불이 감지된 해부터 살펴보세요.",
       lead: (total: number, detected: number) => `${total}개년 중 감지가 있었던 ${detected}개년입니다.`,
+      // 02 글 칸의 개수 한 줄(표를 뺀 뒤, 2026-11-15)
+      countLine: (total: number, detected: number) => `${total}개년 중 ${detected}개년에 감지가 있었습니다.`,
       year: "연도",
       value: (monthName: string) => `${monthName} 감지일`,
       note: "안내",

@@ -626,6 +626,7 @@ export const en: Messages = {
       eyebrow: "YEARS WITH DETECTIONS",
       title: "Start with the years that had detections.",
       lead: (total: number, detected: number) => `${detected} of ${total} years had detections.`,
+      countLine: (total: number, detected: number) => `${detected} of ${total} years had detections.`,
       year: "Year",
       value: (monthName: string) => `${monthName} grid-days`,
       note: "Note",
