@@ -11,6 +11,7 @@ import {
   needsCurrentYear,
   neighborRows,
   officialRows,
+  serverName,
   seasonView,
   showSparseNote,
   withCurrentYear,
@@ -235,12 +236,30 @@ describe("주변 지역", () => {
 
 describe("공식 기록·감지율·읽는 법", () => {
   it("면적 0은 빈칸, key는 겹치지 않는다", () => {
-    const rows = officialRows([
-      { date: "2025-03-22", place: "A", cause: "x", area_ha: 12 },
-      { date: "2025-03-22", place: "A", cause: "y", area_ha: 0 },
-    ]);
+    const rows = officialRows(
+      [
+        { date: "2025-03-22", place: "A", cause: "x", area_ha: 12 },
+        { date: "2025-03-22", place: "A", cause: "y", area_ha: 0 },
+      ],
+      {},
+    );
     expect(rows.map((r) => r.area)).toEqual([12, null]);
     expect(new Set(rows.map((r) => r.key)).size).toBe(2);
+  });
+
+  it("원인은 이름 표로 옮기고, 표에 없으면 받은 그대로. 장소는 바꾸지 않는다", () => {
+    const items = [
+      { date: "2025-03-22", place: "경북 의성 안계", cause: "번개", area_ha: 1 },
+      { date: "2025-03-23", place: "경북 의성 안평", cause: "처음 보는 원인", area_ha: 1 },
+      // 표의 키가 아니라 객체가 물려받은 이름(`toString`)은 번역으로 치지 않는다
+      { date: "2025-03-24", place: "B", cause: "toString", area_ha: 1 },
+    ];
+    expect(officialRows(items, { 번개: "Lightning" }).map((r) => r.cause)).toEqual(["Lightning", "처음 보는 원인", "toString"]);
+    expect(officialRows(items, { 번개: "Lightning" }).map((r) => r.place)).toEqual(["경북 의성 안계", "경북 의성 안평", "B"]);
+    // 한글 화면의 빈 표: 받은 그대로
+    expect(officialRows(items, {}).map((r) => r.cause)).toEqual(["번개", "처음 보는 원인", "toString"]);
+    expect(serverName("산림청", { 산림청: "Korea Forest Service" })).toBe("Korea Forest Service");
+    expect(serverName("CAL FIRE", { 산림청: "Korea Forest Service" })).toBe("CAL FIRE");
   });
 
   it("감지율: rate는 0~1, null이면 상자 없음", () => {
